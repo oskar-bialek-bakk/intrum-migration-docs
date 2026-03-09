@@ -1,0 +1,1 @@
+C:/GIT/Intrum/migration/scripts/create_staging_indexes.sql

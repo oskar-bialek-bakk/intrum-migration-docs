@@ -1,0 +1,1 @@
+C:/GIT/Intrum/migration/scripts/staging_column_descriptions.sql

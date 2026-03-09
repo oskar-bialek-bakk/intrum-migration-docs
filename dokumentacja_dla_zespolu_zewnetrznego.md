@@ -1,0 +1,1 @@
+C:/GIT/Intrum/migration/dokumentacja_dla_zespolu_zewnetrznego.md

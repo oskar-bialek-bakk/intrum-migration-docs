@@ -1,0 +1,1 @@
+C:/GIT/Intrum/migration/column_mapping.md
