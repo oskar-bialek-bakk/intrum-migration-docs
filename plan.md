@@ -132,3 +132,4 @@ For column-by-column mapping details see [column_mapping.md](column_mapping.md).
 | `operacja` | ⚠️ open | wplata/korekta type TBD; oplaty/prowizje subkonto TBD |
 | `zabezpieczenie` | 🔵 Stage 2+ only | Q1: which prod table (if any)? |
 | Multi-currency (28) | ⚠️ open | wyceny columns need adding to staging.sql |
+
