@@ -29,6 +29,14 @@ GO
 -- Drop existing tables (reverse dependency order)
 -- ============================================================
 
+-- Disable all FK constraints first so drops succeed in any order
+DECLARE @nocheck NVARCHAR(MAX) = N'';
+SELECT @nocheck = @nocheck +
+    'ALTER TABLE ' + QUOTENAME(SCHEMA_NAME(t.schema_id)) + '.' + QUOTENAME(t.name) +
+    ' NOCHECK CONSTRAINT ALL; '
+FROM sys.tables t WHERE t.is_ms_shipped = 0;
+IF LEN(@nocheck) > 0 EXEC sp_executesql @nocheck;
+
 DROP TABLE IF EXISTS dbo.zabezpieczenie;
 DROP TABLE IF EXISTS dbo.wierzytelnosc_rola;
 DROP TABLE IF EXISTS dbo.telefon;
@@ -470,6 +478,7 @@ CREATE TABLE dbo.ksiegowanie_dekret (
     ksd_kwota_wn_bazowa         DECIMAL(18,2) NULL,
     ksd_kwota_ma_bazowa         DECIMAL(18,2) NULL,
     ksd_wa_id                   INT           NULL,
+    ksd_ksksub_id               INT           NULL,
     mod_date                    DATETIME      NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_ksiegowanie_dekret  PRIMARY KEY (ksd_id),
     CONSTRAINT FK_ksd_ksiegowanie     FOREIGN KEY (ksd_ks_id)        REFERENCES dbo.ksiegowanie       (ks_id),
@@ -525,11 +534,13 @@ CREATE TABLE dbo.operacja (
     oper_beneficjent_nazwa           VARCHAR(500)  NULL,
     oper_remitter_nazwa              VARCHAR(500)  NULL,
     oper_konto                       VARCHAR(50)   NULL,
+    oper_do_id                       INT           NULL,
     mod_date                         DATETIME      NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_operacja PRIMARY KEY (oper_id),
     CONSTRAINT FK_operacja_wierzytelnosc    FOREIGN KEY (oper_wi_id)                REFERENCES dbo.wierzytelnosc (wi_id),
     CONSTRAINT FK_operacja_dokument_typ     FOREIGN KEY (oper_dokument_typ_prod_id) REFERENCES dbo.dokument_typ  (dot_id),
-    CONSTRAINT FK_operacja_dokument         FOREIGN KEY (oper_dokument_prod_id)     REFERENCES dbo.dokument      (do_id)
+    CONSTRAINT FK_operacja_dokument         FOREIGN KEY (oper_dokument_prod_id)     REFERENCES dbo.dokument      (do_id),
+    CONSTRAINT FK_operacja_dokument_do      FOREIGN KEY (oper_do_id)                REFERENCES dbo.dokument      (do_id)
 );
 
 CREATE TABLE dbo.sprawa_rola (
