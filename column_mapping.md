@@ -1,6 +1,6 @@
 # Intrum — Column Mapping: Staging → Production
 
-Per-table column mapping details for all 28 migration items.
+Per-table column mapping details for all 30 migration items.
 For planning overview, table index, and decisions log see [plan.md](plan.md).
 
 ---
@@ -435,16 +435,16 @@ Each staging `harmonogram` row represents one instalment. Migration creates a ch
 | — | `ks_zamkniete bit NOT NULL` | `1` default; `0` for unposted payments — ⚠️ see open question |
 | — | `ks_pierwotne bit NOT NULL` | `1` for initial document values (initial import); `0` for others — ⚠️ see open question |
 | — | `ks_na_rachunek_kontrahenta bit NOT NULL` | `0` always ✅ |
-| — | `ks_od_komornika bit NOT NULL` | `1` if payment from bailiff, else `0` — ⚠️ see open question |
+| — | `ks_od_komornika bit NOT NULL` | `CASE WHEN oper_typ_dekretu = 1 THEN 1 ELSE 0 END` for operacja-generated ksiegowanie; `0` for direct staging.ksiegowanie |
 
 **Flag resolution:**
 - `ks_zamkniete`: `1` when allocation to documents exists (has ksiegowanie_dekret rows linked to dokument); `0` for unallocated payments
 - `ks_pierwotne`: `1` for initial document values (harmonogram + primary operacja entries); `0` for payment allocations (alokacje wpłat)
 - `ks_na_rachunek_kontrahenta`: always `0` ✅
-- `ks_od_komornika`: **TBD** — no staging indicator identified yet
+- `ks_od_komornika`: `oper_typ_dekretu = 0` → `ks_od_komornika = 0`; `oper_typ_dekretu = 1` → `ks_od_komornika = 1` (operacja path only; direct ksiegowanie defaults to `0`)
 
 **Open questions:**
-- [ ] Q3: How to detect bailiff-origin payments (`ks_od_komornika = 1`)? No staging indicator identified yet.
+- [x] Q3: ~~How to detect bailiff-origin payments?~~ **Resolved:** `oper_typ_dekretu` on `operacja` is the indicator (0=normal, 1=bailiff). Applies to operacja-generated ksiegowanie only.
 
 ---
 
@@ -459,7 +459,7 @@ Each staging `harmonogram` row represents one instalment. Migration creates a ch
 | `ksd_data_naliczania_odsetek` | `ksd_data_naliczania_odsetek` | direct |
 | `ksd_kwota DECIMAL(18,2)` | `ksd_kwota_wn` / `ksd_kwota_ma` | depends on booking/operation type — ⚠️ see open question Q1 |
 | `ksd_uwagi` | ❌ not in prod | dropped |
-| `ksd_sp_id` | ❌ not in prod | dropped |
+| `ksd_sp_id` | `ksd_rb_id` | resolved via `sprawa.sp_rb_id` (JOIN staging `sprawa` ON `sp_id = ksd_sp_id → sp_rb_id`) |
 | `mod_date` | `aud_data` | trigger |
 | — | `ksd_data_wymagalnosci NOT NULL` | `do_data_wymagalnosci` via `ksd_do_id` JOIN `dokument`, **only for `ks_pierwotne = 1`** rows; fallback for `ks_pierwotne = 0` or `ksd_do_id IS NULL`: `2100-01-01` |
 
@@ -477,10 +477,10 @@ Each staging `harmonogram` row represents one instalment. Migration creates a ch
 
 **Business rule:** exactly one of ksd_kwota_wn / ksd_kwota_ma must be non-zero per row.
 - ksd_kwota_wn increases debt balance; ksd_kwota_ma decreases it
-- WN/MA determination: oper_strona unconfirmed as indicator — TBD (Q1)
+- WN/MA determination: `oper_strona` on `operacja` is the determinant (see table 23 for wn/ma mapping per `oper_rejestr_kod`)
 
 **Open questions:**
-- [ ] Q1: What staging field determines WN vs MA for operacja-generated dekrety? oper_strona unconfirmed.
+- [x] Q1: ~~What staging field determines WN vs MA?~~ **Resolved:** `oper_strona` on `operacja` is the determinant.
 
 ---
 
@@ -512,11 +512,11 @@ Staging `operacja` is bank transaction / financial operation data. It maps to:
 | Staging column | Note |
 |---|---|
 | `oper_id` | PK |
-| `oper_wi_id` | wierzytelnosc FK |
+| `oper_grupa_id INT` | grouping operation in one transaction |
 | `oper_waluta VARCHAR(3)` | currency code → resolve to `wa_id` via staging `waluta` |
-| `oper_strona VARCHAR(10)` | likely debit/credit side indicator (determines `ksd_kwota_wn` vs `ksd_kwota_ma`) |
-| `oper_rejestr_kod VARCHAR(20)` | register code — likely determines wplata vs korekta |
-| `oper_typ_dekretu VARCHAR(20)` | booking type — may also determine wn/ma split |
+| `oper_strona VARCHAR(10)` | determines wn vs ma, based on `oper_rejestr_kod` |
+| `oper_rejestr_kod VARCHAR(20)` | register code — determines is it wpłata/korekta/koszt/alokacja/nadpłata |
+| `oper_typ_dekretu VARCHAR(20)` | booking type — determines subkonto for `ksiegowanie_dekret` |
 | `oper_kwota` | total amount |
 | `oper_kwota_dekretu` | posting amount |
 | `oper_kwota_kapitalu` | capital portion → maps to capital ksk account |
@@ -532,9 +532,10 @@ Staging `operacja` is bank transaction / financial operation data. It maps to:
 | `oper_opis` | → `wpl_tytul` |
 
 **Transformation logic:**
-1. Each `operacja` row creates one `ksiegowanie` header (if not already existing)
-2. Per amount breakdown column (kapital, odsetki, odsetki_karne, oplaty, prowizje) → one `ksiegowanie_dekret` row per non-zero amount, each with the appropriate `ksk_id` for that account type
-3. Based on `oper_rejestr_kod` (or `oper_typ_dekretu`) → insert into `wplata` OR `korekta`
+1. Each `operacja` row with `oper_rejestr_kod` IN (`'wplata'`, `'korekta'`, `'umorzenie'`, `'koszt'`) creates one `ksiegowanie` header (if not already existing) and one `ksiegowanie_dekret` with amount from `oper_kwota_dekretu`
+2. Per amount breakdown in scope of one `dokument` and `oper_rejestr_kod = 'alokacja'` (kapital, odsetki, odsetki_karne, oplaty, prowizje) → one `ksiegowanie_dekret` row per non-zero amount, each with the appropriate `ksk_id` and `ksksub_id` for that account type
+3. If `oper_rejestr_kod = 'nadplata'` → one `ksiegowanie_dekret` with amount from `oper_kwota_dekretu`
+4. Based on `oper_rejestr_kod` (or `oper_typ_dekretu`) → insert into `wplata`, `korekta`, or `koszt`
 
 **wplata column mapping:**
 
@@ -561,12 +562,23 @@ Staging `operacja` is bank transaction / financial operation data. It maps to:
 | Odsetki umowne | 6 | NULL |
 | Odsetki ustawowe | 8 | NULL |
 | Opłaty | 10 | TBD |
-| Prowizje | 10 | TBD |
+| Prowizje | 10 | 22 |
+
+**wn/ma per oper_rejestr_kod:**
+
+| oper_rejestr_kod | wn/ma |
+|---|---|
+| wplata | wn |
+| umorzenie | wn |
+| koszt | ma |
+| korekta | ma |
+| alokacja | always opposite to the technical operacja in the same `oper_grupa_id` |
+| nadplata | ma |
 
 **Open questions:**
-- [ ] Q1: What values of oper_rejestr_kod or oper_typ_dekretu map to wplata vs korekta? TBD.
-- [ ] Q2: oplaty and prowizje both ksk_id=10 — how to distinguish via ksd_ksksub_id?
-- [ ] Q3: staging operacja table empty — when will test data be available?
+- [x] Q1: ~~wplata vs korekta determination~~ **Resolved:** `oper_rejestr_kod` values: `wplata`, `umorzenie`, `koszt`, `korekta` are technical; `alokacja`, `nadplata` are allocation rows.
+- [x] Q2: ~~oplaty/prowizje ksksub_id~~ **Resolved:** see mapping table above; prowizje = `ksksub_id=22`.
+- [x] Q4 (new): What `oper_rejestr_kod` values are technical? **Resolved:** `wplata`, `umorzenie`, `koszt`, `korekta`.
 
 ---
 
@@ -663,3 +675,41 @@ Prod `kurs_walut` columns: `kw_id INT NOT NULL` (PK), `kw_tabela VARCHAR(5)`, `k
 
 **Open questions:**
 - [ ] Q1: Should `waluta` / `kurs_walut` in staging be read-only reference copies (no UUID MERGE needed for these — populated directly from prod before migration run)?
+
+---
+
+### 29. `ksiegowanie_konto_subkonto` → `ksiegowanie_konto_subkonto` ✅
+
+Reference copy table — staging populated from prod before migration run. No IDENTITY on PK.
+
+| Staging column | Prod column | Note |
+|---|---|---|
+| `ksksub_id` | `ksksub_id` | PK |
+| `ksksub_ksk_id` | `ksksub_ksk_id` | direct → FK to `ksiegowanie_konto` |
+| `ksksub_nazwa` | `ksksub_nazwa` | direct |
+| `ksksub_etap` | `ksksub_etap` | direct |
+| `mod_date` | `aud_data` | trigger |
+| — | `aud_login` | trigger |
+| `ksksub_uuid` | `ksksub_uuid` | MERGE key for stages 2-5 |
+
+**Open questions:** none
+
+---
+
+### 30. `dokument_odsetki_przerwy` → `dokument_odsetki_przerwy` ✅
+
+Entity table. `dop_id` is IDENTITY in prod. Requires `dokument_odsetki_przerwy_typ` as reference copy in staging (populated from prod before migration run).
+
+| Staging column | Prod column | Note |
+|---|---|---|
+| `dop_id` | `dop_id` | PK (IDENTITY in prod) |
+| `dop_do_id` | `dop_do_id` | direct — resolve via `do_ext_id` |
+| `dop_data_od` | `dop_data_od` | direct |
+| `dop_data_do` | `dop_data_do` | direct |
+| `dop_dopt_id` | `dop_dopt_id` | direct → FK to `dokument_odsetki_przerwy_typ` |
+| `dop_licz_od_niewymagalnych` | `dop_licz_od_niewymagalnych bit NOT NULL` | direct; staging default `0` |
+| `dop_ak_id` | `dop_ak_id` | direct (nullable) |
+| `mod_date` | `aud_data` | trigger |
+| — | `aud_login` | trigger |
+
+**Open questions:** none

@@ -56,7 +56,10 @@ DROP TABLE IF EXISTS dbo.sprawa_rola_typ;
 DROP TABLE IF EXISTS dbo.sprawa_etap;
 DROP TABLE IF EXISTS dbo.sprawa_typ;
 DROP TABLE IF EXISTS dbo.ksiegowanie_typ;
+DROP TABLE IF EXISTS dbo.ksiegowanie_konto_subkonto;
 DROP TABLE IF EXISTS dbo.ksiegowanie_konto;
+DROP TABLE IF EXISTS dbo.dokument_odsetki_przerwy;
+DROP TABLE IF EXISTS dbo.dokument_odsetki_przerwy_typ;
 DROP TABLE IF EXISTS dbo.dokument_typ;
 DROP TABLE IF EXISTS dbo.kurs_walut;
 DROP TABLE IF EXISTS dbo.waluta;
@@ -142,6 +145,17 @@ CREATE TABLE dbo.ksiegowanie_konto (
     mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
     ksk_uuid    UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     CONSTRAINT PK_ksiegowanie_konto PRIMARY KEY (ksk_id)
+);
+
+-- Reference copy from dm_data_web_pipeline.dbo.ksiegowanie_konto_subkonto (populated before migration run)
+CREATE TABLE dbo.ksiegowanie_konto_subkonto (
+    ksksub_id    INT          NOT NULL,
+    ksksub_ksk_id INT         NOT NULL,
+    ksksub_nazwa  VARCHAR(400) NOT NULL,
+    ksksub_etap   INT          NULL,
+    ksksub_uuid   VARCHAR(50)  NULL,
+    CONSTRAINT PK_ksiegowanie_konto_subkonto PRIMARY KEY (ksksub_id),
+    CONSTRAINT FK_ksksub_ksk FOREIGN KEY (ksksub_ksk_id) REFERENCES dbo.ksiegowanie_konto (ksk_id)
 );
 
 CREATE TABLE dbo.ksiegowanie_typ (
@@ -401,6 +415,28 @@ CREATE TABLE dbo.dokument (
     CONSTRAINT PK_dokument PRIMARY KEY (do_id),
     CONSTRAINT FK_dokument_wierzytelnosc FOREIGN KEY (do_wi_id)  REFERENCES dbo.wierzytelnosc (wi_id),
     CONSTRAINT FK_dokument_dokument_typ  FOREIGN KEY (do_dot_id) REFERENCES dbo.dokument_typ  (dot_id)
+);
+
+-- Reference copy from dm_data_web_pipeline.dbo.dokument_odsetki_przerwy_typ (populated before migration run)
+CREATE TABLE dbo.dokument_odsetki_przerwy_typ (
+    dopt_id    INT          NOT NULL,
+    dopt_nazwa VARCHAR(MAX) NULL,
+    dopt_opis  VARCHAR(MAX) NULL,
+    CONSTRAINT PK_dokument_odsetki_przerwy_typ PRIMARY KEY (dopt_id)
+);
+
+CREATE TABLE dbo.dokument_odsetki_przerwy (
+    dop_id                      BIGINT   IDENTITY(1,1) NOT NULL,
+    dop_do_id                   INT      NULL,
+    dop_data_od                 DATETIME NULL,
+    dop_data_do                 DATETIME NULL,
+    dop_licz_od_niewymagalnych  BIT      NOT NULL DEFAULT 0,
+    dop_dopt_id                 INT      NOT NULL,
+    dop_ak_id                   INT      NULL,
+    mod_date                    DATETIME NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT PK_dokument_odsetki_przerwy PRIMARY KEY (dop_id),
+    CONSTRAINT FK_dop_do   FOREIGN KEY (dop_do_id)   REFERENCES dbo.dokument (do_id),
+    CONSTRAINT FK_dop_dopt FOREIGN KEY (dop_dopt_id) REFERENCES dbo.dokument_odsetki_przerwy_typ (dopt_id)
 );
 
 CREATE TABLE dbo.harmonogram (
