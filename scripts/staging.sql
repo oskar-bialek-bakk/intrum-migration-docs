@@ -29,13 +29,15 @@ GO
 -- Drop existing tables (reverse dependency order)
 -- ============================================================
 
--- Disable all FK constraints first so drops succeed in any order
-DECLARE @nocheck NVARCHAR(MAX) = N'';
-SELECT @nocheck = @nocheck +
+-- Drop all FK constraints first so DROP TABLE succeeds in any order
+DECLARE @dropfk NVARCHAR(MAX) = N'';
+SELECT @dropfk = @dropfk +
     'ALTER TABLE ' + QUOTENAME(SCHEMA_NAME(t.schema_id)) + '.' + QUOTENAME(t.name) +
-    ' NOCHECK CONSTRAINT ALL; '
-FROM sys.tables t WHERE t.is_ms_shipped = 0;
-IF LEN(@nocheck) > 0 EXEC sp_executesql @nocheck;
+    ' DROP CONSTRAINT ' + QUOTENAME(fk.name) + '; '
+FROM sys.foreign_keys fk
+JOIN sys.tables t ON fk.parent_object_id = t.object_id
+WHERE t.is_ms_shipped = 0;
+IF LEN(@dropfk) > 0 EXEC sp_executesql @dropfk;
 
 DROP TABLE IF EXISTS dbo.zabezpieczenie;
 DROP TABLE IF EXISTS dbo.wierzytelnosc_rola;
@@ -348,6 +350,8 @@ CREATE TABLE dbo.ksiegowanie (
     ks_data_operacji        DATE         NOT NULL,
     ks_uwagi                VARCHAR(200) NULL,
     ks_kst_id               INT          NOT NULL,
+    ks_pierwotne            BIT          NULL,
+    ks_korekta              BIT          NULL,
     mod_date                DATETIME     NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_ksiegowanie PRIMARY KEY (ks_id),
     CONSTRAINT FK_ksiegowanie_ksiegowanie_typ FOREIGN KEY (ks_kst_id) REFERENCES dbo.ksiegowanie_typ (kst_id)
@@ -467,6 +471,7 @@ CREATE TABLE dbo.ksiegowanie_dekret (
     ksd_do_id                   INT           NULL,
     ksd_kwota                   DECIMAL(18,2) NOT NULL,
     ksd_data_naliczania_odsetek DATE          NULL,
+    ksd_data_wymagalnosci       DATE          NULL,
     ksd_ksk_id                  INT           NOT NULL,
     ksd_uwagi                   VARCHAR(500)  NULL,
     ksd_sp_id                   INT           NULL,
