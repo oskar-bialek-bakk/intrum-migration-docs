@@ -222,7 +222,7 @@ All FK relationships that exist in staging must resolve. These are straightforwa
 | REF_20 | ksiegowanie_dekret → ksiegowanie | ksiegowanie_dekret | `... WHERE ksd_ks_id NOT IN (SELECT ks_id FROM ksiegowanie)` |
 | REF_21 | ksiegowanie_dekret → ksiegowanie_konto | ksiegowanie_dekret | `... WHERE ksd_ksk_id NOT IN (SELECT ksk_id FROM ksiegowanie_konto)` |
 | REF_22 | ksiegowanie_dekret → dokument (nullable) | ksiegowanie_dekret | `... WHERE ksd_do_id IS NOT NULL AND ksd_do_id NOT IN (SELECT do_id FROM dokument)` |
-| REF_23 | operacja → wierzytelnosc | operacja | `... WHERE oper_wi_id IS NOT NULL AND oper_wi_id NOT IN (SELECT wi_id FROM wierzytelnosc)` |
+| REF_23 | operacja → dokument | operacja | `... WHERE oper_do_id IS NOT NULL AND oper_do_id NOT IN (SELECT do_id FROM dokument)` |
 | REF_24 | sprawa → sprawa_typ | sprawa | `... WHERE sp_spt_id NOT IN (SELECT spt_id FROM sprawa_typ)` |
 | REF_25 | sprawa_etap → sprawa_typ | sprawa_etap | `... WHERE spe_spt_id NOT IN (SELECT spt_id FROM sprawa_typ)` |
 | REF_26 | dluznik → dluznik_typ | dluznik | `... WHERE dl_dt_id IS NOT NULL AND dl_dt_id NOT IN (SELECT dt_id FROM dluznik_typ)` |
@@ -230,6 +230,11 @@ All FK relationships that exist in staging must resolve. These are straightforwa
 | REF_28 | atrybut → atrybut_dziedzina (at_atd_id) | atrybut | `... WHERE at_atd_id NOT IN (SELECT atd_id FROM atrybut_dziedzina)` |
 | REF_29 | ksiegowanie → ksiegowanie_typ | ksiegowanie | `... WHERE ks_kst_id NOT IN (SELECT kst_id FROM ksiegowanie_typ)` |
 | REF_30 | dluznik.dl_plec → mapowanie.plec | dluznik | `... WHERE dl_plec IS NOT NULL AND dl_plec NOT IN (SELECT plec_kod FROM mapowanie.plec)` |
+| REF_31 | sprawa → sprawa_etap | sprawa | `... WHERE sp_spe_id NOT IN (SELECT spe_id FROM sprawa_etap)` |
+| REF_32 | akcja → akcja_typ (nullable) | akcja | `... WHERE ak_akt_id IS NOT NULL AND ak_akt_id NOT IN (SELECT akt_id FROM akcja_typ)` |
+| REF_33 | rezultat → akcja | rezultat | `... WHERE re_ak_id NOT IN (SELECT ak_id FROM akcja)` |
+| REF_34 | rezultat → rezultat_typ | rezultat | `... WHERE re_ret_id NOT IN (SELECT ret_id FROM rezultat_typ)` |
+| REF_35 | ksiegowanie_dekret → ksiegowanie_konto_subkonto | ksiegowanie_dekret | `... WHERE ksd_ksksub_id NOT IN (SELECT ksksub_id FROM ksiegowanie_konto_subkonto)` |
 
 ### 3.2 Technical checks (TECHNICAL)
 
@@ -287,6 +292,10 @@ These verify that staging NULLs won't cause silent failures or unexpected defaul
 | BIZ_13 | INFO | dluznik with no personal identifier (no PESEL, NIP, dowod, paszport) | Low data quality — record still migratable | `SELECT dl_id FROM dluznik WHERE dl_pesel IS NULL AND dl_nip IS NULL AND dl_dowod IS NULL AND dl_paszport IS NULL` |
 | BIZ_14 | INFO | `wierzytelnosc` with no associated `ksiegowanie` records | Debt claim never posted to accounting | `SELECT wi_id FROM wierzytelnosc wi WHERE NOT EXISTS (SELECT 1 FROM ksiegowanie_dekret ksd JOIN dokument d ON ksd.ksd_do_id=d.do_id WHERE d.do_wi_id=wi.wi_id)` |
 | BIZ_15 | WARNING | `harmonogram` records with no matching `wierzytelnosc` | Orphan schedule | TBD once prod table identified |
+| BIZ_16 | BLOCKING | Every `dokument` has a due date (via primary `ksiegowanie_dekret`) | Every document must have a due date | `SELECT do_id FROM dokument LEFT JOIN ksiegowanie_dekret ON ksd_do_id = do_id LEFT JOIN ksiegowanie ON ksd_ks_id = ks_id WHERE ks_pierwotne = 1 AND ks_korekta = 0 GROUP BY do_id HAVING MIN(ksd_data_wymagalnosci) IS NULL` |
+| BIZ_17 | INFO | `ksiegowanie` accounting date is in the future | Accounting date cannot be in the future | `SELECT ks_id FROM ksiegowanie WHERE ks_data_ksiegowania > GETDATE()` |
+| BIZ_18 | INFO | `ksiegowanie` operation date is in the future | Operation date cannot be in the future | `SELECT ks_id FROM ksiegowanie WHERE ks_data_operacji > GETDATE()` |
+| BIZ_19 | INFO | `wierzytelnosc` liability date is in the future | Liability agreement date cannot be in the future | `SELECT wi_id FROM wierzytelnosc WHERE wi_data_umowy > GETDATE()` |
 
 ---
 
@@ -346,7 +355,7 @@ ORDER BY
 | SQL | runnable check query against dm_staging |
 | Expected result | "0 rows returned = pass" |
 
-**Scope for external team:** REF_01–REF_34 (all referential), TECH_03–TECH_10 (blocking technical), BIZ_01, BIZ_02b, BIZ_05–BIZ_06, BIZ_08 (hard blocking business rules). Advisory: remaining BIZ_* and FMT_* checks.
+**Scope for external team:** REF_01–REF_35 (all referential), TECH_03–TECH_10 (blocking technical), BIZ_01, BIZ_02b, BIZ_05–BIZ_06, BIZ_08 (hard blocking business rules). Advisory: remaining BIZ_* and FMT_* checks.
 
 **Language:** The final deliverable document will be in **Polish**.
 
