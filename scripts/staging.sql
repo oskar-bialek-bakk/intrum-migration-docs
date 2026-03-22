@@ -73,6 +73,8 @@ DROP TABLE IF EXISTS dbo.dokument_odsetki_przerwy_typ;
 DROP TABLE IF EXISTS dbo.dokument_typ;
 DROP TABLE IF EXISTS dbo.kurs_walut;
 DROP TABLE IF EXISTS dbo.waluta;
+DROP TABLE IF EXISTS mapowanie.dodani_dluznicy;
+DROP TABLE IF EXISTS mapowanie.dodane_sprawy;
 DROP TABLE IF EXISTS mapowanie.plec;
 DROP TABLE IF EXISTS dbo.dluznik_typ;
 DROP TABLE IF EXISTS dbo.adres_typ;
@@ -123,6 +125,19 @@ CREATE TABLE mapowanie.plec (
     pm_pl_id    INT          NOT NULL,  -- references prod dbo.plec.pl_id
     pm_nazwa    VARCHAR(50)  NULL,
     CONSTRAINT PK_mapowanie_plec PRIMARY KEY (pm_kod)
+);
+
+-- Persistent staging→prod ID mapping tables (populated by iter2/iter4 via OUTPUT)
+CREATE TABLE mapowanie.dodani_dluznicy (
+    staging_dl_id INT NOT NULL,
+    prod_dl_id    INT NOT NULL,
+    CONSTRAINT PK_dodani_dluznicy PRIMARY KEY (staging_dl_id)
+);
+
+CREATE TABLE mapowanie.dodane_sprawy (
+    staging_sp_id INT NOT NULL,
+    prod_sp_id    INT NOT NULL,
+    CONSTRAINT PK_dodane_sprawy PRIMARY KEY (staging_sp_id)
 );
 
 CREATE TABLE dbo.adres_typ (
@@ -724,4 +739,69 @@ INSERT INTO configuration.threshold_config (cfg_key, cfg_value, cfg_note) VALUES
     ('max_dokumenty_per_wierzytelnosc', '20',  'Flag wierzytelnosc records with more than N dokument entries'),
     ('phone_min_digits',                '9',   'Minimum digit count for a valid phone number after stripping spaces/dashes/plus');
 
+-- ============================================================
+-- Migration infrastructure: ext_id columns on staging tables
+-- (stores prod PK after MERGE/INSERT for downstream FK resolution)
+-- Re-runnable: all ALTER TABLE guarded by IF NOT EXISTS.
+-- ============================================================
+GO
 
+-- Lookup table ext_id columns
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.adres_typ')        AND name = 'at_ext_id')
+    ALTER TABLE dbo.adres_typ        ADD at_ext_id   INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.dluznik_typ')       AND name = 'dt_ext_id')
+    ALTER TABLE dbo.dluznik_typ      ADD dt_ext_id   INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.telefon_typ')       AND name = 'tt_ext_id')
+    ALTER TABLE dbo.telefon_typ      ADD tt_ext_id   INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.dokument_typ')      AND name = 'dot_ext_id')
+    ALTER TABLE dbo.dokument_typ     ADD dot_ext_id  INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.ksiegowanie_konto') AND name = 'ksk_ext_id')
+    ALTER TABLE dbo.ksiegowanie_konto ADD ksk_ext_id INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.ksiegowanie_typ')   AND name = 'kst_ext_id')
+    ALTER TABLE dbo.ksiegowanie_typ  ADD kst_ext_id  INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.sprawa_rola_typ')   AND name = 'sprt_ext_id')
+    ALTER TABLE dbo.sprawa_rola_typ  ADD sprt_ext_id INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.sprawa_typ')        AND name = 'spt_ext_id')
+    ALTER TABLE dbo.sprawa_typ       ADD spt_ext_id  INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.atrybut_dziedzina') AND name = 'atd_ext_id')
+    ALTER TABLE dbo.atrybut_dziedzina ADD atd_ext_id INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.atrybut_rodzaj')    AND name = 'atr_ext_id')
+    ALTER TABLE dbo.atrybut_rodzaj   ADD atr_ext_id  INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.atrybut_typ')       AND name = 'att_ext_id')
+    ALTER TABLE dbo.atrybut_typ      ADD att_ext_id  INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.akcja_typ')         AND name = 'akt_ext_id')
+    ALTER TABLE dbo.akcja_typ        ADD akt_ext_id  VARCHAR(50) NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.rezultat_typ')      AND name = 'ret_ext_id')
+    ALTER TABLE dbo.rezultat_typ     ADD ret_ext_id  VARCHAR(50) NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.sprawa_etap')       AND name = 'spe_ext_id')
+    ALTER TABLE dbo.sprawa_etap      ADD spe_ext_id  INT NULL;
+
+-- Entity table ext_id columns
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.adres')   AND name = 'ad_ext_id')
+    ALTER TABLE dbo.adres   ADD ad_ext_id INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.mail')    AND name = 'ma_ext_id')
+    ALTER TABLE dbo.mail    ADD ma_ext_id INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.telefon') AND name = 'tn_ext_id')
+    ALTER TABLE dbo.telefon ADD tn_ext_id INT NULL;
+
+-- umowa_kontrahent: IDENTITY mapping column
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.umowa_kontrahent') AND name = 'uko_id_migracja')
+    ALTER TABLE dbo.umowa_kontrahent ADD uko_id_migracja INT NULL;
+
+PRINT 'staging.sql complete.';
+GO
