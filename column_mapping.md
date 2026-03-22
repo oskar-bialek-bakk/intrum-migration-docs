@@ -16,7 +16,6 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 | `at_uuid` | `at_uuid` | MERGE key for stages 2-5 |
 
 **ext_id mapping:** none (no natural ext_id candidate)
-**Open questions:** none
 
 ---
 
@@ -31,7 +30,6 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 | `dt_uuid` | `dt_uuid` | MERGE key for stages 2-5 |
 
 **ext_id mapping:** none
-**Open questions:** none
 
 ---
 
@@ -49,7 +47,6 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 | — | `dot_kolejnosc_rozksiegowania NOT NULL` | constant `1` |
 | — | `dot_kod` | NULL |
 
-**Open questions:** none
 
 ---
 
@@ -66,7 +63,6 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 | — | `ksk_kolejnosc_rozksiegowania NOT NULL` | `99` |
 | — | `ksk_czy_techniczne bit NOT NULL` | `0` — **TBD: verify per account after migration** |
 
-**Open questions:** none
 
 ---
 
@@ -80,7 +76,6 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 | — | `aud_login` | trigger |
 | `kst_uuid` | `kst_uuid` | MERGE key for stages 2-5 |
 
-**Open questions:** none
 
 ---
 
@@ -94,7 +89,6 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 | — | `aud_login` | trigger |
 | `sprt_uuid` | `sprt_uuid` | MERGE key for stages 2-5 |
 
-**Open questions:** none
 
 ---
 
@@ -108,7 +102,6 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 | — | `aud_login` | trigger |
 | `atd_uuid` | `atd_uuid` | MERGE key for stages 2-5 |
 
-**Open questions:** none
 
 ---
 
@@ -122,7 +115,6 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 | — | `aud_login` | trigger |
 | `atr_uuid` | `atr_uuid` | MERGE key for stages 2-5 |
 
-**Open questions:** none
 
 ---
 
@@ -143,7 +135,6 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 **atrybut_dziedzina mapping (atd_id):** 1=dokument, 2=wierzytelnosc, 3=dluznik, 4=sprawa
 **atrybut_rodzaj mapping (atr_id):** 1=text, 2=date, 3=number, 4-7=dictionary
 
-**Open questions:** none
 
 ---
 
@@ -174,7 +165,7 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 **How current etap is tracked in prod:**
 No `sp_spe_id` column on prod `sprawa`. Instead: current etap = last `akcja` (ordered by `ak_zakonczono` DESC) whose `ak_akt_id` matches a `sprawa_etap_typ.spet_akt_id`. This is handled automatically by the regular `akcja` migration (table 16) — staging `akcja.ak_data_zakonczenia` maps to prod `ak_zakonczono`, so no separate akcja inserts are needed here.
 
-**Open questions:** none (scripting dependency: must run after `akcja_typ` is populated; etap tracking akcja records come from table 16)
+**Note:** must run after `akcja_typ` is populated; etap tracking akcja records come from table 16
 
 ---
 
@@ -188,7 +179,6 @@ No `sp_spe_id` column on prod `sprawa`. Instead: current etap = last `akcja` (or
 | — | `aud_login` | trigger |
 | `tt_uuid` | `tnt_uuid` | MERGE key for stages 2-5 |
 
-**Open questions:** none
 
 ---
 
@@ -215,7 +205,6 @@ No `sp_spe_id` column on prod `sprawa`. Instead: current etap = last `akcja` (or
 | — | `dl_ext_id` | store staging `dl_id` |
 | staging `dl_id` | **NOT mapped to prod `dl_id`** | prod `dl_id` is IDENTITY — auto-generated; staging `dl_id` → `dl_ext_id` only |
 
-**Open questions:** none
 
 ---
 
@@ -246,7 +235,6 @@ No `sp_spe_id` column on prod `sprawa`. Instead: current etap = last `akcja` (or
 
 **prod operator table columns (for reference):** `op_id` (PK), `op_sp_id` (NOT NULL), `op_us_id` (NOT NULL), `op_opt_id` (NOT NULL), `op_data_od` (NOT NULL), `op_data_do` (NULL), `op_zastepstwo bit` (NOT NULL)
 
-**Open questions:** none
 
 ---
 
@@ -270,7 +258,6 @@ No `sp_spe_id` column on prod `sprawa`. Instead: current etap = last `akcja` (or
 1. INSERT into prod `wierzytelnosc` (`wi_numer`, `wi_tytul`, `wi_data_umowy`, `wi_wt_id = 1`, `wi_uko_id = staging wi_uko_id`, `wi_ext_id = staging wi_id`, `wi_uuid = NEWID()`) → capture prod `wi_id` via `OUTPUT inserted.wi_id, inserted.wi_ext_id` into `#wi_mapping`
 2. INSERT into prod `wierzytelnosc_rola` for each row: `wir_wi_id` = prod wi_id (from `#wi_mapping WHERE wi_ext_id = staging wi_id`), `wir_sp_id` = prod sp_id (`WHERE sp_ext_id = staging wi_sp_id`), `wir_wirt_id = 1`, plus defaults from table 26
 
-**Open questions:** none
 
 ---
 
@@ -294,7 +281,6 @@ No `sp_spe_id` column on prod `sprawa`. Instead: current etap = last `akcja` (or
 | — | `ad_zpi_id NOT NULL → zrodlo_pochodzenia_informacji` | `2` (external system) |
 | — | `ad_tworzacy_us_id NOT NULL` | `@system_admin_user_id` (variable — see global conventions) |
 
-**Open questions:** none
 
 ---
 
@@ -341,7 +327,7 @@ Staging row contains merged action+result data. Dedicated staging tables `akcja_
 7. INSERT prod `akcja` — resolve `ak_akt_id` by joining staging `akcja_typ` → prod `akcja_typ` ON `akt_uuid`; `ak_kolejnosc = 0`, `ak_interwal = 0`, `ak_ext_id = staging ak_id`
 8. INSERT prod `rezultat` from staging `rezultat` — resolve `re_ak_id` via `ak_ext_id`, resolve `re_ret_id` by joining staging `rezultat_typ` → prod `rezultat_typ` ON `ret_uuid`
 
-**Open questions:** none
+**Notes:**
 - `akt_rodzaj` + `akt_ikona`: set manually per row in staging `akcja_typ` before migration
 - `rezultat`: migrate all rows from staging `rezultat` regardless of count per `akcja` (1:1 or many both handled by the join)
 
@@ -372,7 +358,6 @@ Staging `at_ob_id` is an object reference — could be a dluznik, sprawa, or wie
    - 3 → INSERT into `atrybut_dluznik` (`atdl_atw_id = atw_id`, `atdl_dl_id = prod.dl_id WHERE dl_ext_id = at_ob_id`)
    - 4 → INSERT into `atrybut_sprawa` (`atsp_atw_id = atw_id`, `atsp_sp_id = prod.sp_id WHERE sp_ext_id = at_ob_id`)
 
-**Open questions:** none
 
 ---
 
@@ -390,7 +375,6 @@ Staging `at_ob_id` is an object reference — could be a dluznik, sprawa, or wie
 | `mod_date` | `aud_data` | trigger |
 | — | `do_uko_id NOT NULL → umowa_kontrahent` | JOIN `wierzytelnosc` via `do_wi_id`: `do_uko_id = wi_uko_id WHERE wi_id = do_wi_id` |
 
-**Open questions:** none
 
 ---
 
@@ -408,21 +392,19 @@ Each staging `harmonogram` row represents one instalment. Migration creates a ch
 | — | `ksd_kwota_ma`, `ksd_ksk_id = 1` | balancing MA dekret = SUM of non-zero WN amounts |
 
 **Transformation logic per harmonogram row:**
-1. INSERT `dokument` (`do_wi_id`, `do_data_wystawienia = hr_data_raty`, `do_data_wymagalnosci = hr_data_raty`, `do_dot_id = ?`, `do_uko_id` via wierzytelnosc join, `do_ext_id = hr_id`) → capture `do_id`
-2. INSERT `ksiegowanie` (`ks_data_ksiegowania = hr_data_raty`, `ks_data_operacji = hr_data_raty`, `ks_kst_id = ?`, `ks_pierwotne = 1`, `ks_zamkniete = 1`, `ks_na_rachunek_kontrahenta = 0`, `ks_od_komornika = 0`) → capture `ks_id`
+1. INSERT `dokument` (`do_wi_id`, `do_data_wystawienia = hr_data_raty`, `do_data_wymagalnosci = hr_data_raty`, `do_dot_id = 20` (Kapital), `do_uko_id` via wierzytelnosc join, `do_ext_id = hr_id`) → capture `do_id`
+2. INSERT `ksiegowanie` (`ks_data_ksiegowania = hr_data_raty`, `ks_data_operacji = hr_data_raty`, `ks_kst_id = 2` (wplata), `ks_pierwotne = 1`, `ks_zamkniete = 1`, `ks_na_rachunek_kontrahenta = 0`, `ks_od_komornika = 0`) → capture `ks_id`
 3. If `hr_kwota_kapitalu > 0`: INSERT `ksiegowanie_dekret` (`ksd_ksk_id = 2`, `ksd_kwota_wn = hr_kwota_kapitalu`, `ksd_kwota_ma = 0`, `ksd_data_wymagalnosci = hr_data_raty`)
 4. If `hr_kwota_odsetek > 0`: INSERT `ksiegowanie_dekret` (`ksd_ksk_id = 6`, `ksd_kwota_wn = hr_kwota_odsetek`, `ksd_kwota_ma = 0`, `ksd_data_wymagalnosci = hr_data_raty`)
 5. Always INSERT balancing dekret: `ksd_ksk_id = 1`, `ksd_kwota_wn = 0`, `ksd_kwota_ma = SUM of non-zero WN amounts`
 
 **Open questions:**
-- [ ] Q1: What `do_dot_id` (dokument_typ) to use for harmonogram-generated documents?
-- [ ] Q2: What `ks_kst_id` (ksiegowanie_typ) to use for harmonogram-generated ksiegowanie?
 - [ ] Q3: Is `hr_typ` used for `do_numer`/`do_tytul`, or is a fixed string sufficient?
 - [ ] Q4: Is `hr_kwota_odsetek` always umowne (ksk_id=6), or can it be ustawowe (8) or karne (5)?
 
 ---
 
-### 20. `ksiegowanie` → `ksiegowanie` 🔴
+### 20. `ksiegowanie` → `ksiegowanie`
 
 | Staging column | Prod column | Note |
 |---|---|---|
@@ -443,12 +425,10 @@ Each staging `harmonogram` row represents one instalment. Migration creates a ch
 - `ks_na_rachunek_kontrahenta`: always `0` ✅
 - `ks_od_komornika`: `oper_typ_dekretu = 0` → `ks_od_komornika = 0`; `oper_typ_dekretu = 1` → `ks_od_komornika = 1` (operacja path only; direct ksiegowanie defaults to `0`)
 
-**Open questions:**
-- [x] Q3: ~~How to detect bailiff-origin payments?~~ **Resolved:** `oper_typ_dekretu` on `operacja` is the indicator (0=normal, 1=bailiff). Applies to operacja-generated ksiegowanie only.
 
 ---
 
-### 21. `ksiegowanie_dekret` → `ksiegowanie_dekret` 🔴
+### 21. `ksiegowanie_dekret` → `ksiegowanie_dekret`
 
 | Staging column | Prod column | Note |
 |---|---|---|
@@ -457,9 +437,9 @@ Each staging `harmonogram` row represents one instalment. Migration creates a ch
 | `ksd_ksk_id` | `ksd_ksk_id` | direct |
 | `ksd_do_id` | `ksd_do_id` | direct (resolve via `do_ext_id`) |
 | `ksd_data_naliczania_odsetek` | `ksd_data_naliczania_odsetek` | direct |
-| `ksd_kwota DECIMAL(18,2)` | `ksd_kwota_wn` / `ksd_kwota_ma` | depends on booking/operation type — ⚠️ see open question Q1 |
+| `ksd_kwota DECIMAL(18,2)` | `ksd_kwota_wn` / `ksd_kwota_ma` | sign: `ksd_kwota > 0` → WN, `ksd_kwota < 0` → MA (for operacja path: per `oper_rejestr_kod` — see table 23) |
 | `ksd_uwagi` | ❌ not in prod | dropped |
-| `ksd_sp_id` | `ksd_rb_id` | resolved via `sprawa.sp_rb_id` (JOIN staging `sprawa` ON `sp_id = ksd_sp_id → sp_rb_id`) |
+| `ksd_sp_id` | `ksd_rb_id` | resolved via prod `sprawa.sp_rb_id` (JOIN prod `sprawa` ON `sp_ext_id = ksd_sp_id`; staging.sprawa has no `sp_rb_id`) |
 | `mod_date` | `aud_data` | trigger |
 | — | `ksd_data_wymagalnosci NOT NULL` | `do_data_wymagalnosci` via `ksd_do_id` JOIN `dokument`, **only for `ks_pierwotne = 1`** rows; fallback for `ks_pierwotne = 0` or `ksd_do_id IS NULL`: `2100-01-01` |
 
@@ -477,10 +457,8 @@ Each staging `harmonogram` row represents one instalment. Migration creates a ch
 
 **Business rule:** exactly one of ksd_kwota_wn / ksd_kwota_ma must be non-zero per row.
 - ksd_kwota_wn increases debt balance; ksd_kwota_ma decreases it
-- WN/MA determination: `oper_strona` on `operacja` is the determinant (see table 23 for wn/ma mapping per `oper_rejestr_kod`)
+- WN/MA determination: for direct staging.ksiegowanie_dekret rows — `ksd_kwota` sign; for operacja-path rows — per `oper_rejestr_kod` (see table 23)
 
-**Open questions:**
-- [x] Q1: ~~What staging field determines WN vs MA?~~ **Resolved:** `oper_strona` on `operacja` is the determinant.
 
 ---
 
@@ -497,11 +475,10 @@ Each staging `harmonogram` row represents one instalment. Migration creates a ch
 | — | `ma_tworzacy_us_id NOT NULL` | `@system_admin_user_id` (variable) |
 | — | `ma_uuid` | `NEWID()` |
 
-**Open questions:** none
 
 ---
 
-### 23. `operacja` → `ksiegowanie_dekret` + `wplata` / `korekta` 🔴
+### 23. `operacja` → `ksiegowanie_dekret` + `wplata` / `korekta`
 
 Staging `operacja` is bank transaction / financial operation data. It maps to:
 1. **Always** → `ksiegowanie_dekret` (one row per account/currency split)
@@ -575,10 +552,6 @@ Staging `operacja` is bank transaction / financial operation data. It maps to:
 | alokacja | always opposite to the technical operacja in the same `oper_grupa_id` |
 | nadplata | ma |
 
-**Open questions:**
-- [x] Q1: ~~wplata vs korekta determination~~ **Resolved:** `oper_rejestr_kod` values: `wplata`, `umorzenie`, `koszt`, `korekta` are technical; `alokacja`, `nadplata` are allocation rows.
-- [x] Q2: ~~oplaty/prowizje ksksub_id~~ **Resolved:** see mapping table above; prowizje = `ksksub_id=22`.
-- [x] Q4 (new): What `oper_rejestr_kod` values are technical? **Resolved:** `wplata`, `umorzenie`, `koszt`, `korekta`.
 
 ---
 
@@ -596,7 +569,6 @@ Staging `operacja` is bank transaction / financial operation data. It maps to:
 | — | `spr_data_od datetime NOT NULL` | staging `mod_date` |
 | — | `spr_data_do datetime NOT NULL` | `9999-12-31` |
 
-**Open questions:** none
 
 ---
 
@@ -613,7 +585,6 @@ Staging `operacja` is bank transaction / financial operation data. It maps to:
 | — | `tn_zpi_id NOT NULL → zrodlo_pochodzenia_informacji` | `2` (external system) |
 | — | `tn_tworzacy_us_id NOT NULL` | `@system_admin_user_id` (variable) |
 
-**Open questions:** none
 
 ---
 
@@ -633,7 +604,6 @@ Staging `operacja` is bank transaction / financial operation data. It maps to:
 
 **Note:** This table will also receive auto-generated records from migrating `wierzytelnosc.wi_sp_id` (see table 14).
 
-**Open questions:** none
 
 ---
 
@@ -692,7 +662,6 @@ Reference copy table — staging populated from prod before migration run. No ID
 | — | `aud_login` | trigger |
 | `ksksub_uuid` | `ksksub_uuid` | MERGE key for stages 2-5 |
 
-**Open questions:** none
 
 ---
 
@@ -711,5 +680,3 @@ Entity table. `dop_id` is IDENTITY in prod. Requires `dokument_odsetki_przerwy_t
 | `dop_ak_id` | `dop_ak_id` | direct (nullable) |
 | `mod_date` | `aud_data` | trigger |
 | — | `aud_login` | trigger |
-
-**Open questions:** none
