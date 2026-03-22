@@ -373,6 +373,7 @@ CREATE TABLE dbo.adres (
     ad_panstwo      VARCHAR(100)  NULL,
     ad_at_id        INT           NOT NULL,
     ad_uwagi        VARCHAR(4000) NULL,
+    ad_data_do      DATE          NULL,
     mod_date        DATETIME      NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_adres PRIMARY KEY (ad_id),
     CONSTRAINT FK_adres_dluznik   FOREIGN KEY (ad_dl_id) REFERENCES dbo.dluznik   (dl_id),
