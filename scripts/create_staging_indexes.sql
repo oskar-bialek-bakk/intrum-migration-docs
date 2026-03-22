@@ -48,12 +48,17 @@ CREATE INDEX IX_atrybut_atd_ob ON dbo.atrybut (at_atd_id, at_ob_id);
 CREATE INDEX IX_atrybut_att_id ON dbo.atrybut (at_att_id);
 
 -- ksiegowanie_dekret: REF_20, REF_21, REF_22, BIZ_02b, BIZ_05, BIZ_06
-CREATE INDEX IX_ksd_ks_id  ON dbo.ksiegowanie_dekret (ksd_ks_id);
-CREATE INDEX IX_ksd_ksk_id ON dbo.ksiegowanie_dekret (ksd_ksk_id);
-CREATE INDEX IX_ksd_do_id  ON dbo.ksiegowanie_dekret (ksd_do_id);
+-- ksd_sp_id: iter8 JOIN to resolve prod sprawa via sp_ext_id
+-- ksd_ksksub_id: REF_35 validation
+CREATE INDEX IX_ksd_ks_id     ON dbo.ksiegowanie_dekret (ksd_ks_id);
+CREATE INDEX IX_ksd_ksk_id    ON dbo.ksiegowanie_dekret (ksd_ksk_id);
+CREATE INDEX IX_ksd_do_id     ON dbo.ksiegowanie_dekret (ksd_do_id);
+CREATE INDEX IX_ksd_sp_id     ON dbo.ksiegowanie_dekret (ksd_sp_id);
+CREATE INDEX IX_ksd_ksksub_id ON dbo.ksiegowanie_dekret (ksd_ksksub_id);
 
--- operacja: REF_23, REF_27
+-- operacja: REF_23 (oper_do_id → dokument), REF_27 (oper_waluta), iter8 JOIN
 CREATE INDEX IX_operacja_wi_id  ON dbo.operacja (oper_wi_id);
+CREATE INDEX IX_operacja_do_id  ON dbo.operacja (oper_do_id);
 CREATE INDEX IX_operacja_waluta ON dbo.operacja (oper_waluta);
 
 -- harmonogram: migration iter9 JOIN on hr_wi_id
@@ -62,4 +67,4 @@ CREATE INDEX IX_harmonogram_wi_id ON dbo.harmonogram (hr_wi_id);
 -- waluta: REF_27 lookup by ISO currency code (wa_nazwa_skrocona is not PK)
 CREATE INDEX IX_waluta_nazwa_skrocona ON dbo.waluta (wa_nazwa_skrocona);
 
-PRINT '>> All 23 staging indexes created.';
+PRINT '>> All 26 staging indexes created.';
