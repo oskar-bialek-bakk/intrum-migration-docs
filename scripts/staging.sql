@@ -73,6 +73,8 @@ DROP TABLE IF EXISTS dbo.dokument_odsetki_przerwy_typ;
 DROP TABLE IF EXISTS dbo.dokument_typ;
 DROP TABLE IF EXISTS dbo.kurs_walut;
 DROP TABLE IF EXISTS dbo.waluta;
+DROP TABLE IF EXISTS mapowanie.dodane_dokumenty;
+DROP TABLE IF EXISTS mapowanie.dodane_wierzytelnosci;
 DROP TABLE IF EXISTS mapowanie.dodani_dluznicy;
 DROP TABLE IF EXISTS mapowanie.dodane_sprawy;
 DROP TABLE IF EXISTS mapowanie.plec;
@@ -138,6 +140,18 @@ CREATE TABLE mapowanie.dodane_sprawy (
     staging_sp_id INT NOT NULL,
     prod_sp_id    INT NOT NULL,
     CONSTRAINT PK_dodane_sprawy PRIMARY KEY (staging_sp_id)
+);
+
+CREATE TABLE mapowanie.dodane_wierzytelnosci (
+    staging_wi_id INT NOT NULL,
+    prod_wi_id    INT NOT NULL,
+    CONSTRAINT PK_dodane_wierzytelnosci PRIMARY KEY (staging_wi_id)
+);
+
+CREATE TABLE mapowanie.dodane_dokumenty (
+    staging_do_id INT NOT NULL,
+    prod_do_id    INT NOT NULL,
+    CONSTRAINT PK_dodane_dokumenty PRIMARY KEY (staging_do_id)
 );
 
 CREATE TABLE dbo.adres_typ (

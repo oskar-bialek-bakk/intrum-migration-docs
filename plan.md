@@ -51,16 +51,16 @@
 | 16 | `akcja` | `akcja` + `akcja_typ` + `rezultat` + `rezultat_typ` | ✅ Ready to script |
 | 17 | `atrybut` | `atrybut_wartosc` + `atrybut_dluznik` / `atrybut_sprawa` / `atrybut_wierzytelnosc` | ✅ Ready to script |
 | 18 | `dokument` | `dokument` | ✅ Ready to script |
-| 19 | `harmonogram` | `dokument` + `ksiegowanie` + `ksiegowanie_dekret` chain | 🔴 Open questions |
-| 20 | `ksiegowanie` | `ksiegowanie` | 🔴 Open questions |
-| 21 | `ksiegowanie_dekret` | `ksiegowanie_dekret` | 🔴 Open questions |
+| 19 | `harmonogram` | `dokument` + `ksiegowanie` + `ksiegowanie_dekret` chain | ⚠️ Q3/Q4 skipped for now |
+| 20 | `ksiegowanie` | `ksiegowanie` | ✅ Ready to script |
+| 21 | `ksiegowanie_dekret` | `ksiegowanie_dekret` | ✅ Ready to script |
 | 22 | `mail` | `mail` | ✅ Ready to script |
-| 23 | `operacja` | `ksiegowanie_dekret` + `wplata` / `korekta` | 🔴 Open questions |
+| 23 | `operacja` | `ksiegowanie_dekret` + `wplata` / `korekta` | ✅ Ready to script |
 | 24 | `sprawa_rola` | `sprawa_rola` | ✅ Ready to script |
 | 25 | `telefon` | `telefon` | ✅ Ready to script |
 | 26 | `wierzytelnosc_rola` | `wierzytelnosc_rola` | ✅ Ready to script |
 | 27 | `zabezpieczenie` | ❓ No prod table found | 🔵 Stage 2+ only |
-| 28 | — | Multi-currency infrastructure | 🔴 Schema changes needed |
+| 28 | — | Multi-currency infrastructure | ✅ Resolved (read-only copies) |
 
 For column-by-column mapping details see [column_mapping.md](column_mapping.md).
 
@@ -126,10 +126,10 @@ For column-by-column mapping details see [column_mapping.md](column_mapping.md).
 
 | Table | Status | Remaining questions |
 |---|---|---|
-| `harmonogram` | ⚠️ open | Maps to dokument+ksiegowanie+ksd chain; Q1-4: dot_id, kst_id, hr_typ, interest type |
-| `ksiegowanie` | ⚠️ open | Q3 bailiff detection TBD (`ks_od_komornika`) |
-| `ksiegowanie_dekret` | ⚠️ open | Q1 WN/MA indicator TBD (`oper_strona` unconfirmed) |
-| `operacja` | ⚠️ open | wplata/korekta type TBD; oplaty/prowizje subkonto TBD |
-| `zabezpieczenie` | 🔵 Stage 2+ only | Q1: which prod table (if any)? |
-| Multi-currency (28) | ⚠️ open | wyceny columns need adding to staging.sql |
+| `harmonogram` | ⚠️ open | Q3: hr_typ → do_numer/do_tytul; Q4: interest type (ksk_id=6 or 5/8?) — skipped for now |
+| `ksiegowanie` | ✅ resolved | ks_od_komornika via oper_typ_dekretu; ks_zamkniete/ks_pierwotne flags documented |
+| `ksiegowanie_dekret` | ✅ resolved | WN/MA per oper_rejestr_kod documented |
+| `operacja` | ✅ resolved | oplaty ksksub_id=NULL; prowizje ksksub_id=22 |
+| `zabezpieczenie` | 🔵 Stage 2+ only | Deferred |
+| Multi-currency (28) | ✅ resolved | waluta/kurs_walut = read-only reference copies from prod |
 

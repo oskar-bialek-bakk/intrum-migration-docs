@@ -538,7 +538,7 @@ Staging `operacja` is bank transaction / financial operation data. It maps to:
 | Odsetki karne | 5 | NULL |
 | Odsetki umowne | 6 | NULL |
 | Odsetki ustawowe | 8 | NULL |
-| Opłaty | 10 | TBD |
+| Opłaty | 10 | NULL |
 | Prowizje | 10 | 22 |
 
 **wn/ma per oper_rejestr_kod:**
@@ -617,7 +617,7 @@ No matching table found in production DB. Deferred to Stage 2+.
 
 ---
 
-### 28. Multi-currency infrastructure 🔴
+### 28. Multi-currency infrastructure ✅
 
 New task: extend `ksiegowanie_dekret` with full multi-currency support and add `waluta` / `kurs_walut` to staging.
 
@@ -643,8 +643,7 @@ Prod `kurs_walut` columns: `kw_id INT NOT NULL` (PK), `kw_tabela VARCHAR(5)`, `k
 **Currency resolution for operacja migration:**
 `oper_waluta VARCHAR(3)` (ISO code) → look up `waluta.wa_id` WHERE `wa_nazwa_skrocona = oper_waluta`
 
-**Open questions:**
-- [ ] Q1: Should `waluta` / `kurs_walut` in staging be read-only reference copies (no UUID MERGE needed for these — populated directly from prod before migration run)?
+**Resolved:** `waluta` / `kurs_walut` in staging are read-only reference copies — populated directly from prod before migration run, no UUID MERGE needed.
 
 ---
 
