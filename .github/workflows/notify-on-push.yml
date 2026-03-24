@@ -21,127 +21,89 @@ jobs:
       - name: Zbierz informacje o commitach
         id: info
         run: |
-          AUTHOR="${{ github.actor }}"
-          SHA="${{ github.sha }}"
-          SHORT_SHA="${SHA:0:7}"
-          COMMIT_URL="${{ github.server_url }}/${{ github.repository }}/commit/${SHA}"
-          COMPARE_URL="${{ github.event.compare }}"
+          echo "author=${{ github.actor }}" >> "$GITHUB_OUTPUT"
+          echo "short_sha=${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
+          echo "commit_url=${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}" >> "$GITHUB_OUTPUT"
+          echo "compare_url=${{ github.event.compare }}" >> "$GITHUB_OUTPUT"
+          echo "timestamp=$(date -u '+%Y-%m-%d %H:%M UTC')" >> "$GITHUB_OUTPUT"
 
-          COMMIT_MSG=$(git log -1 --pretty=format:'%s')
-          COMMIT_BODY=$(git log -1 --pretty=format:'%b')
+          MSG=$(git log -1 --pretty=format:'%s')
+          echo "commit_msg=${MSG}" >> "$GITHUB_OUTPUT"
 
-          FILES_CHANGED=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "Brak informacji")
-          FILES_COUNT=$(echo "$FILES_CHANGED" | grep -c '.' || echo "0")
+          FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "Brak informacji")
+          COUNT=$(echo "$FILES" | grep -c '.' || echo "0")
+          echo "files_count=${COUNT}" >> "$GITHUB_OUTPUT"
 
-          # Truncate file list to 20
-          FILES_LIST=$(echo "$FILES_CHANGED" | head -20)
-          if [ "$FILES_COUNT" -gt 20 ]; then
-            REMAINING=$((FILES_COUNT - 20))
-            FILES_LIST="${FILES_LIST}
-          ...i ${REMAINING} więcej"
+          TRUNCATED=$(echo "$FILES" | head -20)
+          if [ "$COUNT" -gt 20 ]; then
+            REMAINING=$((COUNT - 20))
+            TRUNCATED="${TRUNCATED}"$'\n'"...i ${REMAINING} więcej"
           fi
 
-          TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M UTC')
-
-          # Save to env
-          {
-            echo "AUTHOR=${AUTHOR}"
-            echo "SHORT_SHA=${SHORT_SHA}"
-            echo "COMMIT_URL=${COMMIT_URL}"
-            echo "COMPARE_URL=${COMPARE_URL}"
-            echo "TIMESTAMP=${TIMESTAMP}"
-            echo "FILES_COUNT=${FILES_COUNT}"
-          } >> "$GITHUB_OUTPUT"
-
-          # Multiline values
-          {
-            echo "COMMIT_MSG<<EOF"
-            echo "$COMMIT_MSG"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
-          {
-            echo "FILES_LIST<<EOF"
-            echo "$FILES_LIST"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
+          EOF_MARKER="EOFFILES$(date +%s)"
+          echo "files_list<<${EOF_MARKER}" >> "$GITHUB_OUTPUT"
+          echo "$TRUNCATED" >> "$GITHUB_OUTPUT"
+          echo "${EOF_MARKER}" >> "$GITHUB_OUTPUT"
 
       - name: Wyślij powiadomienia e-mail
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           RECIPIENTS: ${{ inputs.test_email || secrets.EMAIL_RECIPIENTS }}
+          INFO_AUTHOR: ${{ steps.info.outputs.author }}
+          INFO_SHORT_SHA: ${{ steps.info.outputs.short_sha }}
+          INFO_COMMIT_URL: ${{ steps.info.outputs.commit_url }}
+          INFO_COMPARE_URL: ${{ steps.info.outputs.compare_url }}
+          INFO_TIMESTAMP: ${{ steps.info.outputs.timestamp }}
+          INFO_COMMIT_MSG: ${{ steps.info.outputs.commit_msg }}
+          INFO_FILES_COUNT: ${{ steps.info.outputs.files_count }}
+          INFO_FILES_LIST: ${{ steps.info.outputs.files_list }}
         run: |
           if [ -z "$RESEND_API_KEY" ]; then
             echo "::error::Brak sekretu RESEND_API_KEY"
             exit 1
           fi
-
           if [ -z "$RECIPIENTS" ]; then
-            echo "::error::Brak odbiorców — ustaw sekret EMAIL_RECIPIENTS lub podaj test_email"
+            echo "::error::Brak odbiorców - ustaw sekret EMAIL_RECIPIENTS lub podaj test_email"
             exit 1
           fi
 
-          # Build recipients JSON array from semicolon-separated list
           TO_JSON=$(echo "$RECIPIENTS" | tr ';' '\n' | sed 's/^ *//;s/ *$//' | grep -v '^$' | jq -R . | jq -s .)
 
-          # Sanitize dynamic content for HTML
-          sanitize() {
-            echo "$1" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g'
-          }
+          FILES_HTML=$(echo "$INFO_FILES_LIST" | jq -Rs . | sed 's/^"//;s/"$//' | sed 's/\\n/<br>/g')
 
-          SAFE_MSG=$(sanitize "${{ steps.info.outputs.COMMIT_MSG }}")
-          SAFE_AUTHOR=$(sanitize "${{ steps.info.outputs.AUTHOR }}")
-          SAFE_FILES=$(sanitize "${{ steps.info.outputs.FILES_LIST }}")
-
-          HTML_BODY=$(cat <<'HTMLEOF'
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <div style="background-color: #1a56db; color: white; padding: 16px 24px; border-radius: 8px 8px 0 0;">
-              <h2 style="margin: 0; font-size: 18px;">Dokumentacja migracji — aktualizacja</h2>
-            </div>
-            <div style="border: 1px solid #e5e7eb; border-top: none; padding: 24px; border-radius: 0 0 8px 8px;">
-              <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                  <td style="padding: 8px 0; color: #6b7280; width: 140px;">Autor:</td>
-                  <td style="padding: 8px 0;"><strong>__AUTHOR__</strong></td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; color: #6b7280;">Commit:</td>
-                  <td style="padding: 8px 0;"><a href="__COMMIT_URL__" style="color: #1a56db;">__SHORT_SHA__</a></td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; color: #6b7280;">Data (UTC):</td>
-                  <td style="padding: 8px 0;">__TIMESTAMP__</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; color: #6b7280; vertical-align: top;">Opis zmian:</td>
-                  <td style="padding: 8px 0;">__COMMIT_MSG__</td>
-                </tr>
-                <tr>
-                  <td style="padding: 8px 0; color: #6b7280; vertical-align: top;">Zmienione pliki (__FILES_COUNT__):</td>
-                  <td style="padding: 8px 0;"><pre style="margin: 0; font-size: 13px; background: #f3f4f6; padding: 12px; border-radius: 4px; overflow-x: auto;">__FILES_LIST__</pre></td>
-                </tr>
-              </table>
-              <div style="margin-top: 20px; text-align: center;">
-                <a href="__COMPARE_URL__" style="display: inline-block; background-color: #1a56db; color: white; padding: 10px 24px; border-radius: 6px; text-decoration: none;">Zobacz zmiany na GitHub</a>
-              </div>
-              <p style="margin-top: 24px; font-size: 12px; color: #9ca3af; text-align: center;">
-                To jest automatyczne powiadomienie z repozytorium intrum-migration-docs.
-              </p>
-            </div>
+          read -r -d '' HTML_TEMPLATE << 'ENDOFHTML' || true
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+          <div style="background-color:#1a56db;color:white;padding:16px 24px;border-radius:8px 8px 0 0">
+          <h2 style="margin:0;font-size:18px">Dokumentacja migracji - aktualizacja</h2>
           </div>
-          HTMLEOF
+          <div style="border:1px solid #e5e7eb;border-top:none;padding:24px;border-radius:0 0 8px 8px">
+          <table style="width:100%;border-collapse:collapse">
+          <tr><td style="padding:8px 0;color:#6b7280;width:140px">Autor:</td><td style="padding:8px 0"><strong>PLACEHOLDER_AUTHOR</strong></td></tr>
+          <tr><td style="padding:8px 0;color:#6b7280">Commit:</td><td style="padding:8px 0"><a href="PLACEHOLDER_COMMIT_URL" style="color:#1a56db">PLACEHOLDER_SHORT_SHA</a></td></tr>
+          <tr><td style="padding:8px 0;color:#6b7280">Data (UTC):</td><td style="padding:8px 0">PLACEHOLDER_TIMESTAMP</td></tr>
+          <tr><td style="padding:8px 0;color:#6b7280;vertical-align:top">Opis zmian:</td><td style="padding:8px 0">PLACEHOLDER_COMMIT_MSG</td></tr>
+          <tr><td style="padding:8px 0;color:#6b7280;vertical-align:top">Zmienione pliki (PLACEHOLDER_FILES_COUNT):</td><td style="padding:8px 0"><pre style="margin:0;font-size:13px;background:#f3f4f6;padding:12px;border-radius:4px">PLACEHOLDER_FILES_LIST</pre></td></tr>
+          </table>
+          <div style="margin-top:20px;text-align:center">
+          <a href="PLACEHOLDER_COMPARE_URL" style="display:inline-block;background-color:#1a56db;color:white;padding:10px 24px;border-radius:6px;text-decoration:none">Zobacz zmiany na GitHub</a>
+          </div>
+          <p style="margin-top:24px;font-size:12px;color:#9ca3af;text-align:center">To jest automatyczne powiadomienie z repozytorium intrum-migration-docs.</p>
+          </div>
+          </div>
+          ENDOFHTML
 
-          # Replace placeholders
-          HTML_BODY="${HTML_BODY//__AUTHOR__/$SAFE_AUTHOR}"
-          HTML_BODY="${HTML_BODY//__COMMIT_URL__/${{ steps.info.outputs.COMMIT_URL }}}"
-          HTML_BODY="${HTML_BODY//__SHORT_SHA__/${{ steps.info.outputs.SHORT_SHA }}}"
-          HTML_BODY="${HTML_BODY//__TIMESTAMP__/${{ steps.info.outputs.TIMESTAMP }}}"
-          HTML_BODY="${HTML_BODY//__COMMIT_MSG__/$SAFE_MSG}"
-          HTML_BODY="${HTML_BODY//__FILES_COUNT__/${{ steps.info.outputs.FILES_COUNT }}}"
-          HTML_BODY="${HTML_BODY//__FILES_LIST__/$SAFE_FILES}"
-          HTML_BODY="${HTML_BODY//__COMPARE_URL__/${{ steps.info.outputs.COMPARE_URL }}}"
+          SAFE_AUTHOR=$(echo "$INFO_AUTHOR" | sed 's/&/\&amp;/g;s/</\&lt;/g;s/>/\&gt;/g')
+          SAFE_MSG=$(echo "$INFO_COMMIT_MSG" | sed 's/&/\&amp;/g;s/</\&lt;/g;s/>/\&gt;/g')
 
-          # Build JSON payload using jq
+          HTML_BODY="${HTML_TEMPLATE//PLACEHOLDER_AUTHOR/$SAFE_AUTHOR}"
+          HTML_BODY="${HTML_BODY//PLACEHOLDER_COMMIT_URL/$INFO_COMMIT_URL}"
+          HTML_BODY="${HTML_BODY//PLACEHOLDER_SHORT_SHA/$INFO_SHORT_SHA}"
+          HTML_BODY="${HTML_BODY//PLACEHOLDER_TIMESTAMP/$INFO_TIMESTAMP}"
+          HTML_BODY="${HTML_BODY//PLACEHOLDER_COMMIT_MSG/$SAFE_MSG}"
+          HTML_BODY="${HTML_BODY//PLACEHOLDER_FILES_COUNT/$INFO_FILES_COUNT}"
+          HTML_BODY="${HTML_BODY//PLACEHOLDER_FILES_LIST/$FILES_HTML}"
+          HTML_BODY="${HTML_BODY//PLACEHOLDER_COMPARE_URL/$INFO_COMPARE_URL}"
+
           PAYLOAD=$(jq -n \
             --arg from "Intrum Migration <onboarding@resend.dev>" \
             --argjson to "$TO_JSON" \
@@ -149,7 +111,6 @@ jobs:
             --arg html "$HTML_BODY" \
             '{from: $from, to: $to, subject: $subject, html: $html}')
 
-          # Send via Resend API
           RESPONSE=$(curl -s -w "\n%{http_code}" \
             --retry 3 --retry-delay 5 \
             -X POST "https://api.resend.com/emails" \
@@ -163,8 +124,8 @@ jobs:
           echo "Resend response (HTTP ${HTTP_CODE}): ${BODY}"
 
           if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
-            echo "::error::Wysyłka e-mail nie powiodła się (HTTP ${HTTP_CODE})"
+            echo "::error::Wysylka e-mail nie powiodla sie (HTTP ${HTTP_CODE})"
             exit 1
           fi
 
-          echo "Powiadomienia wysłane pomyślnie do $(echo $TO_JSON | jq length) odbiorców"
+          echo "Powiadomienia wyslane pomyslnie do $(echo "$TO_JSON" | jq length) odbiorcow"
