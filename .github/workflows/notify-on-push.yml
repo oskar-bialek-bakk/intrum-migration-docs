@@ -1,63 +1,113 @@
-name: Powiadomienie o aktualizacji
+name: Dzienny raport zmian
 
 on:
-  push:
-    branches: [main]
+  schedule:
+    - cron: '0 5 * * *'  # 7:00 CET / 5:00 UTC, codziennie
   workflow_dispatch:
     inputs:
       test_email:
         description: "Adres e-mail do testu (opcjonalnie, nadpisuje listę)"
         required: false
         type: string
+      since_hours:
+        description: "Ile godzin wstecz szukać zmian (domyślnie 24)"
+        required: false
+        default: '24'
+        type: string
 
 jobs:
-  notify:
+  daily-summary:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
 
-      - name: Zbierz informacje o commitach
-        id: info
+      - name: Sprawdź zmiany z ostatnich 24h
+        id: changes
         run: |
-          echo "author=${{ github.actor }}" >> "$GITHUB_OUTPUT"
-          echo "short_sha=${GITHUB_SHA:0:7}" >> "$GITHUB_OUTPUT"
-          echo "commit_url=${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}" >> "$GITHUB_OUTPUT"
-          echo "compare_url=${{ github.event.compare }}" >> "$GITHUB_OUTPUT"
-          echo "timestamp=$(date -u '+%Y-%m-%d %H:%M UTC')" >> "$GITHUB_OUTPUT"
+          HOURS="${{ inputs.since_hours || '24' }}"
+          SINCE=$(date -u -d "${HOURS} hours ago" '+%Y-%m-%dT%H:%M:%S')
+          echo "since=${SINCE}" >> "$GITHUB_OUTPUT"
 
-          MSG=$(git log -1 --pretty=format:'%s')
-          echo "commit_msg=${MSG}" >> "$GITHUB_OUTPUT"
+          COMMIT_COUNT=$(git log --since="$SINCE" --oneline main 2>/dev/null | wc -l | tr -d ' ')
+          echo "commit_count=${COMMIT_COUNT}" >> "$GITHUB_OUTPUT"
 
-          FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null || echo "Brak informacji")
-          COUNT=$(echo "$FILES" | grep -c '.' || echo "0")
-          echo "files_count=${COUNT}" >> "$GITHUB_OUTPUT"
-
-          TRUNCATED=$(echo "$FILES" | head -20)
-          if [ "$COUNT" -gt 20 ]; then
-            REMAINING=$((COUNT - 20))
-            TRUNCATED="${TRUNCATED}"$'\n'"...i ${REMAINING} więcej"
+          if [ "$COMMIT_COUNT" -eq 0 ]; then
+            echo "Brak zmian w ciągu ostatnich ${HOURS}h — pomijam wysyłkę."
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
 
-          EOF_MARKER="EOFFILES$(date +%s)"
-          echo "files_list<<${EOF_MARKER}" >> "$GITHUB_OUTPUT"
-          echo "$TRUNCATED" >> "$GITHUB_OUTPUT"
-          echo "${EOF_MARKER}" >> "$GITHUB_OUTPUT"
+          echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          echo "Znaleziono ${COMMIT_COUNT} commitów od ${SINCE}"
 
-      - name: Wyślij powiadomienia e-mail
+      - name: Zbierz podsumowanie zmian
+        if: steps.changes.outputs.has_changes == 'true'
+        id: summary
+        run: |
+          SINCE="${{ steps.changes.outputs.since }}"
+          REPO_URL="${{ github.server_url }}/${{ github.repository }}"
+
+          # Commit list: short sha, author, message
+          COMMITS_RAW=$(git log --since="$SINCE" --format="%h|%an|%s" main)
+
+          # Build HTML rows for commits table
+          COMMITS_HTML=""
+          while IFS='|' read -r sha author msg; do
+            SAFE_MSG=$(echo "$msg" | sed 's/&/\&amp;/g;s/</\&lt;/g;s/>/\&gt;/g')
+            SAFE_AUTHOR=$(echo "$author" | sed 's/&/\&amp;/g;s/</\&lt;/g;s/>/\&gt;/g')
+            COMMITS_HTML="${COMMITS_HTML}<tr><td style=\"padding:6px 8px;border-bottom:1px solid #e5e7eb;font-family:monospace;font-size:13px\"><a href=\"${REPO_URL}/commit/${sha}\" style=\"color:#1a56db\">${sha}</a></td><td style=\"padding:6px 8px;border-bottom:1px solid #e5e7eb\">${SAFE_AUTHOR}</td><td style=\"padding:6px 8px;border-bottom:1px solid #e5e7eb\">${SAFE_MSG}</td></tr>"
+          done <<< "$COMMITS_RAW"
+
+          # Unique authors
+          AUTHORS=$(git log --since="$SINCE" --format="%an" main | sort -u | paste -sd ', ')
+
+          # Changed files
+          FILES=$(git log --since="$SINCE" --name-only --format="" main | sort -u)
+          FILES_COUNT=$(echo "$FILES" | grep -c '.' || echo "0")
+          FILES_TRUNCATED=$(echo "$FILES" | head -30)
+          if [ "$FILES_COUNT" -gt 30 ]; then
+            REMAINING=$((FILES_COUNT - 30))
+            FILES_TRUNCATED="${FILES_TRUNCATED}"$'\n'"...i ${REMAINING} więcej"
+          fi
+          FILES_HTML=$(echo "$FILES_TRUNCATED" | jq -Rs . | sed 's/^"//;s/"$//' | sed 's/\\n/<br>/g')
+
+          # Compare URL: oldest commit..HEAD
+          OLDEST_SHA=$(git log --since="$SINCE" --format="%H" main | tail -1)
+          COMPARE_URL="${REPO_URL}/compare/${OLDEST_SHA}~1...main"
+
+          TIMESTAMP=$(date -u '+%Y-%m-%d %H:%M UTC')
+
+          # Save outputs
+          echo "authors=${AUTHORS}" >> "$GITHUB_OUTPUT"
+          echo "files_count=${FILES_COUNT}" >> "$GITHUB_OUTPUT"
+          echo "compare_url=${COMPARE_URL}" >> "$GITHUB_OUTPUT"
+          echo "timestamp=${TIMESTAMP}" >> "$GITHUB_OUTPUT"
+
+          EOF1="EOFCOMMITS$(date +%s)"
+          echo "commits_html<<${EOF1}" >> "$GITHUB_OUTPUT"
+          echo "$COMMITS_HTML" >> "$GITHUB_OUTPUT"
+          echo "${EOF1}" >> "$GITHUB_OUTPUT"
+
+          EOF2="EOFFILES$(date +%s)"
+          echo "files_html<<${EOF2}" >> "$GITHUB_OUTPUT"
+          echo "$FILES_HTML" >> "$GITHUB_OUTPUT"
+          echo "${EOF2}" >> "$GITHUB_OUTPUT"
+
+      - name: Wyślij e-mail z podsumowaniem
+        if: steps.changes.outputs.has_changes == 'true'
         env:
           SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
           SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
           RECIPIENTS: ${{ inputs.test_email || secrets.EMAIL_RECIPIENTS }}
-          INFO_AUTHOR: ${{ steps.info.outputs.author }}
-          INFO_SHORT_SHA: ${{ steps.info.outputs.short_sha }}
-          INFO_COMMIT_URL: ${{ steps.info.outputs.commit_url }}
-          INFO_COMPARE_URL: ${{ steps.info.outputs.compare_url }}
-          INFO_TIMESTAMP: ${{ steps.info.outputs.timestamp }}
-          INFO_COMMIT_MSG: ${{ steps.info.outputs.commit_msg }}
-          INFO_FILES_COUNT: ${{ steps.info.outputs.files_count }}
-          INFO_FILES_LIST: ${{ steps.info.outputs.files_list }}
+          COMMIT_COUNT: ${{ steps.changes.outputs.commit_count }}
+          AUTHORS: ${{ steps.summary.outputs.authors }}
+          FILES_COUNT: ${{ steps.summary.outputs.files_count }}
+          COMPARE_URL: ${{ steps.summary.outputs.compare_url }}
+          TIMESTAMP: ${{ steps.summary.outputs.timestamp }}
+          COMMITS_HTML: ${{ steps.summary.outputs.commits_html }}
+          FILES_HTML: ${{ steps.summary.outputs.files_html }}
         run: |
           if [ -z "$SENDGRID_API_KEY" ]; then
             echo "::error::Brak sekretu SENDGRID_API_KEY"
@@ -72,50 +122,50 @@ jobs:
             exit 1
           fi
 
-          # Build recipients JSON array for SendGrid personalizations
           TO_ARRAY=$(echo "$RECIPIENTS" | tr ';' '\n' | sed 's/^ *//;s/ *$//' | grep -v '^$' | jq -R '{email: .}' | jq -s .)
 
-          FILES_HTML=$(echo "$INFO_FILES_LIST" | jq -Rs . | sed 's/^"//;s/"$//' | sed 's/\\n/<br>/g')
+          TODAY=$(date -u '+%Y-%m-%d')
 
-          SAFE_AUTHOR=$(echo "$INFO_AUTHOR" | sed 's/&/\&amp;/g;s/</\&lt;/g;s/>/\&gt;/g')
-          SAFE_MSG=$(echo "$INFO_COMMIT_MSG" | sed 's/&/\&amp;/g;s/</\&lt;/g;s/>/\&gt;/g')
-
-          read -r -d '' HTML_TEMPLATE << 'ENDOFHTML' || true
-          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
+          read -r -d '' HTML_BODY << 'ENDOFHTML' || true
+          <div style="font-family:Arial,sans-serif;max-width:700px;margin:0 auto">
           <div style="background-color:#1a56db;color:white;padding:16px 24px;border-radius:8px 8px 0 0">
-          <h2 style="margin:0;font-size:18px">Dokumentacja migracji - aktualizacja</h2>
+          <h2 style="margin:0;font-size:18px">Dokumentacja migracji - dzienny raport zmian</h2>
           </div>
           <div style="border:1px solid #e5e7eb;border-top:none;padding:24px;border-radius:0 0 8px 8px">
-          <table style="width:100%;border-collapse:collapse">
-          <tr><td style="padding:8px 0;color:#6b7280;width:140px">Autor:</td><td style="padding:8px 0"><strong>PLACEHOLDER_AUTHOR</strong></td></tr>
-          <tr><td style="padding:8px 0;color:#6b7280">Commit:</td><td style="padding:8px 0"><a href="PLACEHOLDER_COMMIT_URL" style="color:#1a56db">PLACEHOLDER_SHORT_SHA</a></td></tr>
-          <tr><td style="padding:8px 0;color:#6b7280">Data (UTC):</td><td style="padding:8px 0">PLACEHOLDER_TIMESTAMP</td></tr>
-          <tr><td style="padding:8px 0;color:#6b7280;vertical-align:top">Opis zmian:</td><td style="padding:8px 0">PLACEHOLDER_COMMIT_MSG</td></tr>
-          <tr><td style="padding:8px 0;color:#6b7280;vertical-align:top">Zmienione pliki (PLACEHOLDER_FILES_COUNT):</td><td style="padding:8px 0"><pre style="margin:0;font-size:13px;background:#f3f4f6;padding:12px;border-radius:4px">PLACEHOLDER_FILES_LIST</pre></td></tr>
+          <table style="width:100%;border-collapse:collapse;margin-bottom:16px">
+          <tr><td style="padding:8px 0;color:#6b7280;width:160px">Liczba commitów:</td><td style="padding:8px 0"><strong>PLACEHOLDER_COMMIT_COUNT</strong></td></tr>
+          <tr><td style="padding:8px 0;color:#6b7280">Autorzy:</td><td style="padding:8px 0">PLACEHOLDER_AUTHORS</td></tr>
+          <tr><td style="padding:8px 0;color:#6b7280">Zmienionych plików:</td><td style="padding:8px 0">PLACEHOLDER_FILES_COUNT</td></tr>
+          <tr><td style="padding:8px 0;color:#6b7280">Wygenerowano:</td><td style="padding:8px 0">PLACEHOLDER_TIMESTAMP</td></tr>
           </table>
+          <h3 style="margin:20px 0 10px;font-size:15px;color:#374151">Commity</h3>
+          <table style="width:100%;border-collapse:collapse;font-size:14px">
+          <tr style="background:#f3f4f6"><th style="padding:8px;text-align:left;border-bottom:2px solid #d1d5db">SHA</th><th style="padding:8px;text-align:left;border-bottom:2px solid #d1d5db">Autor</th><th style="padding:8px;text-align:left;border-bottom:2px solid #d1d5db">Opis</th></tr>
+          PLACEHOLDER_COMMITS_TABLE
+          </table>
+          <h3 style="margin:20px 0 10px;font-size:15px;color:#374151">Zmienione pliki</h3>
+          <pre style="margin:0;font-size:13px;background:#f3f4f6;padding:12px;border-radius:4px;overflow-x:auto">PLACEHOLDER_FILES_LIST</pre>
           <div style="margin-top:20px;text-align:center">
-          <a href="PLACEHOLDER_COMPARE_URL" style="display:inline-block;background-color:#1a56db;color:white;padding:10px 24px;border-radius:6px;text-decoration:none">Zobacz zmiany na GitHub</a>
+          <a href="PLACEHOLDER_COMPARE_URL" style="display:inline-block;background-color:#1a56db;color:white;padding:10px 24px;border-radius:6px;text-decoration:none">Zobacz wszystkie zmiany na GitHub</a>
           </div>
           <p style="margin-top:24px;font-size:12px;color:#9ca3af;text-align:center">To jest automatyczne powiadomienie z repozytorium intrum-migration-docs.</p>
           </div>
           </div>
           ENDOFHTML
 
-          HTML_BODY="${HTML_TEMPLATE//PLACEHOLDER_AUTHOR/$SAFE_AUTHOR}"
-          HTML_BODY="${HTML_BODY//PLACEHOLDER_COMMIT_URL/$INFO_COMMIT_URL}"
-          HTML_BODY="${HTML_BODY//PLACEHOLDER_SHORT_SHA/$INFO_SHORT_SHA}"
-          HTML_BODY="${HTML_BODY//PLACEHOLDER_TIMESTAMP/$INFO_TIMESTAMP}"
-          HTML_BODY="${HTML_BODY//PLACEHOLDER_COMMIT_MSG/$SAFE_MSG}"
-          HTML_BODY="${HTML_BODY//PLACEHOLDER_FILES_COUNT/$INFO_FILES_COUNT}"
+          HTML_BODY="${HTML_BODY//PLACEHOLDER_COMMIT_COUNT/$COMMIT_COUNT}"
+          HTML_BODY="${HTML_BODY//PLACEHOLDER_AUTHORS/$AUTHORS}"
+          HTML_BODY="${HTML_BODY//PLACEHOLDER_FILES_COUNT/$FILES_COUNT}"
+          HTML_BODY="${HTML_BODY//PLACEHOLDER_TIMESTAMP/$TIMESTAMP}"
+          HTML_BODY="${HTML_BODY//PLACEHOLDER_COMMITS_TABLE/$COMMITS_HTML}"
           HTML_BODY="${HTML_BODY//PLACEHOLDER_FILES_LIST/$FILES_HTML}"
-          HTML_BODY="${HTML_BODY//PLACEHOLDER_COMPARE_URL/$INFO_COMPARE_URL}"
+          HTML_BODY="${HTML_BODY//PLACEHOLDER_COMPARE_URL/$COMPARE_URL}"
 
-          # Build SendGrid payload
           PAYLOAD=$(jq -n \
             --argjson to "$TO_ARRAY" \
             --arg from_email "$SENDER_EMAIL" \
             --arg from_name "Intrum Migration" \
-            --arg subject "Dokumentacja migracji - aktualizacja w repozytorium" \
+            --arg subject "Dokumentacja migracji - raport zmian ${TODAY}" \
             --arg html "$HTML_BODY" \
             '{
               personalizations: [{to: $to}],
@@ -145,4 +195,4 @@ jobs:
             exit 1
           fi
 
-          echo "Powiadomienia wyslane pomyslnie do $(echo "$TO_ARRAY" | jq length) odbiorcow"
+          echo "Raport dzienny wyslany do $(echo "$TO_ARRAY" | jq length) odbiorcow"
