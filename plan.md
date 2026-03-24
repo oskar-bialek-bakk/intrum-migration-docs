@@ -15,8 +15,8 @@
 
 | Topic | Decision |
 |---|---|
-| `mod_date` (staging) | Maps to `aud_data` (prod) — **handled by triggers, do not insert** |
-| `aud_login` (prod only) | **Handled by triggers, do not insert** |
+| `mod_date` (staging) | Maps to `aud_data` (prod) — **insert explicitly as `GETUTCDATE()`** (bypasses scalar UDF overhead) |
+| `aud_login` (prod only) | **Insert explicitly as `'admin'`** (bypasses f_user_name() UDF) |
 | `*_uuid` columns (prod only) | Insert `NEWID()` |
 | `*_ext_id` columns (prod only) | Store staging PK — mapped per table (see individual tables) |
 | `*_tworzacy_us_id` columns | Use `@system_admin_user_id` variable — set actual value when scripting migration |
@@ -70,7 +70,7 @@ For column-by-column mapping details see [column_mapping.md](column_mapping.md).
 
 | Date | Decision |
 |---|---|
-| 2026-03-02 | `aud_data` / `aud_login` handled by prod triggers — do not insert |
+| 2026-03-02 | `aud_data` / `aud_login` — originally handled by prod triggers; **revised 2026-03-24: insert explicitly** (`GETUTCDATE()`, `'admin'`) to bypass f_user_name() UDF overhead (51% pipeline speedup at 100k) |
 | 2026-03-02 | `*_uuid` columns — insert `NEWID()` |
 | 2026-03-02 | `*_ext_id` columns — mapped per table individually |
 | 2026-03-02 | Migration is insert-only (no updates); stages 2-5 need existence checks on lookup tables |
