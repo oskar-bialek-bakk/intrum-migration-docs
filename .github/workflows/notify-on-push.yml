@@ -47,7 +47,8 @@ jobs:
 
       - name: Wyślij powiadomienia e-mail
         env:
-          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
           RECIPIENTS: ${{ inputs.test_email || secrets.EMAIL_RECIPIENTS }}
           INFO_AUTHOR: ${{ steps.info.outputs.author }}
           INFO_SHORT_SHA: ${{ steps.info.outputs.short_sha }}
@@ -58,8 +59,12 @@ jobs:
           INFO_FILES_COUNT: ${{ steps.info.outputs.files_count }}
           INFO_FILES_LIST: ${{ steps.info.outputs.files_list }}
         run: |
-          if [ -z "$RESEND_API_KEY" ]; then
-            echo "::error::Brak sekretu RESEND_API_KEY"
+          if [ -z "$SENDGRID_API_KEY" ]; then
+            echo "::error::Brak sekretu SENDGRID_API_KEY"
+            exit 1
+          fi
+          if [ -z "$SENDER_EMAIL" ]; then
+            echo "::error::Brak sekretu SENDER_EMAIL"
             exit 1
           fi
           if [ -z "$RECIPIENTS" ]; then
@@ -67,9 +72,13 @@ jobs:
             exit 1
           fi
 
-          TO_JSON=$(echo "$RECIPIENTS" | tr ';' '\n' | sed 's/^ *//;s/ *$//' | grep -v '^$' | jq -R . | jq -s .)
+          # Build recipients JSON array for SendGrid personalizations
+          TO_ARRAY=$(echo "$RECIPIENTS" | tr ';' '\n' | sed 's/^ *//;s/ *$//' | grep -v '^$' | jq -R '{email: .}' | jq -s .)
 
           FILES_HTML=$(echo "$INFO_FILES_LIST" | jq -Rs . | sed 's/^"//;s/"$//' | sed 's/\\n/<br>/g')
+
+          SAFE_AUTHOR=$(echo "$INFO_AUTHOR" | sed 's/&/\&amp;/g;s/</\&lt;/g;s/>/\&gt;/g')
+          SAFE_MSG=$(echo "$INFO_COMMIT_MSG" | sed 's/&/\&amp;/g;s/</\&lt;/g;s/>/\&gt;/g')
 
           read -r -d '' HTML_TEMPLATE << 'ENDOFHTML' || true
           <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
@@ -92,9 +101,6 @@ jobs:
           </div>
           ENDOFHTML
 
-          SAFE_AUTHOR=$(echo "$INFO_AUTHOR" | sed 's/&/\&amp;/g;s/</\&lt;/g;s/>/\&gt;/g')
-          SAFE_MSG=$(echo "$INFO_COMMIT_MSG" | sed 's/&/\&amp;/g;s/</\&lt;/g;s/>/\&gt;/g')
-
           HTML_BODY="${HTML_TEMPLATE//PLACEHOLDER_AUTHOR/$SAFE_AUTHOR}"
           HTML_BODY="${HTML_BODY//PLACEHOLDER_COMMIT_URL/$INFO_COMMIT_URL}"
           HTML_BODY="${HTML_BODY//PLACEHOLDER_SHORT_SHA/$INFO_SHORT_SHA}"
@@ -104,28 +110,39 @@ jobs:
           HTML_BODY="${HTML_BODY//PLACEHOLDER_FILES_LIST/$FILES_HTML}"
           HTML_BODY="${HTML_BODY//PLACEHOLDER_COMPARE_URL/$INFO_COMPARE_URL}"
 
+          # Build SendGrid payload
           PAYLOAD=$(jq -n \
-            --arg from "Intrum Migration <onboarding@resend.dev>" \
-            --argjson to "$TO_JSON" \
+            --argjson to "$TO_ARRAY" \
+            --arg from_email "$SENDER_EMAIL" \
+            --arg from_name "Intrum Migration" \
             --arg subject "Dokumentacja migracji - aktualizacja w repozytorium" \
             --arg html "$HTML_BODY" \
-            '{from: $from, to: $to, subject: $subject, html: $html}')
+            '{
+              personalizations: [{to: $to}],
+              from: {email: $from_email, name: $from_name},
+              subject: $subject,
+              content: [{type: "text/html", value: $html}]
+            }')
 
           RESPONSE=$(curl -s -w "\n%{http_code}" \
             --retry 3 --retry-delay 5 \
-            -X POST "https://api.resend.com/emails" \
-            -H "Authorization: Bearer $RESEND_API_KEY" \
+            -X POST "https://api.sendgrid.com/v3/mail/send" \
+            -H "Authorization: Bearer $SENDGRID_API_KEY" \
             -H "Content-Type: application/json" \
             -d "$PAYLOAD")
 
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
           BODY=$(echo "$RESPONSE" | sed '$d')
 
-          echo "Resend response (HTTP ${HTTP_CODE}): ${BODY}"
+          if [ -n "$BODY" ]; then
+            echo "SendGrid response (HTTP ${HTTP_CODE}): ${BODY}"
+          else
+            echo "SendGrid response: HTTP ${HTTP_CODE}"
+          fi
 
           if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
             echo "::error::Wysylka e-mail nie powiodla sie (HTTP ${HTTP_CODE})"
             exit 1
           fi
 
-          echo "Powiadomienia wyslane pomyslnie do $(echo "$TO_JSON" | jq length) odbiorcow"
+          echo "Powiadomienia wyslane pomyslnie do $(echo "$TO_ARRAY" | jq length) odbiorcow"
