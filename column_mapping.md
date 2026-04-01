@@ -16,6 +16,7 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 | `at_uuid` | `at_uuid` | MERGE key for stages 2-5 |
 
 **ext_id mapping:** none (no natural ext_id candidate)
+**ext_id backfill:** UUID-keyed tables (adres_typ, dluznik_typ, telefon_typ, atrybut_typ, sprawa_etap_typ) require cross-DB backfill after MERGE to set `*_ext_id` for rows matched-but-not-inserted (already in prod). Pattern: `UPDATE stg SET ext_id = prod.pk FROM stg JOIN prod ON uuid WHERE ext_id IS NULL`. Added 2026-04-01 (QW6). dokument_typ, ksiegowanie_konto, ksiegowanie_typ use simple `SET ext_id = pk` because they merge on PK directly.
 
 ---
 
@@ -46,6 +47,8 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 | — | `dot_odsetki` | NULL |
 | — | `dot_kolejnosc_rozksiegowania NOT NULL` | constant `1` |
 | — | `dot_kod` | NULL |
+
+**⚠️ Stage 1 MERGE key:** iter1 currently merges on `dot_id` (not `dot_uuid`). This works for Stage 1 because staging PKs = prod PKs (reference copy). For stages 2-5 this MUST switch to `dot_uuid` — verify before Stage 2 implementation. (See review_2026_04_01.md H1)
 
 
 ---
@@ -345,7 +348,7 @@ Staging `at_ob_id` is an object reference — could be a dluznik, sprawa, or wie
 |---|---|---|
 | `at_id` | staging PK only | no direct prod PK — `atw_id` is new |
 | `at_ob_id` | entity join table FK (`atdl_dl_id` / `atsp_sp_id` / `atwi_wi_id` / `atdo_do_id`) | determined by `at_atd_id` (see below) |
-| `at_atd_id` | determines target join table | 1=atrybut_dokument, 2=atrybut_wierzytelnosc, 3=atrybut_dluznik, 4=atrybut_sprawa |
+| `at_atd_id` | determines target join table | 1=atrybut_dokument, 2=atrybut_wierzytelnosc, 3=atrybut_dluznik, 4=atrybut_sprawa. **⚠️ Review finding (H4):** idempotency snapshots of `atw_ext_id` must be scoped by `at_atd_id` domain — unscoped snapshots risk cross-domain `at_id` collisions silently skipping rows. |
 | `at_wartosc` | `atrybut_wartosc.atw_wartosc` | direct |
 | `at_atr_id` | already on `atrybut_typ` in prod — not re-inserted here | — |
 | `at_att_id` | `atrybut_wartosc.atw_att_id` | direct |
@@ -365,13 +368,13 @@ Staging `at_ob_id` is an object reference — could be a dluznik, sprawa, or wie
 
 | Staging column | Prod column | Note |
 |---|---|---|
-| `do_id` | `do_ext_id` | staging PK → ext_id (IDENTITY rule) |
+| `do_id` | `do_ext_id` | staging PK → ext_id (IDENTITY rule). **⚠️ Mixed format:** iter7 writes numeric `do_ext_id` (staging `do_id`); iter9 writes `HR_<hr_id>` prefixed strings. Idempotency checks must use `TRY_CAST` or filter `NOT LIKE '%[^0-9-]%'` when reading numeric ext_ids. (Fixed 2026-04-01 QW2) |
 | `do_wi_id` | `do_wi_id` | direct |
 | `do_dot_id` | `do_dot_id` | direct |
 | `do_data_wystawienia` | `do_data_wystawienia` | direct |
 | `do_numer_dokumentu` | `do_numer` | renamed |
 | `do_tytul_dokumentu` | `do_tytul` | renamed |
-| `do_data_wymagalnosci` | ❌ not on prod `dokument` | ⚠️ feeds `ksiegowanie_dekret.ksd_data_wymagalnosci` — only for rows where `ks_pierwotne = 1` (resolved at table 21) |
+| `do_data_wymagalnosci` | ❌ not on prod `dokument` | ⚠️ feeds `ksiegowanie_dekret.ksd_data_wymagalnosci` — only for rows where `ks_pierwotne = 1` (resolved at table 21). **Note:** iter9 sets `do_data_wystawienia = hr_data_raty` on its dokument rows. |
 | `mod_date` | `aud_data` | trigger |
 | — | `do_uko_id NOT NULL → umowa_kontrahent` | JOIN `wierzytelnosc` via `do_wi_id`: `do_uko_id = wi_uko_id WHERE wi_id = do_wi_id` |
 
@@ -441,7 +444,7 @@ Each staging `harmonogram` row represents one instalment. Migration creates a ch
 | `ksd_uwagi` | ❌ not in prod | dropped |
 | `ksd_sp_id` | `ksd_rb_id` | resolved via prod `sprawa.sp_rb_id` (JOIN prod `sprawa` ON `sp_ext_id = ksd_sp_id`; staging.sprawa has no `sp_rb_id`) |
 | `mod_date` | `aud_data` | trigger |
-| — | `ksd_data_wymagalnosci NOT NULL` | `do_data_wymagalnosci` via `ksd_do_id` JOIN `dokument`, **only for `ks_pierwotne = 1`** rows; fallback for `ks_pierwotne = 0` or `ksd_do_id IS NULL`: `2100-01-01` |
+| — | `ksd_data_wymagalnosci NOT NULL` | `do_data_wymagalnosci` via `ksd_do_id` JOIN `dokument`, **only for `ks_pierwotne = 1`** rows; fallback for `ks_pierwotne = 0` or `ksd_do_id IS NULL`: `2100-01-01`. **⚠️ Review finding (M4):** iter8 operacja path currently hardcodes `2100-01-01` for ALL rows, even those with a resolved `do_id` — should pull `do_data_wystawienia` from linked dokument when available. |
 
 **Multi-currency columns (partially already in prod):**
 
