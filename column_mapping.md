@@ -217,7 +217,9 @@ No `sp_spe_id` column on prod `sprawa`. Instead: current etap = last `akcja` (or
 |---|---|---|
 | `sp_id` | `sp_ext_id` | staging PK → ext_id (IDENTITY rule) |
 | `sp_numer_sprawy` | `sp_numer` | renamed |
-| `sp_import_info` | `sp_import_info` | direct |
+| `sp_import_info` | `sp_import_info` | direct — format: `yyyy-mm-dd hh:mm:ss.zzz` |
+| `sp_data_obslugi_od` | `sp_data_obslugi_od` | direct |
+| `sp_data_obslugi_do` | `sp_data_obslugi_do` | direct |
 | `sp_spt_id` | `sp_spt_id` | direct — added to staging |
 | `mod_date` | `aud_data` | trigger |
 | `sp_numer_rachunku` | `rachunek_bankowy.rb_nr` → `sp_rb_id` | see transformation logic below |
@@ -283,6 +285,8 @@ No `sp_spe_id` column on prod `sprawa`. Instead: current etap = last `akcja` (or
 | — | `ad_data_od NOT NULL` | staging `mod_date` |
 | — | `ad_zpi_id NOT NULL → zrodlo_pochodzenia_informacji` | `2` (external system) |
 | — | `ad_tworzacy_us_id NOT NULL` | `@system_admin_user_id` (variable — see global conventions) |
+
+**Active address limit:** The maximum number of simultaneously active addresses per dluznik per `ad_at_id` is controlled by `dm_data_web_pipeline.dbo.adres_typ_podmiot_konfiguracja.atpk_il` (filtered by `atp_id=2` for dluznik). Exceeding this limit is a BLOCKING validation error (BIZ_20).
 
 
 ---

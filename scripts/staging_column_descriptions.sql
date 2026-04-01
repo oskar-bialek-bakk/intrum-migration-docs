@@ -232,6 +232,8 @@ EXEC sp_addextendedproperty 'MS_Description', 'Login pracownika przypisanego do 
 EXEC sp_addextendedproperty 'MS_Description', 'FK do etapu sprawy', 'SCHEMA', 'dbo', 'TABLE', 'sprawa', 'COLUMN', 'sp_spe_id';
 EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika typów spraw', 'SCHEMA', 'dbo', 'TABLE', 'sprawa', 'COLUMN', 'sp_spt_id';
 EXEC sp_addextendedproperty 'MS_Description', 'Identyfikator paczki importu, z której pochodzi rekord', 'SCHEMA', 'dbo', 'TABLE', 'sprawa', 'COLUMN', 'sp_import_info';
+EXEC sp_addextendedproperty 'MS_Description', 'Data obsługi od (start date)', 'SCHEMA', 'dbo', 'TABLE', 'sprawa', 'COLUMN', 'sp_data_obslugi_od';
+EXEC sp_addextendedproperty 'MS_Description', 'Data obsługi do (end date)', 'SCHEMA', 'dbo', 'TABLE', 'sprawa', 'COLUMN', 'sp_data_obslugi_do';
 EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - obsługiwana triggerami insert; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'sprawa', 'COLUMN', 'mod_date';
 
 -- ------------------------------------------------------------

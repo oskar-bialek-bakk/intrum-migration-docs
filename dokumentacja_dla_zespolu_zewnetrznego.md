@@ -80,7 +80,7 @@ Skopiowanie istniejących danych produkcyjnych do tabel słownikowych w stagingu
 
 | Tabela | Zależności FK | Uwagi |
 |---|---|---|
-| `dbo.adres` | `ad_dl_id → dluznik`, `ad_at_id → adres_typ` | Dozwolonych wiele adresów na dłużnika, jednak dla każdego typu adresu (`ad_at_id`) tylko jeden rekord może być jednocześnie aktywny (brak daty zakończenia lub `ad_data_do > GETDATE()`). |
+| `dbo.adres` | `ad_dl_id → dluznik`, `ad_at_id → adres_typ` | Dozwolonych wiele adresów na dłużnika. Maksymalna liczba jednocześnie aktywnych adresów danego typu (`ad_at_id`) jest konfigurowana w prod: `adres_typ_podmiot_konfiguracja.atpk_il` (dla `atp_id=2` — dłużnik). Aktywny = `ad_data_do IS NULL` lub `ad_data_do > GETDATE()`. Przekroczenie limitu jest **blokujące** (BIZ_20). |
 | `dbo.mail` | `ma_dl_id → dluznik` | |
 | `dbo.telefon` | `tn_dl_id → dluznik`, `tn_tt_id → telefon_typ` | Dozwolonych wiele numerów telefonu na dłużnika, jednak dla każdego typu telefonu (`tn_tt_id`) tylko jeden rekord może być jednocześnie aktywny (brak daty zakończenia lub `tn_data_do > GETDATE()`). |
 
@@ -90,7 +90,7 @@ Skopiowanie istniejących danych produkcyjnych do tabel słownikowych w stagingu
 
 | Tabela | Zależności FK | Uwagi |
 |---|---|---|
-| `dbo.sprawa` | `sp_spt_id → sprawa_typ`, `sp_spe_id → sprawa_etap` | `sp_numer_rachunku` — numer rachunku bankowego jako tekst. `sp_pracownik` — opcjonalny. |
+| `dbo.sprawa` | `sp_spt_id → sprawa_typ`, `sp_spe_id → sprawa_etap` | `sp_numer_rachunku` — numer rachunku bankowego jako tekst. `sp_pracownik` — opcjonalny. `sp_data_obslugi_od` / `sp_data_obslugi_do` — opcjonalne daty obsługi. `sp_import_info` — data importu w formacie `yyyy-mm-dd hh:mm:ss.zzz`. |
 | `dbo.sprawa_rola` | `spr_sp_id → sprawa`, `spr_dl_id → dluznik`, `spr_sprt_id → sprawa_rola_typ` | Przypisanie dłużników do spraw wraz z rolą. Załadować po `sprawa`. |
 | `dbo.atrybut` *(att_atd_id = 4)* | `at_att_id → atrybut_typ` (dziedzina i rodzaj dziedziczone z `atrybut_typ`), `at_ob_id → sprawa.sp_id` | Wyłącznie atrybuty spraw (`atrybut_typ.att_atd_id = 4`). Załadować po `sprawa`. |
 

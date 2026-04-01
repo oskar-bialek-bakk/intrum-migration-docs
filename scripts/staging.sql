@@ -354,6 +354,8 @@ CREATE TABLE dbo.sprawa (
     sp_spe_id           INT          NOT NULL,
     sp_spt_id           INT          NOT NULL,
     sp_import_info      VARCHAR(50)  NULL,
+    sp_data_obslugi_od  DATETIME     NULL,
+    sp_data_obslugi_do  DATETIME     NULL,
     mod_date            DATETIME     NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_sprawa PRIMARY KEY (sp_id),
     CONSTRAINT FK_sprawa_sprawa_etap FOREIGN KEY (sp_spe_id) REFERENCES dbo.sprawa_etap (spe_id),
