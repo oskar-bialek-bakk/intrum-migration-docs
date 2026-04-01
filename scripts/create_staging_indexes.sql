@@ -44,8 +44,10 @@ CREATE INDEX IX_rezultat_ret_id ON dbo.rezultat (re_ret_id);
 
 -- atrybut: REF_15, REF_16-19, REF_28
 -- Composite (at_atd_id, at_ob_id) covers per-domain NOT IN checks directly
-CREATE INDEX IX_atrybut_atd_ob ON dbo.atrybut (at_atd_id, at_ob_id);
-CREATE INDEX IX_atrybut_att_id ON dbo.atrybut (at_att_id);
+CREATE INDEX IX_atrybut_atd_ob  ON dbo.atrybut (at_atd_id, at_ob_id);
+CREATE INDEX IX_atrybut_att_id  ON dbo.atrybut (at_att_id);
+-- Composite (at_atd_id, at_att_id) covers iter4/iter6 JOIN pattern filtering by domain + type
+CREATE INDEX IX_atrybut_atd_att ON dbo.atrybut (at_atd_id, at_att_id);
 
 -- ksiegowanie_dekret: REF_20, REF_21, REF_22, BIZ_02b, BIZ_05, BIZ_06
 -- ksd_sp_id: iter8 JOIN to resolve prod sprawa via sp_ext_id
@@ -67,4 +69,4 @@ CREATE INDEX IX_harmonogram_wi_id ON dbo.harmonogram (hr_wi_id);
 -- waluta: REF_27 lookup by ISO currency code (wa_nazwa_skrocona is not PK)
 CREATE INDEX IX_waluta_nazwa_skrocona ON dbo.waluta (wa_nazwa_skrocona);
 
-PRINT '>> All 26 staging indexes created.';
+PRINT '>> All 27 staging indexes created.';

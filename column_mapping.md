@@ -48,7 +48,7 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 | — | `dot_kolejnosc_rozksiegowania NOT NULL` | constant `1` |
 | — | `dot_kod` | NULL |
 
-**⚠️ Stage 1 MERGE key:** iter1 currently merges on `dot_id` (not `dot_uuid`). This works for Stage 1 because staging PKs = prod PKs (reference copy). For stages 2-5 this MUST switch to `dot_uuid` — verify before Stage 2 implementation. (See review_2026_04_01.md H1)
+**✓ MERGE key:** iter1 now merges on `dot_uuid` (fixed from `dot_id` per review H1). Seed scripts updated to copy `dot_uuid` from prod. Works for all stages.
 
 
 ---
