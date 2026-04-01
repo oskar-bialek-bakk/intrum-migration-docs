@@ -435,15 +435,11 @@ CREATE TABLE dbo.rezultat (
 CREATE TABLE dbo.atrybut (
     at_id       INT           NOT NULL,
     at_ob_id    INT           NOT NULL,
-    at_atd_id   INT           NOT NULL,
     at_wartosc  VARCHAR(100)  NOT NULL,
-    at_atr_id   INT           NOT NULL,
-    at_att_id   INT           NULL,
+    at_att_id   INT           NOT NULL,
     mod_date    DATETIME      NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_atrybut PRIMARY KEY (at_id),
-    CONSTRAINT FK_atrybut_dziedzina FOREIGN KEY (at_atd_id) REFERENCES dbo.atrybut_dziedzina (atd_id),
-    CONSTRAINT FK_atrybut_rodzaj    FOREIGN KEY (at_atr_id) REFERENCES dbo.atrybut_rodzaj    (atr_id),
-    CONSTRAINT FK_atrybut_typ       FOREIGN KEY (at_att_id) REFERENCES dbo.atrybut_typ       (att_id)
+    CONSTRAINT FK_atrybut_typ FOREIGN KEY (at_att_id) REFERENCES dbo.atrybut_typ (att_id)
 );
 
 CREATE TABLE dbo.dokument (

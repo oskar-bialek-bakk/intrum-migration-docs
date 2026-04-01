@@ -72,7 +72,7 @@ Skopiowanie istniejących danych produkcyjnych do tabel słownikowych w stagingu
 | Tabela | Zależności FK | Uwagi |
 |---|---|---|
 | `dbo.dluznik` | `dl_dt_id → dluznik_typ` | Reguła biznesowa: `dl_dt_id` równe (1,2) → wymagane `dl_imie`, `dl_nazwisko`, `dl_pesel`. `dl_dt_id` równe (3,4) → wymagane `dl_firma`, `dl_nip`. |
-| `dbo.atrybut` *(at_atd_id = 3)* | `at_atd_id → atrybut_dziedzina`, `at_atr_id → atrybut_rodzaj`, `at_att_id → atrybut_typ`, `at_ob_id → dluznik.dl_id` | Wyłącznie atrybuty dłużników (`at_atd_id = 3`). Załadować po `dluznik`. |
+| `dbo.atrybut` *(att_atd_id = 3)* | `at_att_id → atrybut_typ` (dziedzina i rodzaj dziedziczone z `atrybut_typ`), `at_ob_id → dluznik.dl_id` | Wyłącznie atrybuty dłużników (`atrybut_typ.att_atd_id = 3`). Załadować po `dluznik`. |
 
 ---
 
@@ -92,7 +92,7 @@ Skopiowanie istniejących danych produkcyjnych do tabel słownikowych w stagingu
 |---|---|---|
 | `dbo.sprawa` | `sp_spt_id → sprawa_typ`, `sp_spe_id → sprawa_etap` | `sp_numer_rachunku` — numer rachunku bankowego jako tekst. `sp_pracownik` — opcjonalny. |
 | `dbo.sprawa_rola` | `spr_sp_id → sprawa`, `spr_dl_id → dluznik`, `spr_sprt_id → sprawa_rola_typ` | Przypisanie dłużników do spraw wraz z rolą. Załadować po `sprawa`. |
-| `dbo.atrybut` *(at_atd_id = 4)* | `at_atd_id → atrybut_dziedzina`, `at_atr_id → atrybut_rodzaj`, `at_att_id → atrybut_typ`, `at_ob_id → sprawa.sp_id` | Wyłącznie atrybuty spraw (`at_atd_id = 4`). Załadować po `sprawa`. |
+| `dbo.atrybut` *(att_atd_id = 4)* | `at_att_id → atrybut_typ` (dziedzina i rodzaj dziedziczone z `atrybut_typ`), `at_ob_id → sprawa.sp_id` | Wyłącznie atrybuty spraw (`atrybut_typ.att_atd_id = 4`). Załadować po `sprawa`. |
 
 ---
 
@@ -110,7 +110,7 @@ Skopiowanie istniejących danych produkcyjnych do tabel słownikowych w stagingu
 | Tabela | Zależności FK | Uwagi |
 |---|---|---|
 | `dbo.wierzytelnosc` | `wi_sp_id → sprawa`, `wi_uko_id → umowa_kontrahent` | Wierzytelności powiązane ze sprawami |
-| `dbo.atrybut` *(at_atd_id = 2)* | `at_atd_id → atrybut_dziedzina`, `at_atr_id → atrybut_rodzaj`, `at_att_id → atrybut_typ`, `at_ob_id → wierzytelnosc.wi_id` | Wyłącznie atrybuty wierzytelności (`at_atd_id = 2`). Załadować po `wierzytelnosc`. |
+| `dbo.atrybut` *(att_atd_id = 2)* | `at_att_id → atrybut_typ` (dziedzina i rodzaj dziedziczone z `atrybut_typ`), `at_ob_id → wierzytelnosc.wi_id` | Wyłącznie atrybuty wierzytelności (`atrybut_typ.att_atd_id = 2`). Załadować po `wierzytelnosc`. |
 
 ---
 
@@ -120,7 +120,7 @@ Skopiowanie istniejących danych produkcyjnych do tabel słownikowych w stagingu
 |---|---|---|
 | `dbo.wierzytelnosc_rola` | `wir_wi_id → wierzytelnosc`, `wir_sp_id → sprawa` | Powiązania wierzytelności ze sprawami |
 | `dbo.dokument` | `do_wi_id → wierzytelnosc`, `do_dot_id → dokument_typ` | Dokumenty finansowe |
-| `dbo.atrybut` *(at_atd_id = 1)* | `at_atd_id → atrybut_dziedzina`, `at_atr_id → atrybut_rodzaj`, `at_att_id → atrybut_typ`, `at_ob_id → dokument.do_id` | Wyłącznie atrybuty dokumentów (`at_atd_id = 1`). Załadować po `dokument`. |
+| `dbo.atrybut` *(att_atd_id = 1)* | `at_att_id → atrybut_typ` (dziedzina i rodzaj dziedziczone z `atrybut_typ`), `at_ob_id → dokument.do_id` | Wyłącznie atrybuty dokumentów (`atrybut_typ.att_atd_id = 1`). Załadować po `dokument`. |
 
 ---
 
@@ -151,12 +151,12 @@ Iteracja 1  → waluta, kurs_walut, kontrahent, umowa_kontrahent,
                ksiegowanie_typ, sprawa_rola_typ, sprawa_typ, telefon_typ,
                atrybut_dziedzina, atrybut_rodzaj, akcja_typ, rezultat_typ,
                atrybut_typ*, sprawa_etap*          (* po spełnieniu zależności)
-Iteracja 2  → dluznik, atrybut (at_atd_id=3)
+Iteracja 2  → dluznik, atrybut (att_atd_id=3)
 Iteracja 3  → adres, mail, telefon
-Iteracja 4  → sprawa, sprawa_rola, atrybut (at_atd_id=4)
+Iteracja 4  → sprawa, sprawa_rola, atrybut (att_atd_id=4)
 Iteracja 5  → akcja, rezultat
-Iteracja 6  → wierzytelnosc, atrybut (at_atd_id=2)
-Iteracja 7  → wierzytelnosc_rola, dokument, atrybut (at_atd_id=1)
+Iteracja 6  → wierzytelnosc, atrybut (att_atd_id=2)
+Iteracja 7  → wierzytelnosc_rola, dokument, atrybut (att_atd_id=1)
 Iteracja 8  → ksiegowanie, operacja, ksiegowanie_dekret       (dane finansowe)
 Iteracja 9  → harmonogram, zabezpieczenie                     (ostatnie)
 ```
@@ -215,10 +215,10 @@ Sprawdzają czy wartości w kolumnach FK wskazują na istniejące rekordy.
 | REF_13 | `mail` | Każdy adres e-mail musi być powiązany z istniejącym dłużnikiem |
 | REF_14 | `akcja` | Każda akcja musi być powiązana z istniejącą sprawą |
 | REF_15 | `atrybut` | Typ atrybutu musi istnieć w `atrybut_typ` |
-| REF_16 | `atrybut` | Jeśli `at_atd_id=1` (dokument), `at_ob_id` musi istnieć w `dokument` |
-| REF_17 | `atrybut` | Jeśli `at_atd_id=2` (wierzytelność), `at_ob_id` musi istnieć w `wierzytelnosc` |
-| REF_18 | `atrybut` | Jeśli `at_atd_id=3` (dłużnik), `at_ob_id` musi istnieć w `dluznik` |
-| REF_19 | `atrybut` | Jeśli `at_atd_id=4` (sprawa), `at_ob_id` musi istnieć w `sprawa` |
+| REF_16 | `atrybut` | Jeśli `atrybut_typ.att_atd_id=1` (dokument), `at_ob_id` musi istnieć w `dokument` |
+| REF_17 | `atrybut` | Jeśli `atrybut_typ.att_atd_id=2` (wierzytelność), `at_ob_id` musi istnieć w `wierzytelnosc` |
+| REF_18 | `atrybut` | Jeśli `atrybut_typ.att_atd_id=3` (dłużnik), `at_ob_id` musi istnieć w `dluznik` |
+| REF_19 | `atrybut` | Jeśli `atrybut_typ.att_atd_id=4` (sprawa), `at_ob_id` musi istnieć w `sprawa` |
 | REF_20 | `ksiegowanie_dekret` | Każdy dekret musi być powiązany z istniejącym księgowaniem |
 | REF_21 | `ksiegowanie_dekret` | Konto księgowe musi istnieć w `ksiegowanie_konto` |
 | REF_22 | `ksiegowanie_dekret` | Jeśli `ksd_do_id` jest wypełnione, musi istnieć w `dokument` |

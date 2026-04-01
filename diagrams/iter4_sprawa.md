@@ -73,9 +73,7 @@ erDiagram
     atrybut {
         int     at_id     PK
         int     at_ob_id       "polymorficzny: dl_id / sp_id / wi_id / do_id"
-        int     at_atd_id FK
-        int     at_atr_id FK
-        int     at_att_id FK
+        int     at_att_id FK   "dziedzina i rodzaj dziedziczone z atrybut_typ"
         varchar at_wartosc
     }
 
@@ -118,9 +116,7 @@ erDiagram
     mail         }o--||  dluznik           : "ma_dl_id"
     telefon      }o--||  dluznik           : "tn_dl_id"
     telefon      }o--||  telefon_typ       : "tn_tt_id"
-    atrybut      }o--||  atrybut_dziedzina : "at_atd_id"
-    atrybut      }o--||  atrybut_rodzaj    : "at_atr_id"
-    atrybut      }o--o|  atrybut_typ       : "at_att_id"
+    atrybut      }o--||  atrybut_typ       : "at_att_id"
     atrybut_typ  }o--||  atrybut_dziedzina : "att_atd_id"
     atrybut_typ  }o--||  atrybut_rodzaj    : "att_atr_id"
     sprawa       }o--||  sprawa_etap       : "sp_spe_id"

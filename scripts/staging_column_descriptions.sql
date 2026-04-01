@@ -278,11 +278,9 @@ EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - obsługiwana
 -- ------------------------------------------------------------
 EXEC sp_addextendedproperty 'MS_Description', 'Wartości atrybutów dodatkowych przypisanych do encji', 'SCHEMA', 'dbo', 'TABLE', 'atrybut';
 EXEC sp_addextendedproperty 'MS_Description', 'Klucz główny atrybutu', 'SCHEMA', 'dbo', 'TABLE', 'atrybut', 'COLUMN', 'at_id';
-EXEC sp_addextendedproperty 'MS_Description', 'Identyfikator encji docelowej — FK do tabeli określonej przez at_atd_id', 'SCHEMA', 'dbo', 'TABLE', 'atrybut', 'COLUMN', 'at_ob_id';
-EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika dziedzin atrybutu — określa typ encji docelowej', 'SCHEMA', 'dbo', 'TABLE', 'atrybut', 'COLUMN', 'at_atd_id';
+EXEC sp_addextendedproperty 'MS_Description', 'Identyfikator encji docelowej — FK do tabeli określonej przez atrybut_typ.att_atd_id', 'SCHEMA', 'dbo', 'TABLE', 'atrybut', 'COLUMN', 'at_ob_id';
 EXEC sp_addextendedproperty 'MS_Description', 'Wartość atrybutu', 'SCHEMA', 'dbo', 'TABLE', 'atrybut', 'COLUMN', 'at_wartosc';
-EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika rodzajów atrybutu — określa typ danych wartości', 'SCHEMA', 'dbo', 'TABLE', 'atrybut', 'COLUMN', 'at_atr_id';
-EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika typów atrybutu', 'SCHEMA', 'dbo', 'TABLE', 'atrybut', 'COLUMN', 'at_att_id';
+EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika typów atrybutu — dziedzina i rodzaj dziedziczone z atrybut_typ', 'SCHEMA', 'dbo', 'TABLE', 'atrybut', 'COLUMN', 'at_att_id';
 EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - obsługiwana triggerami insert; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'atrybut', 'COLUMN', 'mod_date';
 
 -- ------------------------------------------------------------

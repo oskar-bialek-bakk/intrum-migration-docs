@@ -42,12 +42,9 @@ CREATE INDEX IX_akcja_akt_id ON dbo.akcja (ak_akt_id);
 CREATE INDEX IX_rezultat_ak_id  ON dbo.rezultat (re_ak_id);
 CREATE INDEX IX_rezultat_ret_id ON dbo.rezultat (re_ret_id);
 
--- atrybut: REF_15, REF_16-19, REF_28
--- Composite (at_atd_id, at_ob_id) covers per-domain NOT IN checks directly
-CREATE INDEX IX_atrybut_atd_ob  ON dbo.atrybut (at_atd_id, at_ob_id);
+-- atrybut: REF_15, REF_16-19 (domain now resolved via atrybut_typ.att_atd_id JOIN)
 CREATE INDEX IX_atrybut_att_id  ON dbo.atrybut (at_att_id);
--- Composite (at_atd_id, at_att_id) covers iter4/iter6 JOIN pattern filtering by domain + type
-CREATE INDEX IX_atrybut_atd_att ON dbo.atrybut (at_atd_id, at_att_id);
+CREATE INDEX IX_atrybut_ob_id   ON dbo.atrybut (at_ob_id);
 
 -- ksiegowanie_dekret: REF_20, REF_21, REF_22, BIZ_02b, BIZ_05, BIZ_06
 -- ksd_sp_id: iter8 JOIN to resolve prod sprawa via sp_ext_id

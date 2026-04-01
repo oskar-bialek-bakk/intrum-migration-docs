@@ -215,10 +215,10 @@ All FK relationships that exist in staging must resolve. These are straightforwa
 | REF_13 | mail → dluznik | mail | `... WHERE ma_dl_id NOT IN (SELECT dl_id FROM dluznik)` |
 | REF_14 | akcja → sprawa | akcja | `... WHERE ak_sp_id NOT IN (SELECT sp_id FROM sprawa)` |
 | REF_15 | atrybut → atrybut_typ | atrybut | `... WHERE at_att_id NOT IN (SELECT att_id FROM atrybut_typ)` |
-| REF_16 | atrybut (atd=1) → dokument | atrybut | `... WHERE at_atd_id = 1 AND at_ob_id NOT IN (SELECT do_id FROM dokument)` |
-| REF_17 | atrybut (atd=2) → wierzytelnosc | atrybut | `... WHERE at_atd_id = 2 AND at_ob_id NOT IN (SELECT wi_id FROM wierzytelnosc)` |
-| REF_18 | atrybut (atd=3) → dluznik | atrybut | `... WHERE at_atd_id = 3 AND at_ob_id NOT IN (SELECT dl_id FROM dluznik)` |
-| REF_19 | atrybut (atd=4) → sprawa | atrybut | `... WHERE at_atd_id = 4 AND at_ob_id NOT IN (SELECT sp_id FROM sprawa)` |
+| REF_16 | atrybut (atd=1) → dokument | atrybut | `... JOIN atrybut_typ ON att_id = at_att_id WHERE att_atd_id = 1 AND at_ob_id NOT IN (SELECT do_id FROM dokument)` |
+| REF_17 | atrybut (atd=2) → wierzytelnosc | atrybut | `... JOIN atrybut_typ ON att_id = at_att_id WHERE att_atd_id = 2 AND at_ob_id NOT IN (SELECT wi_id FROM wierzytelnosc)` |
+| REF_18 | atrybut (atd=3) → dluznik | atrybut | `... JOIN atrybut_typ ON att_id = at_att_id WHERE att_atd_id = 3 AND at_ob_id NOT IN (SELECT dl_id FROM dluznik)` |
+| REF_19 | atrybut (atd=4) → sprawa | atrybut | `... JOIN atrybut_typ ON att_id = at_att_id WHERE att_atd_id = 4 AND at_ob_id NOT IN (SELECT sp_id FROM sprawa)` |
 | REF_20 | ksiegowanie_dekret → ksiegowanie | ksiegowanie_dekret | `... WHERE ksd_ks_id NOT IN (SELECT ks_id FROM ksiegowanie)` |
 | REF_21 | ksiegowanie_dekret → ksiegowanie_konto | ksiegowanie_dekret | `... WHERE ksd_ksk_id NOT IN (SELECT ksk_id FROM ksiegowanie_konto)` |
 | REF_22 | ksiegowanie_dekret → dokument (nullable) | ksiegowanie_dekret | `... WHERE ksd_do_id IS NOT NULL AND ksd_do_id NOT IN (SELECT do_id FROM dokument)` |
@@ -227,7 +227,7 @@ All FK relationships that exist in staging must resolve. These are straightforwa
 | REF_25 | sprawa_etap → sprawa_typ | sprawa_etap | `... WHERE spe_spt_id NOT IN (SELECT spt_id FROM sprawa_typ)` |
 | REF_26 | dluznik → dluznik_typ | dluznik | `... WHERE dl_dt_id IS NOT NULL AND dl_dt_id NOT IN (SELECT dt_id FROM dluznik_typ)` |
 | REF_27 | operacja → waluta (via oper_waluta code) | operacja | `... WHERE oper_waluta IS NOT NULL AND oper_waluta NOT IN (SELECT wa_nazwa_skrocona FROM waluta)` |
-| REF_28 | atrybut → atrybut_dziedzina (at_atd_id) | atrybut | `... WHERE at_atd_id NOT IN (SELECT atd_id FROM atrybut_dziedzina)` |
+| ~~REF_28~~ | ~~atrybut → atrybut_dziedzina~~ | — | Removed: `at_atd_id` column removed from staging `atrybut`; domain derived via `atrybut_typ.att_atd_id` |
 | REF_29 | ksiegowanie → ksiegowanie_typ | ksiegowanie | `... WHERE ks_kst_id NOT IN (SELECT kst_id FROM ksiegowanie_typ)` |
 | REF_30 | dluznik.dl_plec → mapowanie.plec | dluznik | `... WHERE dl_plec IS NOT NULL AND dl_plec NOT IN (SELECT plec_kod FROM mapowanie.plec)` |
 | REF_31 | sprawa → sprawa_etap | sprawa | `... WHERE sp_spe_id NOT IN (SELECT spe_id FROM sprawa_etap)` |

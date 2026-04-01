@@ -130,8 +130,8 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 | `mod_date` | `aud_data` | trigger |
 | — | `aud_login` | trigger |
 | `att_uuid` | `att_uuid` | MERGE key for stages 2-5 |
-| — | `att_atd_id NOT NULL → atrybut_dziedzina` | derive from `staging.atrybut.at_atd_id` WHERE `at_att_id = att_id` (verified: always 1:1) |
-| — | `att_atr_id NOT NULL → atrybut_rodzaj` | derive from `staging.atrybut.at_atr_id` WHERE `at_att_id = att_id` (verified: always 1:1) |
+| `att_atd_id` | `att_atd_id NOT NULL → atrybut_dziedzina` | direct — staging atrybut_typ now carries correct domain |
+| `att_atr_id` | `att_atr_id NOT NULL → atrybut_rodzaj` | direct — staging atrybut_typ now carries correct data-type |
 | — | `att_required bit NOT NULL` | `0` |
 | — | `att_zrodlo_danych` | NULL |
 
@@ -347,15 +347,13 @@ Staging `at_ob_id` is an object reference — could be a dluznik, sprawa, or wie
 | Staging column | Prod table.column | Note |
 |---|---|---|
 | `at_id` | staging PK only | no direct prod PK — `atw_id` is new |
-| `at_ob_id` | entity join table FK (`atdl_dl_id` / `atsp_sp_id` / `atwi_wi_id` / `atdo_do_id`) | determined by `at_atd_id` (see below) |
-| `at_atd_id` | determines target join table | 1=atrybut_dokument, 2=atrybut_wierzytelnosc, 3=atrybut_dluznik, 4=atrybut_sprawa. **⚠️ Review finding (H4):** idempotency snapshots of `atw_ext_id` must be scoped by `at_atd_id` domain — unscoped snapshots risk cross-domain `at_id` collisions silently skipping rows. |
+| `at_ob_id` | entity join table FK (`atdl_dl_id` / `atsp_sp_id` / `atwi_wi_id` / `atdo_do_id`) | domain determined by `atrybut_typ.att_atd_id` (see below) |
 | `at_wartosc` | `atrybut_wartosc.atw_wartosc` | direct |
-| `at_atr_id` | already on `atrybut_typ` in prod — not re-inserted here | — |
-| `at_att_id` | `atrybut_wartosc.atw_att_id` | direct |
+| `at_att_id` | `atrybut_wartosc.atw_att_id` | direct — also provides domain via `atrybut_typ.att_atd_id` |
 
 **Transformation logic (per row):**
 1. INSERT into `atrybut_wartosc` (`atw_att_id = at_att_id`, `atw_wartosc = at_wartosc`) → capture `atw_id`
-2. Based on `at_atd_id` — `at_ob_id` is the staging entity PK; resolve to prod IDENTITY PK via `ext_id`:
+2. Based on `atrybut_typ.att_atd_id` (derived from `at_att_id`) — `at_ob_id` is the staging entity PK; resolve to prod IDENTITY PK via `ext_id`:
    - 1 → INSERT into `atrybut_dokument` (`atdo_atw_id = atw_id`, `atdo_do_id = prod.do_id WHERE do_ext_id = at_ob_id`)
    - 2 → INSERT into `atrybut_wierzytelnosc` (`atwi_atw_id = atw_id`, `atwi_wi_id = prod.wi_id WHERE wi_ext_id = at_ob_id`)
    - 3 → INSERT into `atrybut_dluznik` (`atdl_atw_id = atw_id`, `atdl_dl_id = prod.dl_id WHERE dl_ext_id = at_ob_id`)
