@@ -61,6 +61,17 @@
 | 26 | `wierzytelnosc_rola` | `wierzytelnosc_rola` | ✅ Ready to script |
 | 27 | `zabezpieczenie` | ❓ No prod table found | 🔵 Stage 2+ only |
 | 28 | — | Multi-currency infrastructure | ✅ Resolved (read-only copies) |
+| 29 | `zrodlo_pochodzenia_informacji` | `zrodlo_pochodzenia_informacji` | ✅ Ready to script |
+| 30 | `wlasciwosc_typ_walidacji` | `wlasciwosc_typ_walidacji` | ✅ Ready to script |
+| 31 | `wlasciwosc_dziedzina` | `wlasciwosc_dziedzina` | ✅ Ready to script |
+| 32 | `wlasciwosc_podtyp` | `wlasciwosc_podtyp` | ✅ Ready to script |
+| 33 | `wlasciwosc_typ` | `wlasciwosc_typ` | ✅ Ready to script |
+| 34 | `wlasciwosc_typ_podtyp_dziedzina` | `wlasciwosc_typ_podtyp_dziedzina` | ✅ Ready to script |
+| 35 | `wlasciwosc` | `wlasciwosc` | ✅ Ready to script |
+| 36 | `wlasciwosc_dluznik` | `wlasciwosc_dluznik` | ✅ Ready to script |
+| 37 | `wlasciwosc_adres` | `wlasciwosc_adres` | ✅ Ready to script |
+| 38 | `wlasciwosc_email` | `wlasciwosc_email` | ✅ Ready to script |
+| 39 | `wlasciwosc_telefon` | `wlasciwosc_telefon` | ✅ Ready to script |
 
 For column-by-column mapping details see [column_mapping.md](column_mapping.md).
 
@@ -119,6 +130,11 @@ For column-by-column mapping details see [column_mapping.md](column_mapping.md).
 | 2026-03-07 | ksd_kurs: do NOT add — same as ksd_kurs_bazowy |
 | 2026-03-07 | multi-currency wyceny columns go to STAGING (already in prod) |
 | 2026-03-07 | operacja ksk_id: kapital=2, odsetki karne=5, umowne=6, ustawowe=8, oplaty=10, prowizje=10 (subkonto TBD) |
+| 2026-04-02 | `wlasciwosc` tables — 6 lookup tables (zrodlo_pochodzenia_informacji, wlasciwosc_typ_walidacji, wlasciwosc_dziedzina, wlasciwosc_podtyp, wlasciwosc_typ, wlasciwosc_typ_podtyp_dziedzina) + 5 entity/join tables (wlasciwosc, wlasciwosc_dluznik/adres/email/telefon) added to pipeline |
+| 2026-04-02 | `wlasciwosc.wl_zpi_id = 2` always (external system); `wl_tworzacy_us_id = @system_admin_user_id`; `wl_dezaktywujacy_us_id = NULL` |
+| 2026-04-02 | No `wl_ext_id` on prod wlasciwosc — idempotency via parent entity ext_ids (dl_ext_id, ad_ext_id, ma_ext_id, tn_ext_id) + wtpd composite |
+| 2026-04-02 | wlasciwosc lookup tables use UUID MERGE strategy (same as existing lookups); `CAST(*_uuid AS VARCHAR(50))` required |
+| 2026-04-02 | wlasciwosc_telefon: prod preserves `wt_*` prefix despite collision with wlasciwosc_typ — follows existing prod naming |
 
 ---
 

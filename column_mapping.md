@@ -1,6 +1,6 @@
 # Intrum — Column Mapping: Staging → Production
 
-Per-table column mapping details for all 30 migration items.
+Per-table column mapping details for all 41 migration items (sections 1-30 core, 31-41 wlasciwosc feature).
 For planning overview, table index, and decisions log see [plan.md](plan.md).
 
 ---
@@ -684,3 +684,224 @@ Entity table. `dop_id` is IDENTITY in prod. Requires `dokument_odsetki_przerwy_t
 | `dop_ak_id` | `dop_ak_id` | direct (nullable) |
 | `mod_date` | `aud_data` | trigger |
 | — | `aud_login` | trigger |
+
+---
+
+## Wlasciwosc Feature Tables (Sections 31-41)
+
+Per [project_wlasciwosc_feature.md](project_wlasciwosc_feature.md) — adding 11 property/attribute tables to migration pipeline.
+- **Sections 31-36:** Lookup/reference tables (INT PK, not IDENTITY). MERGE keyed on `*_uuid` (CAST to VARCHAR(50) in MERGE ON). Require cross-DB backfill of `*_ext_id` after MERGE for all rows.
+- **Sections 37-41:** Entity tables (IDENTITY PKs or FK-resolved IDs). Idempotency via parent ext_ids or composite keys.
+
+---
+
+### 31. `zrodlo_pochodzenia_informacji` → `zrodlo_pochodzenia_informacji` ✅
+
+Lookup table. No IDENTITY on PK.
+
+| Staging column | Prod column | Note |
+|---|---|---|
+| `zpi_id` | `zpi_id` | PK |
+| `zpi_nazwa` | `zpi_nazwa` | direct |
+| `mod_date` | `aud_data` | trigger |
+| — | `aud_login` | trigger |
+| `zpi_uuid` | `zpi_uuid` | MERGE key for stages 2-5; `CAST(zpi_uuid AS VARCHAR(50))` |
+
+**ext_id mapping:** `zpi_ext_id` — backfill after MERGE (UUID-keyed cross-DB update)
+
+---
+
+### 32. `wlasciwosc_typ_walidacji` → `wlasciwosc_typ_walidacji` ✅
+
+Lookup table. No IDENTITY on PK.
+
+| Staging column | Prod column | Note |
+|---|---|---|
+| `wtw_id` | `wtw_id` | PK |
+| `wtw_nazwa` | `wtw_nazwa` | direct |
+| `mod_date` | `aud_data` | trigger |
+| — | `aud_login` | trigger |
+| `wtw_uuid` | `wtw_uuid` | MERGE key for stages 2-5; `CAST(wtw_uuid AS VARCHAR(50))` |
+
+**ext_id mapping:** `wtw_ext_id` — backfill after MERGE (UUID-keyed cross-DB update)
+
+---
+
+### 33. `wlasciwosc_dziedzina` → `wlasciwosc_dziedzina` ✅
+
+Lookup table. No IDENTITY on PK.
+
+| Staging column | Prod column | Note |
+|---|---|---|
+| `wdzi_id` | `wdzi_id` | PK |
+| `wdzi_nazwa` | `wdzi_nazwa` | direct |
+| `mod_date` | `aud_data` | trigger |
+| — | `aud_login` | trigger |
+| `wdzi_uuid` | `wdzi_uuid` | MERGE key for stages 2-5; `CAST(wdzi_uuid AS VARCHAR(50))` |
+
+**ext_id mapping:** `wdzi_ext_id` — backfill after MERGE (UUID-keyed cross-DB update)
+
+---
+
+### 34. `wlasciwosc_podtyp` → `wlasciwosc_podtyp` ✅
+
+Lookup table. No IDENTITY on PK.
+
+| Staging column | Prod column | Note |
+|---|---|---|
+| `wpt_id` | `wpt_id` | PK |
+| `wpt_nazwa` | `wpt_nazwa` | direct |
+| `mod_date` | `aud_data` | trigger |
+| — | `aud_login` | trigger |
+| `wpt_uuid` | `wpt_uuid` | MERGE key for stages 2-5; `CAST(wpt_uuid AS VARCHAR(50))` |
+
+**ext_id mapping:** `wpt_ext_id` — backfill after MERGE (UUID-keyed cross-DB update)
+
+---
+
+### 35. `wlasciwosc_typ` → `wlasciwosc_typ` ✅
+
+Lookup table. No IDENTITY on PK. Has FK: `wt_wtw_id → wlasciwosc_typ_walidacji`.
+
+| Staging column | Prod column | Note |
+|---|---|---|
+| `wt_id` | `wt_id` | PK |
+| `wt_nazwa` | `wt_nazwa` | direct |
+| `wt_wtw_id` | `wt_wtw_id` | FK → `wlasciwosc_typ_walidacji` |
+| `mod_date` | `aud_data` | trigger |
+| — | `aud_login` | trigger |
+| `wt_uuid` | `wt_uuid` | MERGE key for stages 2-5; `CAST(wt_uuid AS VARCHAR(50))` |
+
+**ext_id mapping:** `wt_ext_id` — backfill after MERGE (UUID-keyed cross-DB update)
+
+---
+
+### 36. `wlasciwosc_typ_podtyp_dziedzina` → `wlasciwosc_typ_podtyp_dziedzina` ✅
+
+Lookup table junction. No IDENTITY on PK. Has 3 FKs:
+- `wtpd_wt_id → wlasciwosc_typ`
+- `wtpd_dzi_id → wlasciwosc_dziedzina`
+- `wtpd_wpt_id → wlasciwosc_podtyp`
+
+| Staging column | Prod column | Note |
+|---|---|---|
+| `wtpd_id` | `wtpd_id` | PK |
+| `wtpd_wt_id` | `wtpd_wt_id` | FK → `wlasciwosc_typ` |
+| `wtpd_dzi_id` | `wtpd_dzi_id` | FK → `wlasciwosc_dziedzina` |
+| `wtpd_wpt_id` | `wtpd_wpt_id` | FK → `wlasciwosc_podtyp` |
+| `mod_date` | `aud_data` | trigger |
+| — | `aud_login` | trigger |
+| `wtpd_uuid` | `wtpd_uuid` | MERGE key for stages 2-5 |
+| — | `wtpd_ext_id` | set after MERGE for stages 2-5 idempotency |
+
+**ext_id mapping:** For stages 2-5, populate `wtpd_ext_id` = `wtpd_id` after MERGE to enable foreign key resolution in child tables.
+
+---
+
+### 37. `wlasciwosc` → `wlasciwosc` ✅
+
+Entity table. `wl_id` is IDENTITY in prod. Idempotency via parent ext_ids (stage 1 only, no UUID MERGE).
+
+**Key FK:** `wl_wtpd_id` → resolve via `wlasciwosc_typ_podtyp_dziedzina.wtpd_ext_id`
+
+| Staging column | Prod column | Note |
+|---|---|---|
+| `wl_id` | — | staging PK (IDENTITY) — dropped in stage 2+ |
+| — | `wl_id` | prod IDENTITY (generated) |
+| `wl_wtpd_id` | `wl_wtpd_id` | resolve from staging `wl_wtpd_id` via `wtpd_ext_id` JOIN |
+| `wl_aktywny_od` | `wl_aktywny_od` | direct |
+| `wl_aktywny_do` | `wl_aktywny_do` | direct |
+| — | `wl_tworzacy_us_id NOT NULL` | `@system_admin_user_id` |
+| — | `wl_dezaktywujacy_us_id` | `NULL` |
+| — | `wl_zpi_id NOT NULL` | `2` (always) |
+| — | `wl_uuid` | `NEWID()` (prod generates) |
+| — | `aud_data` | `GETUTCDATE()` (explicit, not trigger) |
+| — | `aud_login` | `'admin'` (explicit, not trigger) |
+
+**Idempotency:** Stage 1 only (no ext_id backfill). Stages 2+ use parent (`dluznik`, `adres`, `mail`, `telefon`) ext_ids to determine if row already linked.
+
+---
+
+### 38. `wlasciwosc_dluznik` → `wlasciwosc_dluznik` ✅
+
+Entity bridge table. `wd_id` is IDENTITY in prod. Idempotency via composite key `(wd_dl_id, wd_wl_id)`.
+
+**FKs:**
+- `wd_wl_id → wlasciwosc` (resolve via staging `wl_id` → prod `wl_id` after wlasciwosc insert)
+- `wd_dl_id → dluznik` (resolve via `dl_ext_id`)
+
+| Staging column | Prod column | Note |
+|---|---|---|
+| `wd_id` | — | staging PK (IDENTITY) — dropped in stage 2+ |
+| — | `wd_id` | prod IDENTITY (generated) |
+| `wd_wl_id` | `wd_wl_id` | resolve to prod `wl_id` after wlasciwosc insert |
+| `wd_dl_id` | `wd_dl_id` | resolve from staging `wd_dl_id` via `dl_ext_id` JOIN |
+| — | `aud_data` | `GETUTCDATE()` (explicit) |
+| — | `aud_login` | `'admin'` (explicit) |
+
+**Idempotency:** Composite key `(wd_dl_id, wd_wl_id)`. Check-before-insert or MERGE with ON clause: `ON (prod.wd_dl_id = src.wd_dl_id AND prod.wd_wl_id = src.wd_wl_id)`.
+
+---
+
+### 39. `wlasciwosc_adres` → `wlasciwosc_adres` ✅
+
+Entity bridge table. `wa_id` is IDENTITY in prod. Idempotency via composite key `(wa_ad_id, wa_wl_id)`.
+
+**FKs:**
+- `wa_wl_id → wlasciwosc` (resolve via staging `wl_id` → prod `wl_id` after wlasciwosc insert)
+- `wa_ad_id → adres` (resolve via `ad_ext_id`)
+
+| Staging column | Prod column | Note |
+|---|---|---|
+| `wa_id` | — | staging PK (IDENTITY) — dropped in stage 2+ |
+| — | `wa_id` | prod IDENTITY (generated) |
+| `wa_wl_id` | `wa_wl_id` | resolve to prod `wl_id` after wlasciwosc insert |
+| `wa_ad_id` | `wa_ad_id` | resolve from staging `wa_ad_id` via `ad_ext_id` JOIN |
+| — | `aud_data` | `GETUTCDATE()` (explicit) |
+| — | `aud_login` | `'admin'` (explicit) |
+
+**Idempotency:** Composite key `(wa_ad_id, wa_wl_id)`. Check-before-insert or MERGE with ON clause: `ON (prod.wa_ad_id = src.wa_ad_id AND prod.wa_wl_id = src.wa_wl_id)`.
+
+---
+
+### 40. `wlasciwosc_email` → `wlasciwosc_email` ✅
+
+Entity bridge table. `we_id` is IDENTITY in prod. Idempotency via composite key `(we_ma_id, we_wl_id)`.
+
+**FKs:**
+- `we_wl_id → wlasciwosc` (resolve via staging `wl_id` → prod `wl_id` after wlasciwosc insert)
+- `we_ma_id → mail` (resolve via `ma_ext_id`)
+
+| Staging column | Prod column | Note |
+|---|---|---|
+| `we_id` | — | staging PK (IDENTITY) — dropped in stage 2+ |
+| — | `we_id` | prod IDENTITY (generated) |
+| `we_wl_id` | `we_wl_id` | resolve to prod `wl_id` after wlasciwosc insert |
+| `we_ma_id` | `we_ma_id` | resolve from staging `we_ma_id` via `ma_ext_id` JOIN |
+| — | `aud_data` | `GETUTCDATE()` (explicit) |
+| — | `aud_login` | `'admin'` (explicit) |
+
+**Idempotency:** Composite key `(we_ma_id, we_wl_id)`. Check-before-insert or MERGE with ON clause: `ON (prod.we_ma_id = src.we_ma_id AND prod.we_wl_id = src.we_wl_id)`.
+
+---
+
+### 41. `wlasciwosc_telefon` → `wlasciwosc_telefon` ✅
+
+Entity bridge table. `wt_id` is IDENTITY in prod. Idempotency via composite key `(wt_tn_id, wt_wl_id)`.
+
+**Note:** Prod table prefix is `wt_*` (naming collision with `wlasciwosc_typ`, but prod table structure is preserved).
+
+**FKs:**
+- `wt_wl_id → wlasciwosc` (resolve via staging `wl_id` → prod `wl_id` after wlasciwosc insert)
+- `wt_tn_id → telefon` (resolve via `tn_ext_id`)
+
+| Staging column | Prod column | Note |
+|---|---|---|
+| `wt_id` | — | staging PK (IDENTITY) — dropped in stage 2+ |
+| — | `wt_id` | prod IDENTITY (generated) |
+| `wt_wl_id` | `wt_wl_id` | resolve to prod `wl_id` after wlasciwosc insert |
+| `wt_tn_id` | `wt_tn_id` | resolve from staging `wt_tn_id` via `tn_ext_id` JOIN |
+| — | `aud_data` | `GETUTCDATE()` (explicit) |
+| — | `aud_login` | `'admin'` (explicit) |
+
+**Idempotency:** Composite key `(wt_tn_id, wt_wl_id)`. Check-before-insert or MERGE with ON clause: `ON (prod.wt_tn_id = src.wt_tn_id AND prod.wt_wl_id = src.wt_wl_id)`.

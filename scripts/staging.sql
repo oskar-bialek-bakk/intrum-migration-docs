@@ -50,6 +50,17 @@ DROP TABLE IF EXISTS dbo.harmonogram;
 DROP TABLE IF EXISTS dbo.dokument;
 DROP TABLE IF EXISTS dbo.rezultat;
 DROP TABLE IF EXISTS dbo.atrybut;
+DROP TABLE IF EXISTS dbo.wlasciwosc_telefon;
+DROP TABLE IF EXISTS dbo.wlasciwosc_email;
+DROP TABLE IF EXISTS dbo.wlasciwosc_adres;
+DROP TABLE IF EXISTS dbo.wlasciwosc_dluznik;
+DROP TABLE IF EXISTS dbo.wlasciwosc;
+DROP TABLE IF EXISTS dbo.wlasciwosc_typ_podtyp_dziedzina;
+DROP TABLE IF EXISTS dbo.wlasciwosc_typ;
+DROP TABLE IF EXISTS dbo.wlasciwosc_podtyp;
+DROP TABLE IF EXISTS dbo.wlasciwosc_dziedzina;
+DROP TABLE IF EXISTS dbo.wlasciwosc_typ_walidacji;
+DROP TABLE IF EXISTS dbo.zrodlo_pochodzenia_informacji;
 DROP TABLE IF EXISTS dbo.akcja;
 DROP TABLE IF EXISTS dbo.adres;
 DROP TABLE IF EXISTS dbo.ksiegowanie;
@@ -319,6 +330,66 @@ CREATE TABLE dbo.atrybut_typ (
     CONSTRAINT PK_atrybut_typ PRIMARY KEY (att_id),
     CONSTRAINT FK_atrybut_typ_dziedzina FOREIGN KEY (att_atd_id) REFERENCES dbo.atrybut_dziedzina (atd_id),
     CONSTRAINT FK_atrybut_typ_rodzaj    FOREIGN KEY (att_atr_id) REFERENCES dbo.atrybut_rodzaj    (atr_id)
+);
+
+-- ============================================================
+-- Wlasciwosc lookup tables (copied from prod, no IDENTITY)
+-- ============================================================
+
+CREATE TABLE dbo.zrodlo_pochodzenia_informacji (
+    zpi_id      INT              NOT NULL,
+    zpi_nazwa   NVARCHAR(255)    NOT NULL,
+    zpi_opis    NVARCHAR(2000)   NULL,
+    zpi_uuid    VARCHAR(50)      NOT NULL DEFAULT CAST(NEWID() AS VARCHAR(50)),
+    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT PK_zrodlo_pochodzenia_informacji PRIMARY KEY (zpi_id)
+);
+
+CREATE TABLE dbo.wlasciwosc_typ_walidacji (
+    wtw_id      INT              NOT NULL,
+    wtw_nazwa   VARCHAR(50)      NOT NULL,
+    wtw_uuid    UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT PK_wlasciwosc_typ_walidacji PRIMARY KEY (wtw_id)
+);
+
+CREATE TABLE dbo.wlasciwosc_dziedzina (
+    wdzi_id     INT              NOT NULL,
+    wdzi_nazwa  VARCHAR(100)     NOT NULL,
+    wdzi_uuid   UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT PK_wlasciwosc_dziedzina PRIMARY KEY (wdzi_id)
+);
+
+CREATE TABLE dbo.wlasciwosc_podtyp (
+    wpt_id      INT              NOT NULL,
+    wpt_nazwa   VARCHAR(255)     NOT NULL,
+    wpt_uuid    UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT PK_wlasciwosc_podtyp PRIMARY KEY (wpt_id)
+);
+
+CREATE TABLE dbo.wlasciwosc_typ (
+    wt_id       INT              NOT NULL,
+    wt_nazwa    VARCHAR(255)     NOT NULL,
+    wt_wtw_id   INT              NOT NULL,
+    wt_uuid     UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT PK_wlasciwosc_typ PRIMARY KEY (wt_id),
+    CONSTRAINT FK_wlasciwosc_typ_walidacji FOREIGN KEY (wt_wtw_id) REFERENCES dbo.wlasciwosc_typ_walidacji (wtw_id)
+);
+
+CREATE TABLE dbo.wlasciwosc_typ_podtyp_dziedzina (
+    wtpd_id     INT              NOT NULL,
+    wtpd_wt_id  INT              NOT NULL,
+    wtpd_dzi_id INT              NOT NULL,
+    wtpd_wpt_id INT              NOT NULL,
+    wtpd_uuid   UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT PK_wlasciwosc_typ_podtyp_dziedzina PRIMARY KEY (wtpd_id),
+    CONSTRAINT FK_wtpd_wt   FOREIGN KEY (wtpd_wt_id)  REFERENCES dbo.wlasciwosc_typ  (wt_id),
+    CONSTRAINT FK_wtpd_dzi  FOREIGN KEY (wtpd_dzi_id)  REFERENCES dbo.wlasciwosc_dziedzina (wdzi_id),
+    CONSTRAINT FK_wtpd_wpt  FOREIGN KEY (wtpd_wpt_id)  REFERENCES dbo.wlasciwosc_podtyp    (wpt_id)
 );
 
 -- ============================================================
@@ -604,6 +675,61 @@ CREATE TABLE dbo.telefon (
     CONSTRAINT FK_telefon_telefon_typ FOREIGN KEY (tn_tt_id) REFERENCES dbo.telefon_typ (tt_id)
 );
 
+-- ============================================================
+-- Wlasciwosc entity + join tables
+-- (after dluznik, adres, mail, telefon — FK dependencies)
+-- ============================================================
+
+CREATE TABLE dbo.wlasciwosc (
+    wl_id           INT      NOT NULL,
+    wl_wtpd_id      INT      NOT NULL,
+    wl_aktywny_od   DATETIME NOT NULL,
+    wl_aktywny_do   DATETIME NULL,
+    mod_date        DATETIME NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT PK_wlasciwosc PRIMARY KEY (wl_id),
+    CONSTRAINT FK_wlasciwosc_wtpd FOREIGN KEY (wl_wtpd_id) REFERENCES dbo.wlasciwosc_typ_podtyp_dziedzina (wtpd_id)
+);
+
+CREATE TABLE dbo.wlasciwosc_dluznik (
+    wd_id       INT      NOT NULL,
+    wd_wl_id    INT      NOT NULL,
+    wd_dl_id    INT      NOT NULL,
+    mod_date    DATETIME NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT PK_wlasciwosc_dluznik PRIMARY KEY (wd_id),
+    CONSTRAINT FK_wd_wl FOREIGN KEY (wd_wl_id) REFERENCES dbo.wlasciwosc (wl_id),
+    CONSTRAINT FK_wd_dl FOREIGN KEY (wd_dl_id) REFERENCES dbo.dluznik    (dl_id)
+);
+
+CREATE TABLE dbo.wlasciwosc_adres (
+    wa_id       INT      NOT NULL,
+    wa_wl_id    INT      NOT NULL,
+    wa_ad_id    INT      NOT NULL,
+    mod_date    DATETIME NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT PK_wlasciwosc_adres PRIMARY KEY (wa_id),
+    CONSTRAINT FK_wa_wl FOREIGN KEY (wa_wl_id) REFERENCES dbo.wlasciwosc (wl_id),
+    CONSTRAINT FK_wa_ad FOREIGN KEY (wa_ad_id) REFERENCES dbo.adres      (ad_id)
+);
+
+CREATE TABLE dbo.wlasciwosc_email (
+    we_id       INT      NOT NULL,
+    we_wl_id    INT      NOT NULL,
+    we_ma_id    INT      NOT NULL,
+    mod_date    DATETIME NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT PK_wlasciwosc_email PRIMARY KEY (we_id),
+    CONSTRAINT FK_we_wl FOREIGN KEY (we_wl_id) REFERENCES dbo.wlasciwosc (wl_id),
+    CONSTRAINT FK_we_ma FOREIGN KEY (we_ma_id) REFERENCES dbo.mail       (ma_id)
+);
+
+CREATE TABLE dbo.wlasciwosc_telefon (
+    wt_id       INT      NOT NULL,
+    wt_wl_id    INT      NOT NULL,
+    wt_tn_id    INT      NOT NULL,
+    mod_date    DATETIME NOT NULL DEFAULT GETDATE(),
+    CONSTRAINT PK_wlasciwosc_telefon PRIMARY KEY (wt_id),
+    CONSTRAINT FK_wt_wl FOREIGN KEY (wt_wl_id) REFERENCES dbo.wlasciwosc (wl_id),
+    CONSTRAINT FK_wt_tn FOREIGN KEY (wt_tn_id) REFERENCES dbo.telefon    (tn_id)
+);
+
 CREATE TABLE dbo.wierzytelnosc_rola (
     wir_id      INT      NOT NULL IDENTITY(1,1),
     wir_sp_id   INT      NOT NULL,
@@ -727,9 +853,10 @@ CREATE TABLE log.configuration (
 );
 
 -- system_admin_user_id: ID of the system user in dm_data_web_pipeline.dbo.GE_USER
--- used as *_tworzacy_us_id for adres, mail, telefon inserts.
+-- used as *_tworzacy_us_id for adres, mail, telefon, wlasciwosc inserts.
+-- Value must exist in prod GE_USER table (FK enforced on wlasciwosc).
 -- Update this value to match the actual system admin user ID in prod before running migration.
-INSERT INTO log.configuration (setting_name, setting_value) VALUES ('system_admin_user_id', '1');
+INSERT INTO log.configuration (setting_name, setting_value) VALUES ('system_admin_user_id', '5');
 
 -- ============================================================
 -- Configuration schema (tunable thresholds)
@@ -800,6 +927,25 @@ IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.rezult
 
 IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.sprawa_etap')       AND name = 'spe_ext_id')
     ALTER TABLE dbo.sprawa_etap      ADD spe_ext_id  INT NULL;
+
+-- Wlasciwosc lookup ext_id columns
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.zrodlo_pochodzenia_informacji') AND name = 'zpi_ext_id')
+    ALTER TABLE dbo.zrodlo_pochodzenia_informacji ADD zpi_ext_id INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.wlasciwosc_typ_walidacji')     AND name = 'wtw_ext_id')
+    ALTER TABLE dbo.wlasciwosc_typ_walidacji      ADD wtw_ext_id INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.wlasciwosc_dziedzina')         AND name = 'wdzi_ext_id')
+    ALTER TABLE dbo.wlasciwosc_dziedzina          ADD wdzi_ext_id INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.wlasciwosc_podtyp')            AND name = 'wpt_ext_id')
+    ALTER TABLE dbo.wlasciwosc_podtyp             ADD wpt_ext_id INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.wlasciwosc_typ')               AND name = 'wt_ext_id')
+    ALTER TABLE dbo.wlasciwosc_typ                ADD wt_ext_id  INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.wlasciwosc_typ_podtyp_dziedzina') AND name = 'wtpd_ext_id')
+    ALTER TABLE dbo.wlasciwosc_typ_podtyp_dziedzina ADD wtpd_ext_id INT NULL;
 
 -- Entity table ext_id columns
 IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.adres')   AND name = 'ad_ext_id')

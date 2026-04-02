@@ -64,6 +64,12 @@ Skopiowanie istniejących danych produkcyjnych do tabel słownikowych w stagingu
 | `dbo.rezultat_typ` | Słownik typów rezultatów. **Kolumna `ret_konczy` (BIT) musi być uzupełniona dla każdego wiersza** — określa czy dany rezultat zamyka akcję. |
 | `dbo.atrybut_typ` | Słownik typów atrybutów. **Wymaga uprzedniego zasilenia `atrybut_dziedzina` i `atrybut_rodzaj`.** |
 | `dbo.sprawa_etap` | Słownik etapów spraw. **Wymaga uprzedniego zasilenia `sprawa_typ` i `akcja_typ`. Każdy wiersz `sprawa_etap` wymaga odpowiadającego wiersza w `akcja_typ`.** |
+| `dbo.zrodlo_pochodzenia_informacji` | Słownik źródeł pochodzenia informacji |
+| `dbo.wlasciwosc_typ_walidacji` | Słownik typów walidacji właściwości |
+| `dbo.wlasciwosc_dziedzina` | Słownik dziedzin właściwości |
+| `dbo.wlasciwosc_podtyp` | Słownik podtypów właściwości |
+| `dbo.wlasciwosc_typ` | Słownik typów właściwości. **Wymaga uprzedniego zasilenia `wlasciwosc_typ_walidacji`.** |
+| `dbo.wlasciwosc_typ_podtyp_dziedzina` | Powiązania typ-podtyp-dziedzina właściwości. **Wymaga uprzedniego zasilenia `wlasciwosc_typ`, `wlasciwosc_dziedzina`, `wlasciwosc_podtyp`.** |
 
 ---
 
@@ -73,6 +79,8 @@ Skopiowanie istniejących danych produkcyjnych do tabel słownikowych w stagingu
 |---|---|---|
 | `dbo.dluznik` | `dl_dt_id → dluznik_typ` | Reguła biznesowa: `dl_dt_id` równe (1,2) → wymagane `dl_imie`, `dl_nazwisko`, `dl_pesel`. `dl_dt_id` równe (3,4) → wymagane `dl_firma`, `dl_nip`. |
 | `dbo.atrybut` *(att_atd_id = 3)* | `at_att_id → atrybut_typ` (dziedzina i rodzaj dziedziczone z `atrybut_typ`), `at_ob_id → dluznik.dl_id` | Wyłącznie atrybuty dłużników (`atrybut_typ.att_atd_id = 3`). Załadować po `dluznik`. |
+| `dbo.wlasciwosc` *(dziedzina=4)* | `wl_wtpd_id → wlasciwosc_typ_podtyp_dziedzina` | Główna tabela właściwości — załadować wiersze powiązane z dłużnikami (dziedzina=4). Załadować razem z `wlasciwosc_dluznik`. |
+| `dbo.wlasciwosc_dluznik` | `wd_wl_id → wlasciwosc`, `wd_dl_id → dluznik` | Właściwości dłużników. Załadować po `dluznik`. Wymaga zasilenia tabel słownikowych `wlasciwosc_*` w Iteracji 1. |
 
 ---
 
@@ -83,6 +91,10 @@ Skopiowanie istniejących danych produkcyjnych do tabel słownikowych w stagingu
 | `dbo.adres` | `ad_dl_id → dluznik`, `ad_at_id → adres_typ` | Dozwolonych wiele adresów na dłużnika. Maksymalna liczba jednocześnie aktywnych adresów danego typu (`ad_at_id`) jest konfigurowana w prod: `adres_typ_podmiot_konfiguracja.atpk_il` (dla `atp_id=2` — dłużnik). Aktywny = `ad_data_do IS NULL` lub `ad_data_do > GETDATE()`. Przekroczenie limitu jest **blokujące** (BIZ_20). |
 | `dbo.mail` | `ma_dl_id → dluznik` | |
 | `dbo.telefon` | `tn_dl_id → dluznik`, `tn_tt_id → telefon_typ` | Dozwolonych wiele numerów telefonu na dłużnika, jednak dla każdego typu telefonu (`tn_tt_id`) tylko jeden rekord może być jednocześnie aktywny (brak daty zakończenia lub `tn_data_do > GETDATE()`). |
+| `dbo.wlasciwosc` *(dziedzina=1,2,3)* | `wl_wtpd_id → wlasciwosc_typ_podtyp_dziedzina` | Wiersze właściwości powiązane z adresami (dziedzina=2), e-mailami (dziedzina=3) i telefonami (dziedzina=1). Załadować razem z `wlasciwosc_adres`, `wlasciwosc_email`, `wlasciwosc_telefon`. |
+| `dbo.wlasciwosc_adres` | `wa_wl_id → wlasciwosc`, `wa_ad_id → adres` | Właściwości adresów. Załadować po `adres`. |
+| `dbo.wlasciwosc_email` | `we_wl_id → wlasciwosc`, `we_ma_id → mail` | Właściwości adresów e-mail. Załadować po `mail`. |
+| `dbo.wlasciwosc_telefon` | `wt_wl_id → wlasciwosc`, `wt_tn_id → telefon` | Właściwości telefonów. Załadować po `telefon`. |
 
 ---
 
@@ -150,9 +162,11 @@ Iteracja 1  → waluta, kurs_walut, kontrahent, umowa_kontrahent,
                adres_typ, dluznik_typ, dokument_typ, ksiegowanie_konto,
                ksiegowanie_typ, sprawa_rola_typ, sprawa_typ, telefon_typ,
                atrybut_dziedzina, atrybut_rodzaj, akcja_typ, rezultat_typ,
-               atrybut_typ*, sprawa_etap*          (* po spełnieniu zależności)
-Iteracja 2  → dluznik, atrybut (att_atd_id=3)
-Iteracja 3  → adres, mail, telefon
+               atrybut_typ*, sprawa_etap*, zrodlo_pochodzenia_informacji,
+               wlasciwosc_typ_walidacji, wlasciwosc_dziedzina, wlasciwosc_podtyp,
+               wlasciwosc_typ*, wlasciwosc_typ_podtyp_dziedzina*          (* po spełnieniu zależności)
+Iteracja 2  → dluznik, atrybut (att_atd_id=3), wlasciwosc (dziedzina=4), wlasciwosc_dluznik
+Iteracja 3  → adres, mail, telefon, wlasciwosc (dziedzina=1,2,3), wlasciwosc_adres, wlasciwosc_email, wlasciwosc_telefon
 Iteracja 4  → sprawa, sprawa_rola, atrybut (att_atd_id=4)
 Iteracja 5  → akcja, rezultat
 Iteracja 6  → wierzytelnosc, atrybut (att_atd_id=2)

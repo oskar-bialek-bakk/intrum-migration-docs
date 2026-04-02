@@ -66,4 +66,23 @@ CREATE INDEX IX_harmonogram_wi_id ON dbo.harmonogram (hr_wi_id);
 -- waluta: REF_27 lookup by ISO currency code (wa_nazwa_skrocona is not PK)
 CREATE INDEX IX_waluta_nazwa_skrocona ON dbo.waluta (wa_nazwa_skrocona);
 
-PRINT '>> All 27 staging indexes created.';
+-- wlasciwosc: FK to wlasciwosc_typ_podtyp_dziedzina
+CREATE INDEX IX_wlasciwosc_wtpd ON dbo.wlasciwosc (wl_wtpd_id);
+
+-- wlasciwosc_dluznik: FK joins
+CREATE INDEX IX_wlasciwosc_dluznik_wl ON dbo.wlasciwosc_dluznik (wd_wl_id);
+CREATE INDEX IX_wlasciwosc_dluznik_dl ON dbo.wlasciwosc_dluznik (wd_dl_id);
+
+-- wlasciwosc_adres: FK joins
+CREATE INDEX IX_wlasciwosc_adres_wl ON dbo.wlasciwosc_adres (wa_wl_id);
+CREATE INDEX IX_wlasciwosc_adres_ad ON dbo.wlasciwosc_adres (wa_ad_id);
+
+-- wlasciwosc_email: FK joins
+CREATE INDEX IX_wlasciwosc_email_wl ON dbo.wlasciwosc_email (we_wl_id);
+CREATE INDEX IX_wlasciwosc_email_ma ON dbo.wlasciwosc_email (we_ma_id);
+
+-- wlasciwosc_telefon: FK joins
+CREATE INDEX IX_wlasciwosc_telefon_wl ON dbo.wlasciwosc_telefon (wt_wl_id);
+CREATE INDEX IX_wlasciwosc_telefon_tn ON dbo.wlasciwosc_telefon (wt_tn_id);
+
+PRINT '>> All 37 staging indexes created.';
