@@ -815,5 +815,70 @@ IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.telefo
 IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.umowa_kontrahent') AND name = 'uko_id_migracja')
     ALTER TABLE dbo.umowa_kontrahent ADD uko_id_migracja INT NULL;
 
+-- ============================================================
+-- Shared procedure: migrate atrybut_wartosc by domain
+-- Used by iter4 (att_atd_id=4, sprawa) and iter6 (att_atd_id=2, wierzytelnosc).
+-- Caller MUST create #atw_mapping (staging_at_id INT, prod_atw_id INT) before calling.
+-- ============================================================
+GO
+CREATE OR ALTER PROCEDURE dbo.usp_migrate_atrybut_wartosc
+    @att_atd_id     INT,
+    @aud_now        DATETIME2,
+    @aud_login      VARCHAR(50),
+    @attempted      INT OUTPUT,
+    @inserted       INT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Count attempted
+    SET @attempted = (
+        SELECT COUNT(*)
+        FROM dbo.atrybut stg WITH (NOLOCK)
+        JOIN dbo.atrybut_typ stg_att WITH (NOLOCK) ON stg_att.att_id = stg.at_att_id
+        WHERE stg_att.att_atd_id = @att_atd_id
+    );
+
+    -- Snapshot existing ext_ids
+    SELECT atw_ext_id INTO #existing_atw
+    FROM dm_data_web_pipeline.dbo.atrybut_wartosc WITH (NOLOCK)
+    WHERE atw_ext_id IS NOT NULL;
+    CREATE UNIQUE INDEX UX_existing_atw ON #existing_atw (atw_ext_id);
+
+    -- INSERT new rows (OUTPUT into caller's #atw_mapping)
+    INSERT INTO dm_data_web_pipeline.dbo.atrybut_wartosc WITH (TABLOCK) (
+        atw_att_id, atw_wartosc, atw_ext_id, aud_data, aud_login
+    )
+    OUTPUT CAST(inserted.atw_ext_id AS INT), inserted.atw_id
+    INTO #atw_mapping (staging_at_id, prod_atw_id)
+    SELECT
+        att.att_id,
+        stg.at_wartosc,
+        CAST(stg.at_id AS VARCHAR(100)),
+        @aud_now,
+        @aud_login
+    FROM dbo.atrybut stg WITH (NOLOCK)
+    JOIN dbo.atrybut_typ stg_att WITH (NOLOCK) ON stg_att.att_id = stg.at_att_id
+    JOIN dm_data_web_pipeline.dbo.atrybut_typ att WITH (NOLOCK) ON att.att_id = stg_att.att_ext_id
+    LEFT JOIN #existing_atw ex ON ex.atw_ext_id = CAST(stg.at_id AS VARCHAR(100))
+    WHERE stg_att.att_atd_id = @att_atd_id
+      AND ex.atw_ext_id IS NULL;
+
+    SET @inserted = @@ROWCOUNT;
+
+    -- Backfill mapping for prior-run rows
+    INSERT INTO #atw_mapping (staging_at_id, prod_atw_id)
+    SELECT CAST(atw.atw_ext_id AS INT), atw.atw_id
+    FROM dm_data_web_pipeline.dbo.atrybut_wartosc atw WITH (NOLOCK)
+    JOIN dbo.atrybut stg WITH (NOLOCK) ON atw.atw_ext_id = CAST(stg.at_id AS VARCHAR(100))
+    JOIN dbo.atrybut_typ stg_att WITH (NOLOCK) ON stg_att.att_id = stg.at_att_id
+    LEFT JOIN #atw_mapping am ON am.staging_at_id = CAST(atw.atw_ext_id AS INT)
+    WHERE stg_att.att_atd_id = @att_atd_id
+      AND am.staging_at_id IS NULL;
+
+    DROP TABLE IF EXISTS #existing_atw;
+END;
+GO
+
 PRINT 'staging.sql complete.';
 GO
