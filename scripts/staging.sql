@@ -880,5 +880,46 @@ BEGIN
 END;
 GO
 
+-- ============================================================
+-- R4: Shared procedure to disable/rebuild non-clustered indexes
+-- on prod tables before/after bulk inserts.
+-- Used by iter5, iter7, iter8 (replaces duplicated dynamic SQL blocks).
+-- @table_csv: comma-separated table names (e.g. 'dokument' or 'ksiegowanie,ksiegowanie_dekret')
+-- @action:    'DISABLE' or 'REBUILD'
+-- ============================================================
+GO
+CREATE OR ALTER PROCEDURE dbo.usp_manage_prod_ncis
+    @table_csv NVARCHAR(500),
+    @action    NVARCHAR(10)  -- 'DISABLE' or 'REBUILD'
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @sql NVARCHAR(MAX) = N'';
+    DECLARE @is_disabled BIT = CASE WHEN @action = 'REBUILD' THEN 1 ELSE 0 END;
+
+    SELECT @sql = @sql + N'ALTER INDEX ' + QUOTENAME(i.name)
+        + N' ON dm_data_web_pipeline.' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+        + N' ' + @action + N'; '
+    FROM dm_data_web_pipeline.sys.indexes i
+    JOIN dm_data_web_pipeline.sys.tables t ON i.object_id = t.object_id
+    JOIN dm_data_web_pipeline.sys.schemas s ON t.schema_id = s.schema_id
+    JOIN STRING_SPLIT(@table_csv, ',') ss ON LTRIM(RTRIM(ss.value)) = t.name
+    WHERE s.name = 'dbo'
+      AND i.type = 2              -- non-clustered
+      AND i.is_unique = 0
+      AND i.is_primary_key = 0
+      AND i.is_unique_constraint = 0
+      AND i.is_disabled = @is_disabled
+      AND t.is_ms_shipped = 0;
+
+    IF LEN(@sql) > 0
+    BEGIN
+        EXEC dm_data_web_pipeline.dbo.sp_executesql @sql;
+        PRINT '   >> ' + @action + ' NCIs on ' + @table_csv;
+    END
+END;
+GO
+
 PRINT 'staging.sql complete.';
 GO
