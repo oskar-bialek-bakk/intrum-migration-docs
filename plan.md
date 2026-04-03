@@ -15,7 +15,7 @@
 
 | Topic | Decision |
 |---|---|
-| `mod_date` (staging) | Maps to `aud_data` (prod) — **insert explicitly as `GETUTCDATE()`** (bypasses scalar UDF overhead) |
+| `mod_date` (staging) | Maps to `aud_data` (prod) — **insert explicitly as `COALESCE(stg.mod_date, GETUTCDATE())`**: use staging mod_date if provided, otherwise GETUTCDATE() (bypasses scalar UDF overhead) |
 | `aud_login` (prod only) | **Insert explicitly as `'admin'`** (bypasses f_user_name() UDF) |
 | `*_uuid` columns (prod only) | Insert `NEWID()` |
 | `*_ext_id` columns (prod only) | Store staging PK — mapped per table (see individual tables) |

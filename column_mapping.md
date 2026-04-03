@@ -11,7 +11,7 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 |---|---|---|
 | `at_id` | `at_id` | PK |
 | `at_nazwa` | `at_nazwa` | direct |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `aud_login` | trigger |
 | `at_uuid` | `at_uuid` | MERGE key for stages 2-5 |
 
@@ -26,7 +26,7 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 |---|---|---|
 | `dt_id` | `dt_id` | PK |
 | `dt_nazwa` | `dt_nazwa` | direct |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `aud_login` | trigger |
 | `dt_uuid` | `dt_uuid` | MERGE key for stages 2-5 |
 
@@ -40,7 +40,7 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 |---|---|---|
 | `dot_id` | `dot_id` | PK |
 | `dot_nazwa` | `dot_nazwa` | direct |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `aud_login` | trigger |
 | `dot_uuid` | `dot_uuid` | MERGE key for stages 2-5 |
 | — | `dot_przedawnienie` | NULL |
@@ -59,7 +59,7 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 |---|---|---|
 | `ksk_id` | `ksk_id` | PK |
 | `ksk_nazwa` | `ksk_nazwa` | direct |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `aud_login` | trigger |
 | `ksk_uuid` | `ksk_uuid` | MERGE key for stages 2-5 |
 | — | `ksk_ksk_id_nadrzedne` | NULL |
@@ -75,7 +75,7 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 |---|---|---|
 | `kst_id` | `kst_id` | PK |
 | `kst_nazwa` | `kst_nazwa` | direct |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `aud_login` | trigger |
 | `kst_uuid` | `kst_uuid` | MERGE key for stages 2-5 |
 
@@ -88,7 +88,7 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 |---|---|---|
 | `sprt_id` | `sprt_id` | PK |
 | `sprt_nazwa` | `sprt_nazwa` | direct |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `aud_login` | trigger |
 | `sprt_uuid` | `sprt_uuid` | MERGE key for stages 2-5 |
 
@@ -101,7 +101,7 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 |---|---|---|
 | `atd_id` | `atd_id` | PK |
 | `atd_nazwa` | `atd_nazwa` | direct |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `aud_login` | trigger |
 | `atd_uuid` | `atd_uuid` | MERGE key for stages 2-5 |
 
@@ -114,7 +114,7 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 |---|---|---|
 | `atr_id` | `atr_id` | PK |
 | `atr_nazwa` | `atr_nazwa` | direct |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `aud_login` | trigger |
 | `atr_uuid` | `atr_uuid` | MERGE key for stages 2-5 |
 
@@ -127,7 +127,7 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 |---|---|---|
 | `att_id` | `att_id` | PK |
 | `att_nazwa` | `att_nazwa` | direct |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `aud_login` | trigger |
 | `att_uuid` | `att_uuid` | MERGE key for stages 2-5 |
 | `att_atd_id` | `att_atd_id NOT NULL → atrybut_dziedzina` | direct — staging atrybut_typ now carries correct domain |
@@ -147,7 +147,7 @@ For planning overview, table index, and decisions log see [plan.md](plan.md).
 |---|---|---|
 | `spe_id` | `spet_id` | PK renamed |
 | `spe_nazwa` | `spet_nazwa` | renamed |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `aud_login` | trigger |
 | `spe_uuid` | `spet_uuid` | MERGE key for stages 2-5 |
 | `spe_spt_id` | `spet_spt_id NOT NULL → sprawa_typ` | direct (added `spe_spt_id` to staging `sprawa_etap`) |
@@ -178,7 +178,7 @@ No `sp_spe_id` column on prod `sprawa`. Instead: current etap = last `akcja` (or
 |---|---|---|
 | `tt_id` | `tnt_id` | PK renamed |
 | `tt_nazwa` | `tnt_nazwa` | renamed |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `aud_login` | trigger |
 | `tt_uuid` | `tnt_uuid` | MERGE key for stages 2-5 |
 
@@ -203,7 +203,7 @@ No `sp_spe_id` column on prod `sprawa`. Instead: current etap = last `akcja` (or
 | `dl_import_info INT` | `dl_import_info VARCHAR` | ⚠️ CAST(dl_import_info AS VARCHAR) |
 | `dl_nip` | `dl_nip` | direct |
 | `dl_regon` | `dl_regon` | direct |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `aud_login` | trigger |
 | — | `dl_ext_id` | store staging `dl_id` |
 | staging `dl_id` | **NOT mapped to prod `dl_id`** | prod `dl_id` is IDENTITY — auto-generated; staging `dl_id` → `dl_ext_id` only |
@@ -221,7 +221,7 @@ No `sp_spe_id` column on prod `sprawa`. Instead: current etap = last `akcja` (or
 | `sp_data_obslugi_od` | `sp_data_obslugi_od` | direct |
 | `sp_data_obslugi_do` | `sp_data_obslugi_do` | direct |
 | `sp_spt_id` | `sp_spt_id` | direct — added to staging |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | `sp_numer_rachunku` | `rachunek_bankowy.rb_nr` → `sp_rb_id` | see transformation logic below |
 | `sp_pracownik` | `sp_pr_id` = `GE_USER.US_ID` WHERE `US_LOGIN = sp_pracownik` | GE_USER must be pre-populated in prod |
 | `sp_pracownik` | → also insert into `operator` | one operator record per sprawa (see transformation logic) |
@@ -253,7 +253,7 @@ No `sp_spe_id` column on prod `sprawa`. Instead: current etap = last `akcja` (or
 | `wi_data_umowy` | `wi_data_umowy` | direct |
 | `wi_uko_id` | `wi_uko_id NOT NULL → umowa_kontrahent` | direct (staging `wi_uko_id` FK → staging `dbo.umowa_kontrahent`) |
 | `wi_sp_id` | ❌ not on prod `wierzytelnosc` | ⚠️ **structural** — create `wierzytelnosc_rola` record (see transformation logic) |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `wi_wt_id NOT NULL → wierzytelnosc_typ` | `1` |
 | — | `wi_uuid` | `NEWID()` |
 
@@ -281,7 +281,7 @@ No `sp_spe_id` column on prod `sprawa`. Instead: current etap = last `akcja` (or
 | `ad_poczta` | `ad_poczta` | direct |
 | `ad_panstwo` | `ad_panstwo` | direct |
 | `ad_uwagi` | `ad_uwagi` | direct |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `ad_data_od NOT NULL` | staging `mod_date` |
 | — | `ad_zpi_id NOT NULL → zrodlo_pochodzenia_informacji` | `2` (external system) |
 | — | `ad_tworzacy_us_id NOT NULL` | `@system_admin_user_id` (variable — see global conventions) |
@@ -377,7 +377,7 @@ Staging `at_ob_id` is an object reference — could be a dluznik, sprawa, or wie
 | `do_numer_dokumentu` | `do_numer` | renamed |
 | `do_tytul_dokumentu` | `do_tytul` | renamed |
 | `do_data_wymagalnosci` | ❌ not on prod `dokument` | ⚠️ feeds `ksiegowanie_dekret.ksd_data_wymagalnosci` — only for rows where `ks_pierwotne = 1` (resolved at table 21). **Note:** iter9 sets `do_data_wystawienia = hr_data_raty` on its dokument rows. |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `do_uko_id NOT NULL → umowa_kontrahent` | JOIN `wierzytelnosc` via `do_wi_id`: `do_uko_id = wi_uko_id WHERE wi_id = do_wi_id` |
 
 
@@ -418,7 +418,7 @@ Each staging `harmonogram` row represents one instalment. Migration creates a ch
 | `ks_data_operacji` | `ks_data_operacji` | direct |
 | `ks_uwagi` | `ks_uwagi` | direct |
 | `ks_kst_id` | `ks_kst_id` | direct |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `ks_zamkniete bit NOT NULL` | `1` default; `0` for unposted payments — ⚠️ see open question |
 | — | `ks_pierwotne bit NOT NULL` | `1` for initial document values (initial import); `0` for others — ⚠️ see open question |
 | — | `ks_na_rachunek_kontrahenta bit NOT NULL` | `0` always ✅ |
@@ -445,7 +445,7 @@ Each staging `harmonogram` row represents one instalment. Migration creates a ch
 | `ksd_kwota DECIMAL(18,2)` | `ksd_kwota_wn` / `ksd_kwota_ma` | sign: `ksd_kwota > 0` → WN, `ksd_kwota < 0` → MA (for operacja path: per `oper_rejestr_kod` — see table 23) |
 | `ksd_uwagi` | ❌ not in prod | dropped |
 | `ksd_sp_id` | `ksd_rb_id` | resolved via prod `sprawa.sp_rb_id` (JOIN prod `sprawa` ON `sp_ext_id = ksd_sp_id`; staging.sprawa has no `sp_rb_id`) |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `ksd_data_wymagalnosci NOT NULL` | `do_data_wymagalnosci` via `ksd_do_id` JOIN `dokument`, **only for `ks_pierwotne = 1`** rows; fallback for `ks_pierwotne = 0` or `ksd_do_id IS NULL`: `2100-01-01`. **⚠️ Review finding (M4):** iter8 operacja path currently hardcodes `2100-01-01` for ALL rows, even those with a resolved `do_id` — should pull `do_data_wystawienia` from linked dokument when available. |
 
 **Multi-currency columns (partially already in prod):**
@@ -474,7 +474,7 @@ Each staging `harmonogram` row represents one instalment. Migration creates a ch
 | `ma_id` | `ma_ext_id` | staging PK → ext_id (IDENTITY confirmed via DB) |
 | `ma_dl_id` | `ma_dl_id` | direct (resolve via `dl_ext_id`) |
 | `ma_adres_mailowy VARCHAR(50)` | `ma_nazwa VARCHAR(50)` | renamed; staging column changed to VARCHAR(50) |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `ma_mat_id NOT NULL → mail_typ` | `1` |
 | — | `ma_data_od NOT NULL` | staging `mod_date` |
 | — | `ma_tworzacy_us_id NOT NULL` | `@system_admin_user_id` (variable) |
@@ -569,7 +569,7 @@ Staging `operacja` is bank transaction / financial operation data. It maps to:
 | `spr_sp_id` | `spr_sp_id` | direct |
 | `spr_dl_id` | `spr_dl_id` | direct |
 | `spr_sprt_id` | `spr_sprt_id` | direct |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `spr_kwota_poreczenia_do money NOT NULL` | `0` |
 | — | `spr_data_od datetime NOT NULL` | staging `mod_date` |
 | — | `spr_data_do datetime NOT NULL` | `9999-12-31` |
@@ -585,7 +585,7 @@ Staging `operacja` is bank transaction / financial operation data. It maps to:
 | `tn_dl_id` | `tn_dl_id` | direct |
 | `tn_numer` | `tn_numer` | direct |
 | `tn_tt_id` | `tn_tnt_id` | FK column renamed (consistent with telefon_typ PK rename) |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `tn_data_od NOT NULL` | staging `mod_date` |
 | — | `tn_zpi_id NOT NULL → zrodlo_pochodzenia_informacji` | `2` (external system) |
 | — | `tn_tworzacy_us_id NOT NULL` | `@system_admin_user_id` (variable) |
@@ -602,7 +602,7 @@ Staging `operacja` is bank transaction / financial operation data. It maps to:
 | `wir_sp_id` | `wir_sp_id` | direct |
 | `wir_wi_id` | `wir_wi_id` | direct |
 | `wir_rl_id` | `wir_wirt_id` | `NULL` |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `wir_kwota_poreczenia_do money NOT NULL` | `0` |
 | — | `wir_data_od datetime NOT NULL` | staging `mod_date` |
 | — | `wir_data_do datetime NOT NULL` | `9999-12-31` |
@@ -662,7 +662,7 @@ Reference copy table — staging populated from prod before migration run. No ID
 | `ksksub_ksk_id` | `ksksub_ksk_id` | direct → FK to `ksiegowanie_konto` |
 | `ksksub_nazwa` | `ksksub_nazwa` | direct |
 | `ksksub_etap` | `ksksub_etap` | direct |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `aud_login` | trigger |
 | `ksksub_uuid` | `ksksub_uuid` | MERGE key for stages 2-5 |
 
@@ -682,7 +682,7 @@ Entity table. `dop_id` is IDENTITY in prod. Requires `dokument_odsetki_przerwy_t
 | `dop_dopt_id` | `dop_dopt_id` | direct → FK to `dokument_odsetki_przerwy_typ` |
 | `dop_licz_od_niewymagalnych` | `dop_licz_od_niewymagalnych bit NOT NULL` | direct; staging default `0` |
 | `dop_ak_id` | `dop_ak_id` | direct (nullable) |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `aud_login` | trigger |
 
 ---
@@ -703,7 +703,7 @@ Lookup table. No IDENTITY on PK.
 |---|---|---|
 | `zpi_id` | `zpi_id` | PK |
 | `zpi_nazwa` | `zpi_nazwa` | direct |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `aud_login` | trigger |
 | `zpi_uuid` | `zpi_uuid` | MERGE key for stages 2-5; `CAST(zpi_uuid AS VARCHAR(50))` |
 
@@ -719,7 +719,7 @@ Lookup table. No IDENTITY on PK.
 |---|---|---|
 | `wtw_id` | `wtw_id` | PK |
 | `wtw_nazwa` | `wtw_nazwa` | direct |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `aud_login` | trigger |
 | `wtw_uuid` | `wtw_uuid` | MERGE key for stages 2-5; `CAST(wtw_uuid AS VARCHAR(50))` |
 
@@ -735,7 +735,7 @@ Lookup table. No IDENTITY on PK.
 |---|---|---|
 | `wdzi_id` | `wdzi_id` | PK |
 | `wdzi_nazwa` | `wdzi_nazwa` | direct |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `aud_login` | trigger |
 | `wdzi_uuid` | `wdzi_uuid` | MERGE key for stages 2-5; `CAST(wdzi_uuid AS VARCHAR(50))` |
 
@@ -751,7 +751,7 @@ Lookup table. No IDENTITY on PK.
 |---|---|---|
 | `wpt_id` | `wpt_id` | PK |
 | `wpt_nazwa` | `wpt_nazwa` | direct |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `aud_login` | trigger |
 | `wpt_uuid` | `wpt_uuid` | MERGE key for stages 2-5; `CAST(wpt_uuid AS VARCHAR(50))` |
 
@@ -768,7 +768,7 @@ Lookup table. No IDENTITY on PK. Has FK: `wt_wtw_id → wlasciwosc_typ_walidacji
 | `wt_id` | `wt_id` | PK |
 | `wt_nazwa` | `wt_nazwa` | direct |
 | `wt_wtw_id` | `wt_wtw_id` | FK → `wlasciwosc_typ_walidacji` |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `aud_login` | trigger |
 | `wt_uuid` | `wt_uuid` | MERGE key for stages 2-5; `CAST(wt_uuid AS VARCHAR(50))` |
 
@@ -789,7 +789,7 @@ Lookup table junction. No IDENTITY on PK. Has 3 FKs:
 | `wtpd_wt_id` | `wtpd_wt_id` | FK → `wlasciwosc_typ` |
 | `wtpd_dzi_id` | `wtpd_dzi_id` | FK → `wlasciwosc_dziedzina` |
 | `wtpd_wpt_id` | `wtpd_wpt_id` | FK → `wlasciwosc_podtyp` |
-| `mod_date` | `aud_data` | trigger |
+| `mod_date` | `aud_data` | COALESCE(stg.mod_date, GETUTCDATE()) |
 | — | `aud_login` | trigger |
 | `wtpd_uuid` | `wtpd_uuid` | MERGE key for stages 2-5 |
 | — | `wtpd_ext_id` | set after MERGE for stages 2-5 idempotency |
