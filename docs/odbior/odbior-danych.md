@@ -1,5 +1,5 @@
 ---
-title: "Migracja ⬝ 4. Odbiór danych"
+title: "Migracja ⬝ Odbiór danych"
 parent: "Migracja danych stagingowych DEBT Manager"
 ---
 

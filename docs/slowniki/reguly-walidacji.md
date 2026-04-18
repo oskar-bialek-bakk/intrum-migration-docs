@@ -1,5 +1,5 @@
 ---
-title: "Migracja ⬝ 5.1 Reguły walidacji"
+title: "Migracja ⬝ Reguły walidacji"
 ---
 
 # Reguły walidacji

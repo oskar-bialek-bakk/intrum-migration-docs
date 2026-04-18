@@ -1,5 +1,5 @@
 ---
-title: "Migracja ⬝ 2.1 Kolejność zasilania tabel"
+title: "Migracja ⬝ Kolejność zasilania tabel"
 ---
 
 # Kolejność zasilania tabel stagingowych

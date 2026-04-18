@@ -935,3 +935,66 @@
 }
 .role-card:has(.role-arch-dm) { border-left: 3px solid #f87171; }
 [data-md-color-scheme="default"] .role-card:has(.role-arch-dm) { border-left-color: #dc2626; }
+
+/* ─── Dictionary meta strips ─── */
+.dict-meta,
+.iter-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin: 8px 0 14px 0;
+  padding: 8px 12px;
+  background: var(--md-default-fg-color--lightest);
+  border-left: 3px solid var(--md-accent-fg-color);
+  font-size: 13px;
+}
+.dict-meta span,
+.iter-meta span {
+  color: var(--md-default-fg-color--light);
+}
+.dict-meta code,
+.iter-meta code {
+  background: transparent;
+  padding: 0;
+  font-size: 12px;
+}
+
+/* ─── Mapping-classification badge (A/B/C) ─── */
+.klasa-badge {
+  display: inline-block;
+  min-width: 18px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.4;
+  color: #ffffff;
+}
+.klasa-badge.klasa-a { background: #2f9e44; }   /* green — 1:1 */
+.klasa-badge.klasa-b { background: #f08c00; }   /* amber — simplified */
+.klasa-badge.klasa-c { background: #c92a2a; }   /* red — fanned-out */
+
+/* ─── Param-name key/PII modifiers ─── */
+.param-name.pk::before {
+  content: 'PK ';
+  color: #2f9e44;
+  font-weight: 700;
+}
+.param-name.fk::before {
+  content: 'FK ';
+  color: #1c7ed6;
+  font-weight: 700;
+}
+.param-name.pii::after {
+  content: ' PII';
+  color: #c92a2a;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 6px;
+}
+.param-name.deprecated {
+  text-decoration: line-through;
+  color: var(--md-default-fg-color--light);
+}

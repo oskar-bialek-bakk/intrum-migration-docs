@@ -1,5 +1,5 @@
 ---
-title: "Migracja ⬝ 3. Przebieg"
+title: "Migracja ⬝ Przebieg migracji"
 ---
 
 # Przebieg migracji

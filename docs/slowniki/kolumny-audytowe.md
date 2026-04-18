@@ -1,5 +1,5 @@
 ---
-title: "Migracja ⬝ 5.2 Kolumny audytowe"
+title: "Migracja ⬝ Kolumny audytowe"
 ---
 
 # Kolumny audytowe i konwencje

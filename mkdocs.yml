@@ -64,18 +64,29 @@ nav:
   - Strona główna: index.md
   - Założenia:
     - zalozenia/index.md
-    - Wstęp: zalozenia/wstep.md
+    - Przegląd: zalozenia/przeglad.md
     - Poziomy walidacji: zalozenia/poziomy-walidacji.md
     - Architektura pipeline'u: zalozenia/architektura-pipelinu.md
   - Przygotowanie danych:
     - przygotowanie-danych/index.md
     - Kolejność zasilania tabel: przygotowanie-danych/kolejnosc-zasilania-tabel.md
-    - Walidacje: przygotowanie-danych/walidacje.md
-    - Mapowanie tabel staging → prod: przygotowanie-danych/mapowanie-tabel.md
+    - Walidacje przed migracją: przygotowanie-danych/walidacje.md
+    - Korekta danych po walidacji: przygotowanie-danych/korekta-danych-po-walidacji.md
+  - Struktura stagingu:
+    - struktura-stagingu/index.md
+    - Tabele słownikowe: struktura-stagingu/slowniki.md
+    - Dłużnicy i atrybuty dłużników: struktura-stagingu/dluznicy.md
+    - Dane kontaktowe (adres, mail, telefon): struktura-stagingu/kontakty.md
+    - Sprawy i role: struktura-stagingu/sprawy.md
+    - Akcje i rezultaty: struktura-stagingu/akcje.md
+    - Wierzytelności: struktura-stagingu/wierzytelnosci.md
+    - Role wierzytelności i dokumenty: struktura-stagingu/role-wierzytelnosci-i-dokumenty.md
+    - Dane finansowe: struktura-stagingu/finanse.md
+    - Harmonogram i zabezpieczenia: struktura-stagingu/harmonogram.md
+    - Mapowanie staging → prod: struktura-stagingu/mapowanie-tabel.md
   - Przebieg migracji:
     - przebieg-migracji/index.md
-    - Migracja: przebieg-migracji/migracja.md
-    - Postępowanie po błędach: przebieg-migracji/postepowanie-po-bledach.md
+    - Uruchomienie: przebieg-migracji/uruchomienie.md
     - Raport pomigracyjny: przebieg-migracji/raport-pomigracyjny.md
   - Odbiór: odbior/odbior-danych.md
   - Słowniki:

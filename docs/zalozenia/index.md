@@ -1,5 +1,5 @@
 ---
-title: "Migracja ⬝ 1. Założenia"
+title: "Migracja ⬝ Założenia"
 ---
 
 # Założenia

@@ -1,5 +1,5 @@
 ---
-title: "Migracja ⬝ 2. Przygotowanie danych"
+title: "Migracja ⬝ Przygotowanie danych"
 ---
 
 # Przygotowanie danych

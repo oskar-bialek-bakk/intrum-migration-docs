@@ -1,5 +1,5 @@
 ---
-title: "Migracja ⬝ 3.3 Raport pomigracyjny"
+title: "Migracja ⬝ Raport pomigracyjny"
 ---
 
 # Raport pomigracyjny

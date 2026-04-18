@@ -1,8 +1,8 @@
 ---
-title: "Migracja ⬝ 3.1 Wykonanie"
+title: "Migracja ⬝ Uruchomienie"
 ---
 
-# Migracja danych
+# Uruchomienie migracji
 
 Po uzyskaniu braku błędów blokujących zespół BAKK przystąpi do migracji danych ze stagingu do bazy produkcyjnej. Migracja zostanie przeprowadzona zgodnie z ustalonym harmonogramem i obejmie przeniesienie wszystkich zasilonych tabel stagingowych do odpowiadających im tabel w `dm_data_web`.
 

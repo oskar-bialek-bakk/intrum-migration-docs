@@ -1,5 +1,5 @@
 ---
-title: "Migracja ⬝ 2.2 Walidacje"
+title: "Migracja ⬝ Walidacje"
 ---
 
 # Walidacje przed migracją

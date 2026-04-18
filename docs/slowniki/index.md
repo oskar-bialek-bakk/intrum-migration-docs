@@ -1,5 +1,5 @@
 ---
-title: "Migracja ⬝ 5. Słowniki"
+title: "Migracja ⬝ Słowniki"
 ---
 
 # Słowniki

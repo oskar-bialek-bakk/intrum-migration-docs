@@ -1,5 +1,5 @@
 ---
-title: "Migracja ⬝ 1.3 Architektura pipeline'u"
+title: "Migracja ⬝ Architektura pipeline'u"
 ---
 
 # Architektura pipeline'u

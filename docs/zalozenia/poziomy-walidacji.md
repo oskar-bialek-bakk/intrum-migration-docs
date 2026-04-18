@@ -1,5 +1,5 @@
 ---
-title: "Migracja ⬝ 1.2 Poziomy walidacji"
+title: "Migracja ⬝ Poziomy walidacji"
 ---
 
 # Poziomy walidacji
