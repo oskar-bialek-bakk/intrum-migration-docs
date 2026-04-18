@@ -1,3 +1,7 @@
+---
+title: "Migracja ⬝ 1.1 Wstęp"
+---
+
 # Wstęp
 
 Niniejszy dokument opisuje proces zasilania bazy stagingowej danymi oraz zasady walidacji, które zostaną uruchomione przed migracją do bazy produkcyjnej.

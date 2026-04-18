@@ -1,3 +1,7 @@
+---
+title: "Migracja ⬝ 1. Założenia"
+---
+
 # Założenia
 
 Podstawy procesu migracji: czym jest migracja stagingowa, jakie poziomy walidacji są stosowane i jak wygląda architektura pipeline'u.

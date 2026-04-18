@@ -1,3 +1,7 @@
+---
+title: "Migracja ⬝ 1.2 Poziomy walidacji"
+---
+
 # Poziomy walidacji
 
 Walidacje wykonywane na danych stagingowych mają trzy poziomy ważności. Tylko błędy **blokujące** uniemożliwiają migrację do produkcji.

@@ -1,3 +1,18 @@
+---
+title: "Migracja danych stagingowych DEBT Manager"
+tags:
+  - brq211
+  - brq212
+  - brq213
+  - brq214
+  - brq216
+  - brq217
+  - brq218
+  - brq219
+  - brq2110
+  - brq2111
+---
+
 # Migracja danych stagingowych DEBT Manager
 
 Dokumentacja techniczna procesu migracji danych stagingowych do bazy produkcyjnej w systemie DEBT Manager. Obejmuje zasady zasilania bazy stagingowej, walidacje jakości danych, przebieg migracji oraz procedurę odbioru po stronie zespołu Intrum.

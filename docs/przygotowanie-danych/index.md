@@ -1,3 +1,7 @@
+---
+title: "Migracja ⬝ 2. Przygotowanie danych"
+---
+
 # Przygotowanie danych
 
 Zasady zasilania bazy stagingowej: kolejność ładowania tabel, walidacje jakości oraz mapowanie kolumn staging → prod.

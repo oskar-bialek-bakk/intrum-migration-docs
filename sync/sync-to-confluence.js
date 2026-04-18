@@ -44,6 +44,21 @@ if (!BASE_URL || !USER || !PASS) {
 const AUTH    = 'Basic ' + Buffer.from(`${USER}:${PASS}`).toString('base64');
 const API     = `${BASE_URL}/rest/api`;
 const DOCS    = path.join(__dirname, '..', 'docs');
+const LOCK    = path.join(__dirname, '.confluence-lock.json');
+
+// ---- lockfile: relativePath → pageId ---------------------------------------
+// Survives title changes. Without it, every rename becomes CREATE + orphan.
+
+function loadLock() {
+  if (!fs.existsSync(LOCK)) return {};
+  try { return JSON.parse(fs.readFileSync(LOCK, 'utf-8')); }
+  catch { return {}; }
+}
+
+function saveLock(lock) {
+  const sorted = Object.fromEntries(Object.entries(lock).sort());
+  fs.writeFileSync(LOCK, JSON.stringify(sorted, null, 2) + '\n');
+}
 
 // ---- frontmatter parser -----------------------------------------------------
 
@@ -264,6 +279,16 @@ async function findPage(title) {
   return data.results?.[0] || null;
 }
 
+async function getPageById(pageId) {
+  try {
+    return await req('GET',
+      `/content/${pageId}?expand=version,body.storage,metadata.labels`
+    );
+  } catch {
+    return null; // page deleted or id invalid — caller falls back to findPage
+  }
+}
+
 async function createPage(parentId, title, htmlBody) {
   return req('POST', '/content', {
     type: 'page',
@@ -300,7 +325,11 @@ function discoverFiles(inputFiles) {
   if (inputFiles.length > 0) {
     mdFiles = inputFiles.map(f => path.resolve(f));
   } else {
-    mdFiles = glob.sync('**/*.md', { cwd: DOCS, absolute: true });
+    mdFiles = glob.sync('**/*.md', {
+      cwd: DOCS,
+      absolute: true,
+      ignore: ['diagrams/**'], // drawio sidecars, not standalone pages
+    });
   }
 
   return mdFiles.map(absPath => {
@@ -349,7 +378,7 @@ function resolveParentTitle(file, allFiles) {
 
 // ---- sync logic -------------------------------------------------------------
 
-async function syncFile(file, allFiles, parentCache) {
+async function syncFile(file, allFiles, parentCache, lock) {
   const parentTitle = resolveParentTitle(file, allFiles);
 
   // Resolve parent page ID (with cache)
@@ -367,8 +396,12 @@ async function syncFile(file, allFiles, parentCache) {
   // Generate HTML
   const html = markdownToConfluenceHtml(file.body, file.absPath, allFiles);
 
-  // Check if page exists
-  const existing = await findPage(file.title);
+  // Resolve existing page: lockfile (identity-stable) first, then title lookup.
+  let existing = null;
+  const knownId = lock[file.relativePath];
+  if (knownId) existing = await getPageById(knownId);
+  if (!existing) existing = await findPage(file.title);
+  if (existing) lock[file.relativePath] = existing.id;
 
   if (existing) {
     // Change detection — compare HTML content after normalization
@@ -377,20 +410,27 @@ async function syncFile(file, allFiles, parentCache) {
       .replace(/\u00a0/g, ' ')                    // non-breaking space → regular space
       .replace(/<(\w+)\s*\/>/g, '<$1></$1>')       // self-closing → open+close: <th /> → <th></th>
       .replace(/<ol(\s+start="\d+")?>/g, '<ol>')   // strip start attribute from <ol> for comparison
+      .replace(/\s+ac:schema-version="[^"]*"/g, '') // Confluence adds these on store — strip for diff
+      .replace(/\s+ac:macro-id="[^"]*"/g, '')
       .trim();
     const existingHtml = normalizeForCompare(existing.body?.storage?.value || '');
     const generatedHtml = normalizeForCompare(html);
     const existingLabels = existing.metadata?.labels?.results?.map(l => l.name) || [];
     const newLabels = file.tags.filter(l => !existingLabels.includes(l));
+    const titleChanged = existing.title !== file.title;
 
-    if (existingHtml === generatedHtml && newLabels.length === 0) {
+    if (!titleChanged && existingHtml === generatedHtml && newLabels.length === 0) {
       console.log(`  SKIP  "${file.title}" (no changes)`);
       return;
     }
 
     const ver = existing.version.number;
     await updatePage(existing.id, file.title, html, ver);
-    console.log(`  UPDATE  "${file.title}" v${ver} -> v${ver + 1}`);
+    if (titleChanged) {
+      console.log(`  RENAME  "${existing.title}" → "${file.title}" v${ver} -> v${ver + 1}`);
+    } else {
+      console.log(`  UPDATE  "${file.title}" v${ver} -> v${ver + 1}`);
+    }
 
     if (newLabels.length > 0) {
       await addLabels(existing.id, newLabels);
@@ -398,6 +438,7 @@ async function syncFile(file, allFiles, parentCache) {
     }
   } else {
     const created = await createPage(parentId, file.title, html);
+    lock[file.relativePath] = created.id;
     console.log(`  CREATE  "${file.title}" (id: ${created.id})`);
 
     if (file.tags.length > 0) {
@@ -437,8 +478,14 @@ async function main() {
   });
 
   const parentCache = {};
+  const lock = loadLock();
+  const lockBefore = JSON.stringify(lock);
   for (const file of filesToSync) {
-    await syncFile(file, allFiles, parentCache);
+    await syncFile(file, allFiles, parentCache, lock);
+  }
+  if (JSON.stringify(Object.fromEntries(Object.entries(lock).sort())) !== lockBefore) {
+    saveLock(lock);
+    console.log(`\n  LOCK+  wrote ${path.relative(process.cwd(), LOCK)}`);
   }
 
   console.log('\nDone.');

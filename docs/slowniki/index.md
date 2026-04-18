@@ -1,3 +1,7 @@
+---
+title: "Migracja ⬝ 5. Słowniki"
+---
+
 # Słowniki
 
 Reguły walidacji i konwencje kolumn audytowych stosowane w systemie DEBT Manager.

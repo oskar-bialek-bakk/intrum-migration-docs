@@ -1,3 +1,7 @@
+---
+title: "Migracja ⬝ 3. Przebieg"
+---
+
 # Przebieg migracji
 
 Uruchomienie migracji, obsługa błędów w trakcie oraz raport pomigracyjny podsumowujący wynik.

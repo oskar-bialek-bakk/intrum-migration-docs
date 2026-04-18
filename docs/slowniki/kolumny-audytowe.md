@@ -1,3 +1,7 @@
+---
+title: "Migracja ⬝ 5.2 Kolumny audytowe"
+---
+
 # Kolumny audytowe i konwencje
 
 !!! info "W przygotowaniu"

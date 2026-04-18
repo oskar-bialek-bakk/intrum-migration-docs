@@ -1,3 +1,7 @@
+---
+title: "Migracja ⬝ 3.2 Postępowanie po błędach"
+---
+
 # Postępowanie po wykryciu błędów
 
 Po uruchomieniu walidacji zespół BAKK przekaże raport w formie wyniku zapytania SQL (patrz sekcja 3). Raport zawiera:

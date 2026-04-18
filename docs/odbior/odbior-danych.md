@@ -1,3 +1,8 @@
+---
+title: "Migracja ⬝ 4. Odbiór danych"
+parent: "Migracja danych stagingowych DEBT Manager"
+---
+
 # Odbiór procesu migracji
 
 Na podstawie danych zawartych w raporcie pomigracyjnym zespół Intrum dokonuje formalnego odbioru procesu migracji. Odbiór potwierdza poprawność i kompletność przeniesionych danych.

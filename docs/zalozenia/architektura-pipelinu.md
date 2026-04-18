@@ -1,3 +1,7 @@
+---
+title: "Migracja ⬝ 1.3 Architektura pipeline'u"
+---
+
 # Architektura pipeline'u
 
 !!! info "W przygotowaniu"

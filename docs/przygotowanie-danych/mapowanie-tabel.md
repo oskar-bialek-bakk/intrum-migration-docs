@@ -1,3 +1,11 @@
+---
+title: "Migracja ⬝ 2.3 Mapowanie tabel staging → prod"
+tags:
+  - brq211
+  - brq212
+  - brq214
+---
+
 # Mapowanie tabel staging → prod
 
 !!! info "W przygotowaniu"

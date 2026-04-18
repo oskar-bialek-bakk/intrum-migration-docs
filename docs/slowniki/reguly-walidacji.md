@@ -1,3 +1,7 @@
+---
+title: "Migracja ⬝ 5.1 Reguły walidacji"
+---
+
 # Reguły walidacji
 
 !!! info "W przygotowaniu"

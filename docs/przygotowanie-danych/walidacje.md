@@ -1,3 +1,7 @@
+---
+title: "Migracja ⬝ 2.2 Walidacje"
+---
+
 # Walidacje przed migracją
 
 Po załadowaniu danych do stagingu, zespół BAKK uruchomi poniższe walidacje. Wyniki są zapisywane w tabeli `dm_staging.log.validation_result` i mogą być odpytywane w dowolnym momencie poniższym zapytaniem SQL:

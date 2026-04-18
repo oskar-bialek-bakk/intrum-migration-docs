@@ -1,3 +1,7 @@
+---
+title: "Migracja ⬝ 3.3 Raport pomigracyjny"
+---
+
 # Raport pomigracyjny
 
 Po zakończeniu migracji zespół BAKK uruchamia skrypt `99_post_report.sql`, który przeprowadza automatyczną weryfikację jakości danych bezpośrednio na bazie produkcyjnej `dm_data_web`. Wyniki zapisywane są w tabeli `dm_staging.log.postmigration_check` i obejmują łącznie 30 wskaźników KPI podzielonych na trzy kategorie.
