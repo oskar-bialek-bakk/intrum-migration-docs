@@ -68,7 +68,7 @@ function parseFrontmatter(content) {
 
   const meta = {};
   let currentKey = null;
-  for (const line of match[1].split('\n')) {
+  for (const line of match[1].split(/\r?\n/)) {
     const kv = line.match(/^(\w+):\s*(.*)$/);
     if (kv) {
       currentKey = kv[1];
