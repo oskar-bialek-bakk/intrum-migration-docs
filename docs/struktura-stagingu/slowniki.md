@@ -8,9 +8,7 @@ tags:
 
 Iteracja 1 ładuje 24 tabele słownikowe i referencyjne — typy, statusy, katalogi i tabele konfiguracyjne — które stanowią fundament całego procesu migracji. Każda kolejna iteracja (2–9) zakłada ich obecność w produkcji: klucze obce ze sprawy, dłużnika, wierzytelności, akcji i właściwości wskazują bezpośrednio na rekordy załadowane w tej iteracji. Brak kompletności tabel słownikowych blokuje uruchomienie wszystkich dalszych kroków.
 
-Tabele dzielą się na trzy klasy mapowania. Klasa A to czyste kopie referencyjne — identyfikatory stagingowe są tożsame z produkcyjnymi, MERGE odbywa się po UUID lub kluczu naturalnym, a kolumny biznesowe kopiowane są bez transformacji. Klasa B obejmuje słowniki, w których produkcja generuje własny klucz główny (IDENTITY lub z backfilliem) albo nadaje UUID przez trigger — wartości `_id` ze stagingu trafiają do kolumny `*_ext_id` w stagingu dla późniejszej rozwiązania FK; jedyne pominięte kolumny to audyt (`aud_data`, `aud_login`) i klucz IDENTITY, bo są wypełniane automatycznie. Klasa C zawiera tabele z pełnymi transformacjami: zmiany nazw kolumn lub tabel, rozwiązywanie kluczy obcych przez JOIN na `ext_id`, a także wartości domyślne hardkodowane dla kolumn nieistniejących w stagingu.
-
-Szczegóły klasyfikacji każdej tabeli widoczne są w sekcji `### dbo.<tabela>` (klasa B i C) lub w nagłówku bloku (klasa A). Tabele klasy A są w pełni 1:1 — nie wymagają dodatkowego opisu mapowania. Walidacje referencyjne dotyczące wszystkich tabel słownikowych opisane są w sekcji [Powiązania](#powiazania) poniżej.
+Tabele dzielą się na trzy klasy mapowania. Klasa A to czyste kopie referencyjne — identyfikatory stagingowe są tożsame z produkcyjnymi, MERGE odbywa się po UUID lub kluczu naturalnym, a kolumny biznesowe kopiowane są bez transformacji. Klasa B obejmuje słowniki, w których produkcja generuje własny klucz główny (IDENTITY lub z backfillem) albo nadaje UUID przez trigger — wartości `_id` ze stagingu trafiają do kolumny `*_ext_id` w tabeli prod dla późniejszego rozwiązania FK; jedyne pominięte kolumny to audyt (`aud_data`, `aud_login`) i klucz IDENTITY, bo są wypełniane automatycznie. Klasa C zawiera tabele z pełnymi transformacjami: zmiany nazw kolumn lub tabel, rozwiązywanie kluczy obcych przez JOIN na `ext_id`, a także wartości domyślne hardkodowane dla kolumn nieistniejących w stagingu. Szczegóły klasyfikacji każdej tabeli widoczne są w sekcji `### dbo.<tabela>` (klasa B i C) lub w nagłówku bloku (klasa A); tabele klasy A są w pełni 1:1 i nie wymagają dodatkowego opisu mapowania. Walidacje referencyjne dotyczące wszystkich tabel słownikowych opisane są w sekcji [Powiązania](#powiazania) poniżej.
 
 <div class="iter-meta">
   <span>Iteracja: 1</span>
@@ -153,6 +151,9 @@ Kopia referencyjna tabeli walut z produkcji, wypełniana przed uruchomieniem mig
   </li>
 </ul>
 
+### dbo.waluta
+Kopiowana bez zmian do `dm_data_web.waluta` — klasa A, tożsamość `wa_id` zachowana. MERGE po `wa_uuid` (z fallbackiem po `wa_id` dla wierszy bez UUID). Pominięte przy INSERT: `aud_data`, `aud_login` (systemowe).
+
 </details>
 
 <details markdown="1">
@@ -214,6 +215,9 @@ Kopia referencyjna kursów walut z produkcji, wypełniana przed uruchomieniem mi
     <span class="param-desc">FK do tabeli waluta</span>
   </li>
 </ul>
+
+### dbo.kurs_walut
+Kopiowana bez zmian do `dm_data_web.kurs_walut` — klasa A, klucze stagingowe równe produkcyjnym. MERGE po kluczu naturalnym `(kw_kod, kw_data)`. Pominięte przy INSERT: `aud_data`, `aud_login` (systemowe).
 
 </details>
 

@@ -24,7 +24,7 @@ const { marked } = require('marked');
 
 const envPath = path.join(__dirname, '.env');
 if (fs.existsSync(envPath)) {
-  for (const line of fs.readFileSync(envPath, 'utf-8').split('\n')) {
+  for (const line of fs.readFileSync(envPath, 'utf-8').split(/\r?\n/)) {
     const m = line.match(/^\s*([^#=]+?)\s*=\s*(.*?)\s*$/);
     if (m && !process.env[m[1]]) process.env[m[1]] = m[2];
   }
@@ -109,7 +109,7 @@ function extractAdmonitions(md) {
   let idx = 0;
 
   // Process line-by-line to handle multi-paragraph admonitions with blank lines
-  const lines = md.split('\n');
+  const lines = md.split(/\r?\n/);
   const result = [];
   let i = 0;
 

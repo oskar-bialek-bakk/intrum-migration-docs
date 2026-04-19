@@ -12,7 +12,7 @@ Trzy tabele nagłówkowe ładowane są range-based (`INSERT ... WHERE stg._id > 
 
 <div class="iter-meta">
   <span>Iteracja: 3</span>
-  <span>Zależności: Iter 1 (adres_typ, telefon_typ) + Iter 2 (dluznik)</span>
+  <span>Zależności: Iter 1 (adres_typ, telefon_typ) + Iter 2 (mapowanie.dodani_dluznicy)</span>
 </div>
 
 ## Diagram ER
