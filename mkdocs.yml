@@ -89,7 +89,3 @@ nav:
     - Uruchomienie: przebieg-migracji/uruchomienie.md
     - Raport pomigracyjny: przebieg-migracji/raport-pomigracyjny.md
   - Odbiór: odbior/odbior-danych.md
-  - Słowniki:
-    - slowniki/index.md
-    - Reguły walidacji: slowniki/reguly-walidacji.md
-    - Kolumny audytowe i konwencje: slowniki/kolumny-audytowe.md

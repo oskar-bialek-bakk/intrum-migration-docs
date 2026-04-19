@@ -1,4 +1,4 @@
-# Iteracja 4 — Sprawy i role (kumulatywnie: iter 3 + sprawa / sprawa_rola)
+# Iteracja 4 — Sprawy i role (kumulatywnie: iteracja 3 + sprawa / sprawa_rola)
 
 ```mermaid
 erDiagram

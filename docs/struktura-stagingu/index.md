@@ -8,11 +8,9 @@ tags:
 
 # Struktura stagingu
 
-Sekcja opisuje tabele bazy stagingowej `dm_staging`. Każda strona zawiera
-definicje kolumn i odwzorowanie na tabele produkcyjne `dm_data_web`.
+Sekcja opisuje tabele bazy stagingowej `dm_staging` w podziale na dziewięć iteracji
+ładowania. Każda strona zawiera diagram ER, szczegółowe definicje kolumn i odwzorowanie
+na tabele produkcyjne `dm_data_web` wraz z klasą mapowania A/B/C.
 
-!!! info "W przygotowaniu"
-    Zawartość tej sekcji jest uzupełniana stopniowo — od tabel słownikowych,
-    przez dane dłużników, kontakty, sprawy, akcje, wierzytelności, role
-    i dokumenty, finanse, po harmonogramy. Klasyfikacja A/B/C mapowania
-    tabel (patrz _Mapowanie staging → prod_) powstaje równolegle.
+Pełne zestawienie wszystkich tabel wraz z klasami mapowania znajduje się w sekcji
+_[Mapowanie staging → prod](mapowanie-tabel.md)_.

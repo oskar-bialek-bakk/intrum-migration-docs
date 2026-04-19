@@ -4,12 +4,9 @@ title: "Migracja ⬝ Korekta danych po walidacji"
 
 # Korekta danych po walidacji
 
-Po uruchomieniu walidacji zespół BAKK przekaże raport w formie wyniku zapytania SQL (patrz sekcja 3). Raport zawiera:
-- identyfikatory rekordów z błędami
-- kod i opis walidacji
-- liczbę rekordów objętych błędem
+Po uruchomieniu walidacji zespół BAKK przekazuje raport w formie wyniku zapytania SQL (szczegóły zapytania — _[Walidacje przed migracją](walidacje.md)_). Raport zawiera dla każdego wykrytego naruszenia: kod reguły, poziom wagi, liczbę objętych rekordów, przykładowe identyfikatory oraz opis odchylenia.
 
-Przykładowy raport z błędami blokującymi do korekty:
+Przykładowy fragment raportu z błędami blokującymi:
 
 | Kod | Poziom | Liczba rekordów | Przykładowe ID | Opis |
 |---|---|---|---|---|
@@ -17,10 +14,15 @@ Przykładowy raport z błędami blokującymi do korekty:
 | REF_14 | BLOCKING | 2 | 310, 311 | `akcja.ak_sp_id` wskazuje na nieistniejącą sprawę |
 | TECH_03 | BLOCKING | 1 | 88 | `sprawa.sp_numer_rachunku` ma wartość NULL — pole wymagane |
 
-**Błędy blokujące** — wymagają korekty w danych źródłowych i ponownego załadowania do stagingu przed migracją.
+## Procedura korekty
 
-**Ostrzeżenia** — można poprawić przed migracją lub pisemnie potwierdzić akceptację odchyleń.
+!!! danger "Błędy blokujące"
+    Wymagają korekty w danych źródłowych i ponownego załadowania do stagingu. **Migracja nie może się rozpocząć, dopóki w raporcie pozostaje choć jeden błąd blokujący.**
 
-**Informacje** — nie wymagają akcji.
+!!! warning "Ostrzeżenia"
+    Można zdecydować o korekcie w stagingu lub pisemnej akceptacji odchylenia przed migracją. Decyzja należy do zespołu Intrum.
 
-Po każdej poprawce walidacje zostaną uruchomione ponownie aż do uzyskania braku błędów blokujących.
+!!! info "Informacje"
+    Nie wymagają żadnej akcji — służą wyłącznie zwiększeniu świadomości o stanie danych.
+
+Po każdej rundzie korekt walidacje uruchamiane są ponownie. Cykl powtarzany jest aż do uzyskania raportu bez błędów blokujących — dopiero wtedy możliwe jest przejście do etapu _[Uruchomienie migracji](../przebieg-migracji/uruchomienie.md)_.

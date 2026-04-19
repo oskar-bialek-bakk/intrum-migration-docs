@@ -6,18 +6,18 @@ tags:
 
 # Dane finansowe
 
-Iteracja 8 ładuje warstwę finansową — trzy tabele stagingowe (`dbo.ksiegowanie`, `dbo.ksiegowanie_dekret`, `dbo.operacja`) zasilają dwie tabele produkcyjne (`ksiegowanie`, `ksiegowanie_dekret`). Układ nie jest 1:1: staging `ksiegowanie` → prod `ksiegowanie` 1:1, staging `ksiegowanie_dekret` → prod `ksiegowanie_dekret` 1:1, a staging `operacja` rozgałęzia się 1:2 — z każdego wiersza źródłowego generowane są syntetyczny nagłówek księgowania oraz od jednego do pięciu syntetycznych dekretów. Wszystkie przejścia są klasy **C**, zależne od słowników z iter1 (`ksiegowanie_typ`, `ksiegowanie_konto`, `ksiegowanie_konto_subkonto`, `waluta`), mapowania spraw z iter4 (`mapowanie.dodane_sprawy`) oraz mapowania dokumentów z iter7 (`mapowanie.dodane_dokumenty`). Iter8 domyka domenę finansową — nie produkuje własnego `mapowania.*` dla kolejnych iteracji; poza iter8 pozostaje już tylko harmonogram spłat (iter9).
+Iteracja 8 ładuje warstwę finansową — trzy tabele stagingowe (`dbo.ksiegowanie`, `dbo.ksiegowanie_dekret`, `dbo.operacja`) zasilają dwie tabele produkcyjne (`ksiegowanie`, `ksiegowanie_dekret`). Układ nie jest 1:1: staging `ksiegowanie` → prod `ksiegowanie` 1:1, staging `ksiegowanie_dekret` → prod `ksiegowanie_dekret` 1:1, a staging `operacja` rozgałęzia się 1:2 — z każdego wiersza źródłowego generowane są syntetyczny nagłówek księgowania oraz od jednego do pięciu syntetycznych dekretów. Wszystkie przejścia są klasy **C**, zależne od słowników z iteracji 1 (`ksiegowanie_typ`, `ksiegowanie_konto`, `ksiegowanie_konto_subkonto`, `waluta`), mapowania spraw z iteracji 4 (`mapowanie.dodane_sprawy`) oraz mapowania dokumentów z iteracji 7 (`mapowanie.dodane_dokumenty`). Iteracja 8 domyka domenę finansową — nie produkuje własnego `mapowania.*` dla kolejnych iteracji; poza iteracja 8 pozostaje już tylko harmonogram spłat (iteracja 9).
 
 `Ksiegowanie` ładowane jest z bezpośrednim zachowaniem prod PK — `SET IDENTITY_INSERT dm_data_web.ksiegowanie ON` + NOT EXISTS po `ks_id`; idempotencja oparta o PK, bez użycia ext_id. `Ksiegowanie_dekret` przechodzi range-based w pętli batchy po 500 000 rekordów z wyłączeniem/odbudową NCI na tabeli docelowej; idempotencja po `ksd_ext_id = CAST(ksd_id AS VARCHAR)` z fallbackiem `-2147483648`, FK `ksd_do_id` rozwiązywany LEFT JOIN-em przez `mapowanie.dodane_dokumenty` (dekrety bez dokumentu zachowują NULL), a `ksd_rb_id` przez tymczasowy lookup `#ksd_rb_lookup` (JOIN `mapowanie.dodane_sprawy` → prod `sprawa.sp_rb_id`). `Operacja` jest najbardziej złożona — per wiersz źródłowy SQL generuje syntetyczny nagłówek `ksiegowanie` z ext_id w formacie `OPER_<oper_id>_*` oraz do pięciu syntetycznych `ksiegowanie_dekret`, rozbijając kwotę przez `CROSS APPLY (VALUES ...)` na pozycje kapitału, odsetek umownych, odsetek karnych, opłat i prowizji z hardkodowanym `ksk_id` (2/5/6/10) oraz stroną `WN`/`MA` zależnie od typu operacji (wpłata/umorzenie vs. pozostałe). Zbiór wartości hardkodowanych wynika z kontraktu migracji: `ks_zamkniete = 1`, `ks_pierwotne = 1`, `ks_na_rachunek_kontrahenta = 0`, `ks_od_komornika = 0`, a dla dekretów `ksd_data_wymagalnosci = '9999-12-31'` (sentinel) oraz `ksd_kurs_bazowy = 1.0` (placeholder). Sekcja 3C obsługująca wpłaty i korekty pozostaje udokumentowana jako **TODO** — SQL zawiera placeholder bez finalnej implementacji. Szczegóły per prod-tabela w sekcjach `### dbo.<tabela>`; walidacje referencyjne, techniczne i biznesowe (REF_20–23, REF_27, REF_29, REF_35, TECH_09/10, BIZ_05/06/14/17/18) w sekcji [Powiązania](#powiazania) poniżej.
 
 <div class="iter-meta">
   <span>Iteracja: 8</span>
-  <span>Zależności: Iter 1 (ksiegowanie_typ, ksiegowanie_konto, ksiegowanie_konto_subkonto, waluta) + Iter 4 (mapowanie.dodane_sprawy) + Iter 7 (mapowanie.dodane_dokumenty)</span>
+  <span>Zależności: Iteracja 1 (ksiegowanie_typ, ksiegowanie_konto, ksiegowanie_konto_subkonto, waluta) + Iteracja 4 (mapowanie.dodane_sprawy) + Iteracja 7 (mapowanie.dodane_dokumenty)</span>
 </div>
 
 ## Diagram ER
 
-Diagram pokazuje dwie tabele prod iter8 (`ksiegowanie`, `ksiegowanie_dekret`) oraz minimalne stuby `ksiegowanie_typ`, `ksiegowanie_konto`, `waluta` (iter1) oraz `dokument` (iter7) jako punkty zaczepienia FK. Słownik typów księgowań — [Słowniki § dbo.ksiegowanie_typ](slowniki.md#dboksiegowanie_typ); słownik kont księgowych — [Słowniki § dbo.ksiegowanie_konto](slowniki.md#dboksiegowanie_konto); słownik walut — [Słowniki § dbo.waluta](slowniki.md); dokumenty — [Role wierzytelności i dokumenty § dbo.dokument](role-wierzytelnosci-i-dokumenty.md#dbodokument). Staging `dbo.operacja` nie jest odwzorowywana bezpośrednio na żadną tabelę prod — generuje syntetyczne wiersze w `ksiegowanie` i `ksiegowanie_dekret` (opisane w sekcji `<code>dbo.operacja</code>` poniżej), stąd nie pojawia się jako osobna encja na diagramie. Kolumny staging niewykorzystywane przez iter8 (`ksd_ksksub_id`, większość kolumn opisowych `operacja`) są wymienione w param-list, ale pominięte w diagramie zgodnie z zasadą "tylko aktywne FK".
+Diagram pokazuje dwie tabele prod iteracja 8 (`ksiegowanie`, `ksiegowanie_dekret`) oraz minimalne stuby `ksiegowanie_typ`, `ksiegowanie_konto`, `waluta` (iteracja 1) oraz `dokument` (iteracja 7) jako punkty zaczepienia FK. Słownik typów księgowań — [Słowniki § dbo.ksiegowanie_typ](slowniki.md#dboksiegowanie_typ); słownik kont księgowych — [Słowniki § dbo.ksiegowanie_konto](slowniki.md#dboksiegowanie_konto); słownik walut — [Słowniki § dbo.waluta](slowniki.md); dokumenty — [Role wierzytelności i dokumenty § dbo.dokument](role-wierzytelnosci-i-dokumenty.md#dbodokument). Staging `dbo.operacja` nie jest odwzorowywana bezpośrednio na żadną tabelę prod — generuje syntetyczne wiersze w `ksiegowanie` i `ksiegowanie_dekret` (opisane w sekcji `<code>dbo.operacja</code>` poniżej), stąd nie pojawia się jako osobna encja na diagramie. Kolumny staging niewykorzystywane przez iteracja 8 (`ksd_ksksub_id`, większość kolumn opisowych `operacja`) są wymienione w param-list, ale pominięte w diagramie zgodnie z zasadą "tylko aktywne FK".
 
 ```mermaid
 erDiagram
@@ -81,7 +81,7 @@ erDiagram
   <span>Multi-row: tak (1 wierzytelność → N księgowań)</span>
 </div>
 
-Nagłówek księgowania finansowego — data operacji, typ księgowania, powiązanie z wierzytelnością pośrednio przez dekrety. Staging PK `ks_id` jest przenoszony 1:1 do prod jako `ks_id` dzięki `SET IDENTITY_INSERT dm_data_web.ksiegowanie ON` — staging PK = prod PK, nie jest potrzebna kolumna ext_id ani tabela mapująca. Ta decyzja upraszcza sekcję 2 iter8 (staging `ksiegowanie_dekret.ksd_ks_id` może być skopiowany bez resolve'u) oraz jest wyjątkiem w całej migracji — pozostałe range-based tabele produkcyjne (dokument, wierzytelnosc) używają własnego IDENTITY z ext_id. Uwaga: ścieżka `operacja` (opisana w sekcji `<code>dbo.operacja</code>` poniżej) dokłada do tej samej tabeli prod dodatkowe wiersze przez IDENTITY auto-generate — z własną semantyką hardkodów i schematem ext_id na poziomie dekretów (`OPER_<oper_id>_*`).
+Nagłówek księgowania finansowego — data operacji, typ księgowania, powiązanie z wierzytelnością pośrednio przez dekrety. Staging PK `ks_id` jest przenoszony 1:1 do prod jako `ks_id` dzięki `SET IDENTITY_INSERT dm_data_web.ksiegowanie ON` — staging PK = prod PK, nie jest potrzebna kolumna ext_id ani tabela mapująca. Ta decyzja upraszcza sekcję 2 iteracja 8 (staging `ksiegowanie_dekret.ksd_ks_id` może być skopiowany bez resolve'u) oraz jest wyjątkiem w całej migracji — pozostałe range-based tabele produkcyjne (dokument, wierzytelnosc) używają własnego IDENTITY z ext_id. Uwaga: ścieżka `operacja` (opisana w sekcji `<code>dbo.operacja</code>` poniżej) dokłada do tej samej tabeli prod dodatkowe wiersze przez IDENTITY auto-generate — z własną semantyką hardkodów i schematem ext_id na poziomie dekretów (`OPER_<oper_id>_*`).
 
 <ul class="param-list">
   <li>
@@ -107,7 +107,7 @@ Nagłówek księgowania finansowego — data operacji, typ księgowania, powiąz
   <li>
     <span class="param-name fk required">ks_kst_id</span>
     <span class="param-type">INT</span>
-    <span class="param-desc">FK do słownika typów księgowań - bezpośrednio (kst_id zachowany po iter1)</span>
+    <span class="param-desc">FK do słownika typów księgowań - bezpośrednio (kst_id zachowany po iteracji 1)</span>
   </li>
   <li>
     <span class="param-name">ks_pierwotne</span>
@@ -122,7 +122,7 @@ Nagłówek księgowania finansowego — data operacji, typ księgowania, powiąz
 </ul>
 
 ### dbo.ksiegowanie
-Prod `ksiegowanie` normalnie generuje własny IDENTITY `ks_id`, ale dla ścieżki staging `ksiegowanie` identity jest ominięty przez `SET IDENTITY_INSERT dm_data_web.ksiegowanie ON` na czas Sekcja 1 — staging PK `ks_id` trafia bezpośrednio do prod `ks_id`. Idempotencja oparta o PK: snapshot istniejących prod `ks_id` do indeksowanej `#existing_ks`, a INSERT pomija wiersze już obecne (LEFT JOIN z filtrem `WHERE ex.ks_id IS NULL`). Po zakończeniu Sekcja 1 identity jest ponownie włączany (`SET IDENTITY_INSERT ... OFF`), aby Sekcja 3 mogła generować syntetyczne nagłówki przez standardową ścieżkę IDENTITY. INSERT używa hinta `WITH (TABLOCK)`. FK `ks_kst_id` kopiowany bezpośrednio ze stagingu (tożsamość `kst_id` zachowana po MERGE z iter1). Kolumny hardkodowane dla tej ścieżki: `ks_zamkniete = 1` (księgowania wejściowe traktowane jako zamknięte z momentem migracji), `ks_pierwotne = 1` (wiersze staging to dokumenty pierwotne migracji, nie korekty), `ks_na_rachunek_kontrahenta = 0`, `ks_od_komornika = 0` (brak kolumny źródłowej — detekcja komornicza planowana jako TODO). Przed Sekcja 1 non-clustered indexy na prod `ksiegowanie` i `ksiegowanie_dekret` są disablowane (`EXEC usp_manage_prod_ncis 'ksiegowanie,ksiegowanie_dekret', 'DISABLE'`) i odbudowywane po zakończeniu Sekcja 3 (`'REBUILD'`) — wspólny NCI-cycle dla obu tabel iter8. Kolumny `aud_data`/`aud_login` wypełniane są explicite (`COALESCE(stg.mod_date, @aud_now)` i `@aud_login`), z pominięciem UDF-a obliczającego defaulty.
+Prod `ksiegowanie` normalnie generuje własny IDENTITY `ks_id`, ale dla ścieżki staging `ksiegowanie` identity jest ominięty przez `SET IDENTITY_INSERT dm_data_web.ksiegowanie ON` na czas Sekcja 1 — staging PK `ks_id` trafia bezpośrednio do prod `ks_id`. Idempotencja oparta o PK: snapshot istniejących prod `ks_id` do indeksowanej `#existing_ks`, a INSERT pomija wiersze już obecne (LEFT JOIN z filtrem `WHERE ex.ks_id IS NULL`). Po zakończeniu Sekcja 1 identity jest ponownie włączany (`SET IDENTITY_INSERT ... OFF`), aby Sekcja 3 mogła generować syntetyczne nagłówki przez standardową ścieżkę IDENTITY. INSERT używa hinta `WITH (TABLOCK)`. FK `ks_kst_id` kopiowany bezpośrednio ze stagingu (tożsamość `kst_id` zachowana po MERGE z iteracji 1). Kolumny hardkodowane dla tej ścieżki: `ks_zamkniete = 1` (księgowania wejściowe traktowane jako zamknięte z momentem migracji), `ks_pierwotne = 1` (wiersze staging to dokumenty pierwotne migracji, nie korekty), `ks_na_rachunek_kontrahenta = 0`, `ks_od_komornika = 0` (brak kolumny źródłowej — detekcja komornicza planowana jako TODO). Przed Sekcja 1 non-clustered indexy na prod `ksiegowanie` i `ksiegowanie_dekret` są disablowane (`EXEC usp_manage_prod_ncis 'ksiegowanie,ksiegowanie_dekret', 'DISABLE'`) i odbudowywane po zakończeniu Sekcja 3 (`'REBUILD'`) — wspólny NCI-cycle dla obu tabel iteracja 8. Kolumny `aud_data`/`aud_login` wypełniane są explicite (`COALESCE(stg.mod_date, @aud_now)` i `@aud_login`), z pominięciem UDF-a obliczającego defaulty.
 
 </details>
 
@@ -136,7 +136,7 @@ Prod `ksiegowanie` normalnie generuje własny IDENTITY `ks_id`, ale dla ścieżk
   <span>Multi-row: tak (1 księgowanie → N dekretów — linie Winien/Ma)</span>
 </div>
 
-Dekret księgowania — pozycja szczegółowa nagłówka, przypisana do dokumentu lub (w ścieżce `operacja`) do syntetycznego nagłówka bez dokumentu. Staging `ksd_kwota` koduje stronę dekretu znakiem: wartości dodatnie trafiają do prod `ksd_kwota_wn`, ujemne do `ksd_kwota_ma` (z `ABS`). Staging PK `ksd_id` trafia do prod jako `ksd_ext_id` (VARCHAR, `CAST(stg.ksd_id AS VARCHAR(255))`) — prod używa własnego IDENTITY `ksd_id`, a `ksd_ext_id` służy tylko do idempotencji i nie jest indeksem biznesowym. Staging `ksd_ks_id` jest kopiowany wprost do prod `ksd_ks_id` — bezpieczne, bo Sekcja 1 zachowała PK prod `ksiegowanie` (staging `ks_id` = prod `ks_id`). FK `ksd_do_id` jest rozwiązywane LEFT JOIN-em przez `mapowanie.dodane_dokumenty` (iter7) — dekrety bez powiązanego dokumentu zachowują NULL.
+Dekret księgowania — pozycja szczegółowa nagłówka, przypisana do dokumentu lub (w ścieżce `operacja`) do syntetycznego nagłówka bez dokumentu. Staging `ksd_kwota` koduje stronę dekretu znakiem: wartości dodatnie trafiają do prod `ksd_kwota_wn`, ujemne do `ksd_kwota_ma` (z `ABS`). Staging PK `ksd_id` trafia do prod jako `ksd_ext_id` (VARCHAR, `CAST(stg.ksd_id AS VARCHAR(255))`) — prod używa własnego IDENTITY `ksd_id`, a `ksd_ext_id` służy tylko do idempotencji i nie jest indeksem biznesowym. Staging `ksd_ks_id` jest kopiowany wprost do prod `ksd_ks_id` — bezpieczne, bo Sekcja 1 zachowała PK prod `ksiegowanie` (staging `ks_id` = prod `ks_id`). FK `ksd_do_id` jest rozwiązywane LEFT JOIN-em przez `mapowanie.dodane_dokumenty` (iteracja 7) — dekrety bez powiązanego dokumentu zachowują NULL.
 
 <ul class="param-list">
   <li>
@@ -167,7 +167,7 @@ Dekret księgowania — pozycja szczegółowa nagłówka, przypisana do dokument
   <li>
     <span class="param-name fk required">ksd_ksk_id</span>
     <span class="param-type">INT</span>
-    <span class="param-desc">FK do słownika kont księgowych - bezpośrednio (ksk_id zachowany po iter1)</span>
+    <span class="param-desc">FK do słownika kont księgowych - bezpośrednio (ksk_id zachowany po iteracji 1)</span>
   </li>
   <li>
     <span class="param-name">ksd_uwagi</span>
@@ -222,7 +222,7 @@ Dekret księgowania — pozycja szczegółowa nagłówka, przypisana do dokument
   <li>
     <span class="param-name fk">ksd_ksksub_id</span>
     <span class="param-type">INT</span>
-    <span class="param-desc">FK do subkonta konta księgowego - nie populowane przez iter8 (pole schema-only, REF_35)</span>
+    <span class="param-desc">FK do subkonta konta księgowego - nie populowane przez iteracja 8 (pole schema-only, REF_35)</span>
   </li>
   <li>
     <span class="param-name deprecated">mod_date</span>
@@ -232,7 +232,7 @@ Dekret księgowania — pozycja szczegółowa nagłówka, przypisana do dokument
 </ul>
 
 ### dbo.ksiegowanie_dekret
-Prod `ksiegowanie_dekret` generuje własny IDENTITY `ksd_id` — staging PK trafia do kolumny `ksd_ext_id` (VARCHAR, `CAST(stg.ksd_id AS VARCHAR(255))`). Idempotencja po `ksd_ext_id`: snapshot istniejących `ksd_ext_id` (z filtrem `IS NOT NULL`) do `#existing_ksd`, a INSERT pomija ext_id już obecne. INSERT jest range-based, batched — `@ksd_batch_size = 500000`, pętla `WHILE` po `ksd_id BETWEEN @batch_start AND @batch_end` aż do `@ksd_max_id` — minimalizuje rozmiar transakcji przy dużej liczbie dekretów. Pre-materializacja stagingu do tabeli tymczasowej `#ksd_staging` (z pre-zcastowanym ext_id jako VARCHAR, unique index po `ksd_id`, indeksami po `ksd_ext_id_str` i `ksd_sp_id`) eliminuje powtarzalne CAST-y i JOIN-y per batch. Przed Sekcja 1 non-clustered indexy na prod `ksiegowanie_dekret` są disablowane razem z `ksiegowanie` (`EXEC usp_manage_prod_ncis 'ksiegowanie,ksiegowanie_dekret', 'DISABLE'`) i odbudowywane po zakończeniu Sekcja 3. Wszystkie INSERT-y używają hinta `WITH (TABLOCK)`. FK `ksd_ks_id` kopiowany wprost ze stagingu (bezpieczne, bo Sekcja 1 preserved prod `ks_id`). FK `ksd_do_id` rozwiązywany LEFT JOIN-em przez `mapowanie.dodane_dokumenty` — dekrety bez dokumentu otrzymują NULL. FK `ksd_rb_id` (nie widoczny w stagingu) pre-obliczany przez tymczasowy lookup `#ksd_rb_lookup`: JOIN `mapowanie.dodane_sprawy` (staging `sp_id` → prod `sp_id`) z prod `sprawa.sp_rb_id`; LEFT JOIN podczas INSERT-u po `ksd_sp_id`. FK `ksd_ksk_id` i `ksd_wa_id` kopiowane wprost ze stagingu (ID słownikowe zachowują tożsamość po iter1). Strona dekretu wyliczana z `ksd_kwota`: `CASE WHEN ksd_kwota > 0 THEN ksd_kwota ELSE 0 END` → `ksd_kwota_wn`, `CASE WHEN ksd_kwota < 0 THEN ABS(ksd_kwota) ELSE 0 END` → `ksd_kwota_ma`. Kolumny `ksd_kwota_wn_bazowa`, `ksd_kwota_ma_bazowa`, `ksd_kurs_bazowy` kopiowane wprost ze stagingu. Kolumna `ksd_data_wymagalnosci` ustawiana jest na hardkodowany sentinel `@SENTINEL_DATE = '9999-12-31'` (zgodnie z komentarzem SQL: fallback dla dekretów bez dokumentu — obecnie stosowany bezwarunkowo; docelowo ma być dziedziczony z linked `dokument`). Kolumny `ksd_kwota_wn_wyceny`, `ksd_kwota_ma_wyceny`, `ksd_wa_id_wyceny` oznaczone są w SQL jako TODO i wstawiane jako NULL do czasu uzupełnienia stagingu. Kolumna `ksd_ksksub_id` nie jest populowana (walidacja REF_35 jest zadeklarowana, ale iter8 nie wstawia wartości — pole pozostaje pod zarządzaniem dev teamu). Pominięte przy INSERT: IDENTITY `ksd_id`. Kolumny `aud_data`/`aud_login` wypełniane są explicite, z pominięciem UDF-a.
+Prod `ksiegowanie_dekret` generuje własny IDENTITY `ksd_id` — staging PK trafia do kolumny `ksd_ext_id` (VARCHAR, `CAST(stg.ksd_id AS VARCHAR(255))`). Idempotencja po `ksd_ext_id`: snapshot istniejących `ksd_ext_id` (z filtrem `IS NOT NULL`) do `#existing_ksd`, a INSERT pomija ext_id już obecne. INSERT jest range-based, batched — `@ksd_batch_size = 500000`, pętla `WHILE` po `ksd_id BETWEEN @batch_start AND @batch_end` aż do `@ksd_max_id` — minimalizuje rozmiar transakcji przy dużej liczbie dekretów. Pre-materializacja stagingu do tabeli tymczasowej `#ksd_staging` (z pre-zcastowanym ext_id jako VARCHAR, unique index po `ksd_id`, indeksami po `ksd_ext_id_str` i `ksd_sp_id`) eliminuje powtarzalne CAST-y i JOIN-y per batch. Przed Sekcja 1 non-clustered indexy na prod `ksiegowanie_dekret` są disablowane razem z `ksiegowanie` (`EXEC usp_manage_prod_ncis 'ksiegowanie,ksiegowanie_dekret', 'DISABLE'`) i odbudowywane po zakończeniu Sekcja 3. Wszystkie INSERT-y używają hinta `WITH (TABLOCK)`. FK `ksd_ks_id` kopiowany wprost ze stagingu (bezpieczne, bo Sekcja 1 preserved prod `ks_id`). FK `ksd_do_id` rozwiązywany LEFT JOIN-em przez `mapowanie.dodane_dokumenty` — dekrety bez dokumentu otrzymują NULL. FK `ksd_rb_id` (nie widoczny w stagingu) pre-obliczany przez tymczasowy lookup `#ksd_rb_lookup`: JOIN `mapowanie.dodane_sprawy` (staging `sp_id` → prod `sp_id`) z prod `sprawa.sp_rb_id`; LEFT JOIN podczas INSERT-u po `ksd_sp_id`. FK `ksd_ksk_id` i `ksd_wa_id` kopiowane wprost ze stagingu (ID słownikowe zachowują tożsamość po iteracji 1). Strona dekretu wyliczana z `ksd_kwota`: `CASE WHEN ksd_kwota > 0 THEN ksd_kwota ELSE 0 END` → `ksd_kwota_wn`, `CASE WHEN ksd_kwota < 0 THEN ABS(ksd_kwota) ELSE 0 END` → `ksd_kwota_ma`. Kolumny `ksd_kwota_wn_bazowa`, `ksd_kwota_ma_bazowa`, `ksd_kurs_bazowy` kopiowane wprost ze stagingu. Kolumna `ksd_data_wymagalnosci` ustawiana jest na hardkodowany sentinel `@SENTINEL_DATE = '9999-12-31'` (zgodnie z komentarzem SQL: fallback dla dekretów bez dokumentu — obecnie stosowany bezwarunkowo; docelowo ma być dziedziczony z linked `dokument`). Kolumny `ksd_kwota_wn_wyceny`, `ksd_kwota_ma_wyceny`, `ksd_wa_id_wyceny` oznaczone są w SQL jako TODO i wstawiane jako NULL do czasu uzupełnienia stagingu. Kolumna `ksd_ksksub_id` nie jest populowana (walidacja REF_35 jest zadeklarowana, ale iteracja 8 nie wstawia wartości — pole pozostaje pod zarządzaniem dev teamu). Pominięte przy INSERT: IDENTITY `ksd_id`. Kolumny `aud_data`/`aud_login` wypełniane są explicite, z pominięciem UDF-a.
 
 </details>
 
@@ -246,7 +246,7 @@ Prod `ksiegowanie_dekret` generuje własny IDENTITY `ksd_id` — staging PK traf
   <span>Multi-row: tak (1 operacja → 1 nagłówek + 1–5 dekretów)</span>
 </div>
 
-Operacja finansowa z systemu źródłowego — surowe dane o wpłatach, korektach, umorzeniach, kosztach i alokacjach, które muszą zostać przetransformowane na parę prod: syntetyczny nagłówek `ksiegowanie` + od jednego do pięciu dekretów `ksiegowanie_dekret` odpowiadających składnikom kwoty (kapitał, odsetki karne, odsetki umowne, opłaty, prowizje). Staging `operacja` nie posiada 1:1 odwzorowania w prod — jest to jedyna tabela iter8 o paradygmacie "fan-out synthetic generation". Strona dekretu (WN/MA) jest wyliczana z `oper_rejestr_kod` — `wplata` i `umorzenie` trafiają do `kwota_wn`, pozostałe (`korekta`, `koszt`, `nadplata`, `alokacja`) do `kwota_ma`. Kwota jest rozbijana na pięć pozycji przez `CROSS APPLY (VALUES (...))` z hardkodowanym mapowaniem typ → `ksk_id`: KAP→2 (kapitał), ODK→5 (odsetki karne), ODU→6 (odsetki umowne), OPL→10 (opłaty), PRW→10 (prowizje). Wiersze z zerową kwotą na danej pozycji są odfiltrowywane (`WHERE v.kwota > 0`), stąd liczba generowanych dekretów wynosi 1–5 per operacja. Mapping staging `oper_id` → prod `ks_id` (auto-generated IDENTITY) zapisywany jest do tabeli tymczasowej `#oper_ks_mapping` wykorzystywanej w Krok 3B. **Sekcja 3C SQL (wpłata/korekta)** jest placeholderem bez implementacji — docelowo ma INSERT-ować do prod `wplata` lub `korekta` w zależności od `oper_rejestr_kod`/`oper_typ_dekretu`, ale wymaga uzgodnienia z dev teamem.
+Operacja finansowa z systemu źródłowego — surowe dane o wpłatach, korektach, umorzeniach, kosztach i alokacjach, które muszą zostać przetransformowane na parę prod: syntetyczny nagłówek `ksiegowanie` + od jednego do pięciu dekretów `ksiegowanie_dekret` odpowiadających składnikom kwoty (kapitał, odsetki karne, odsetki umowne, opłaty, prowizje). Staging `operacja` nie posiada 1:1 odwzorowania w prod — jest to jedyna tabele iteracji 8 o paradygmacie "fan-out synthetic generation". Strona dekretu (WN/MA) jest wyliczana z `oper_rejestr_kod` — `wplata` i `umorzenie` trafiają do `kwota_wn`, pozostałe (`korekta`, `koszt`, `nadplata`, `alokacja`) do `kwota_ma`. Kwota jest rozbijana na pięć pozycji przez `CROSS APPLY (VALUES (...))` z hardkodowanym mapowaniem typ → `ksk_id`: KAP→2 (kapitał), ODK→5 (odsetki karne), ODU→6 (odsetki umowne), OPL→10 (opłaty), PRW→10 (prowizje). Wiersze z zerową kwotą na danej pozycji są odfiltrowywane (`WHERE v.kwota > 0`), stąd liczba generowanych dekretów wynosi 1–5 per operacja. Mapping staging `oper_id` → prod `ks_id` (auto-generated IDENTITY) zapisywany jest do tabeli tymczasowej `#oper_ks_mapping` wykorzystywanej w Krok 3B. **Sekcja 3C SQL (wpłata/korekta)** jest placeholderem bez implementacji — docelowo ma INSERT-ować do prod `wplata` lub `korekta` w zależności od `oper_rejestr_kod`/`oper_typ_dekretu`, ale wymaga uzgodnienia z dev teamem.
 
 <ul class="param-list">
   <li>
@@ -257,7 +257,7 @@ Operacja finansowa z systemu źródłowego — surowe dane o wpłatach, korektac
   <li>
     <span class="param-name fk">oper_wi_id</span>
     <span class="param-type">INT</span>
-    <span class="param-desc">FK do wierzytelności - nie odwzorowywany w iter8 (powiązanie wierzytelność ↔ księgowanie jest pośrednie przez dekret)</span>
+    <span class="param-desc">FK do wierzytelności - nie odwzorowywany w iteracji 8 (powiązanie wierzytelność ↔ księgowanie jest pośrednie przez dekret)</span>
   </li>
   <li>
     <span class="param-name">oper_waluta</span>
@@ -277,42 +277,42 @@ Operacja finansowa z systemu źródłowego — surowe dane o wpłatach, korektac
   <li>
     <span class="param-name">oper_opis_dekretu</span>
     <span class="param-type">VARCHAR</span>
-    <span class="param-desc">Opis dekretu - nie odwzorowywany w iter8</span>
+    <span class="param-desc">Opis dekretu - nie odwzorowywany w iteracji 8</span>
   </li>
   <li>
     <span class="param-name">oper_dokument_typ_prod_id</span>
     <span class="param-type">INT</span>
-    <span class="param-desc">Identyfikator typu dokumentu w systemie źródłowym - nie odwzorowywany w iter8</span>
+    <span class="param-desc">Identyfikator typu dokumentu w systemie źródłowym - nie odwzorowywany w iteracji 8</span>
   </li>
   <li>
     <span class="param-name">oper_dokument_podtyp_prod_id</span>
     <span class="param-type">INT</span>
-    <span class="param-desc">Identyfikator podtypu dokumentu w systemie źródłowym - nie odwzorowywany w iter8</span>
+    <span class="param-desc">Identyfikator podtypu dokumentu w systemie źródłowym - nie odwzorowywany w iteracji 8</span>
   </li>
   <li>
     <span class="param-name">oper_dokument_typ_prod_opis</span>
     <span class="param-type">VARCHAR</span>
-    <span class="param-desc">Opis typu dokumentu w systemie źródłowym - nie odwzorowywany w iter8</span>
+    <span class="param-desc">Opis typu dokumentu w systemie źródłowym - nie odwzorowywany w iteracji 8</span>
   </li>
   <li>
     <span class="param-name">oper_dokument_podtyp_prod_opis</span>
     <span class="param-type">VARCHAR</span>
-    <span class="param-desc">Opis podtypu dokumentu w systemie źródłowym - nie odwzorowywany w iter8</span>
+    <span class="param-desc">Opis podtypu dokumentu w systemie źródłowym - nie odwzorowywany w iteracji 8</span>
   </li>
   <li>
     <span class="param-name">oper_dokument_prod_id</span>
     <span class="param-type">INT</span>
-    <span class="param-desc">Identyfikator dokumentu w systemie źródłowym - nie odwzorowywany w iter8</span>
+    <span class="param-desc">Identyfikator dokumentu w systemie źródłowym - nie odwzorowywany w iteracji 8</span>
   </li>
   <li>
     <span class="param-name">oper_opis_slowny</span>
     <span class="param-type">VARCHAR</span>
-    <span class="param-desc">Słowny opis operacji - nie odwzorowywany w iter8</span>
+    <span class="param-desc">Słowny opis operacji - nie odwzorowywany w iteracji 8</span>
   </li>
   <li>
     <span class="param-name">oper_opis</span>
     <span class="param-type">VARCHAR</span>
-    <span class="param-desc">Opis techniczny operacji - nie odwzorowywany w iter8</span>
+    <span class="param-desc">Opis techniczny operacji - nie odwzorowywany w iteracji 8</span>
   </li>
   <li>
     <span class="param-name">oper_strona</span>
@@ -412,22 +412,22 @@ Operacja finansowa z systemu źródłowego — surowe dane o wpłatach, korektac
   <li>
     <span class="param-name">oper_beneficjent_nazwa</span>
     <span class="param-type">VARCHAR</span>
-    <span class="param-desc">Nazwa beneficjenta - nie odwzorowywana w iter8</span>
+    <span class="param-desc">Nazwa beneficjenta - nie odwzorowywana w iteracji 8</span>
   </li>
   <li>
     <span class="param-name">oper_remitter_nazwa</span>
     <span class="param-type">VARCHAR</span>
-    <span class="param-desc">Nazwa zleceniodawcy - nie odwzorowywana w iter8</span>
+    <span class="param-desc">Nazwa zleceniodawcy - nie odwzorowywana w iteracji 8</span>
   </li>
   <li>
     <span class="param-name">oper_konto</span>
     <span class="param-type">VARCHAR</span>
-    <span class="param-desc">Numer konta bankowego operacji - nie odwzorowywany w iter8</span>
+    <span class="param-desc">Numer konta bankowego operacji - nie odwzorowywany w iteracji 8</span>
   </li>
   <li>
     <span class="param-name fk">oper_do_id</span>
     <span class="param-type">INT</span>
-    <span class="param-desc">FK do dokumentu powiązanego z operacją - nie odwzorowywany przez iter8 w ksiegowanie_dekret (dekrety operacji mają ksd_do_id = NULL; REF_23 walidacyjne)</span>
+    <span class="param-desc">FK do dokumentu powiązanego z operacją - nie odwzorowywany przez iteracja 8 w ksiegowanie_dekret (dekrety operacji mają ksd_do_id = NULL; REF_23 walidacyjne)</span>
   </li>
   <li>
     <span class="param-name deprecated">mod_date</span>
@@ -452,7 +452,7 @@ Krok 3B generuje syntetyczne dekrety — od jednego do pięciu per operacja, po 
 - Poprzednia iteracja: [Role wierzytelności i dokumenty](role-wierzytelnosci-i-dokumenty.md)
 - Następna iteracja: [Harmonogram spłat](harmonogram.md)
 - Klasyfikacja mapowania: [Mapowanie staging → prod](mapowanie-tabel.md)
-- Słowniki bazowe iter1: [ksiegowanie_typ](slowniki.md#dboksiegowanie_typ), [ksiegowanie_konto](slowniki.md#dboksiegowanie_konto), [waluta](slowniki.md)
+- Słowniki bazowe iteracja 1: [ksiegowanie_typ](slowniki.md#dboksiegowanie_typ), [ksiegowanie_konto](slowniki.md#dboksiegowanie_konto), [waluta](slowniki.md)
 - Mapowania wejściowe: [Sprawy § mapowanie.dodane_sprawy](sprawy.md), [Role wierzytelności i dokumenty § mapowanie.dodane_dokumenty](role-wierzytelnosci-i-dokumenty.md)
 - Walidacje referencyjne (ksiegowanie_dekret): [REF_20 (dekret → księgowanie)](../przygotowanie-danych/walidacje.md), [REF_21 (ksk_id → ksiegowanie_konto)](../przygotowanie-danych/walidacje.md), [REF_22 (ksd_do_id → dokument)](../przygotowanie-danych/walidacje.md), [REF_35 (ksd_ksksub_id → ksiegowanie_konto_subkonto)](../przygotowanie-danych/walidacje.md)
 - Walidacje referencyjne (ksiegowanie): [REF_29 (ks_kst_id → ksiegowanie_typ)](../przygotowanie-danych/walidacje.md)

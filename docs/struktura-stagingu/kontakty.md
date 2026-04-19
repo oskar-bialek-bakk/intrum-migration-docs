@@ -6,18 +6,18 @@ tags:
 
 # Dane kontaktowe (adres, mail, telefon)
 
-Iteracja 3 ładuje sześć tabel stagingowych danych kontaktowych — trzy nagłówkowe (`dbo.adres`, `dbo.mail`, `dbo.telefon`) oraz trzy łączące (`dbo.wlasciwosc_adres`, `dbo.wlasciwosc_email`, `dbo.wlasciwosc_telefon`) — wszystkie klasy **C**, zależne od słowników z iter1 (`adres_typ`, `telefon_typ`) oraz od `mapowanie.dodani_dluznicy` zbudowanego w iter2. Iteracja jest warunkiem koniecznym dla iter4 (sprawy i role dłużników).
+Iteracja 3 ładuje sześć tabel stagingowych danych kontaktowych — trzy nagłówkowe (`dbo.adres`, `dbo.mail`, `dbo.telefon`) oraz trzy łączące (`dbo.wlasciwosc_adres`, `dbo.wlasciwosc_email`, `dbo.wlasciwosc_telefon`) — wszystkie klasy **C**, zależne od słowników z iteracji 1 (`adres_typ`, `telefon_typ`) oraz od `mapowanie.dodani_dluznicy` zbudowanego w iteracji 2. Iteracja jest warunkiem koniecznym dla iteracji 4 (sprawy i role dłużników).
 
-Trzy tabele nagłówkowe ładowane są range-based (`INSERT ... WHERE stg._id > @max_*_ext`, zamiast MERGE z iter1/iter2); trzy łączące — współdzieloną procedurą `usp_migrate_wlasciwosc_domain` w trybie `EXT_ID` (zamiast `MAPPING` z iter2, bo prod `*_ext_id` jest dostępny od razu po INSERT encji kontaktowej w tym samym skrypcie). Pola PII (ulica, numery domu i lokalu, kod pocztowy, miejscowość, adres e-mail, numer telefonu) oznaczone są markerem. Szczegóły per tabela w sekcjach `### dbo.<tabela>`; walidacje referencyjne i biznesowe w sekcji [Powiązania](#powiazania) poniżej.
+Trzy tabele nagłówkowe ładowane są range-based (`INSERT ... WHERE stg._id > @max_*_ext`, zamiast MERGE z iteracji 1/iteracja 2); trzy łączące — współdzieloną procedurą `usp_migrate_wlasciwosc_domain` w trybie `EXT_ID` (zamiast `MAPPING` z iteracji 2, bo prod `*_ext_id` jest dostępny od razu po INSERT encji kontaktowej w tym samym skrypcie). Pola PII (ulica, numery domu i lokalu, kod pocztowy, miejscowość, adres e-mail, numer telefonu) oznaczone są markerem. Szczegóły per tabela w sekcjach `### dbo.<tabela>`; walidacje referencyjne i biznesowe w sekcji [Powiązania](#powiazania) poniżej.
 
 <div class="iter-meta">
   <span>Iteracja: 3</span>
-  <span>Zależności: Iter 1 (adres_typ, telefon_typ) + Iter 2 (mapowanie.dodani_dluznicy)</span>
+  <span>Zależności: Iteracja 1 (adres_typ, telefon_typ) + Iteracja 2 (mapowanie.dodani_dluznicy)</span>
 </div>
 
 ## Diagram ER
 
-Diagram pokazuje tabele kontaktowe iter3 oraz ich powiązanie z `dluznik` (iter2). Pełna struktura dłużnika (`dluznik_typ`, `mapowanie_plec`, atrybuty) — [Dłużnicy § Diagram ER](dluznicy.md#diagram-er).
+Diagram pokazuje tabele kontaktowe iteracja 3 oraz ich powiązanie z `dluznik` (iteracja 2). Pełna struktura dłużnika (`dluznik_typ`, `mapowanie_plec`, atrybuty) — [Dłużnicy § Diagram ER](dluznicy.md#diagram-er).
 
 ```mermaid
 erDiagram
@@ -81,7 +81,7 @@ erDiagram
   <span>Multi-row: tak</span>
 </div>
 
-Adresy przypisane do dłużnika, z typem określonym przez `ad_at_id` (FK do `adres_typ` z iter1). Staging PK `ad_id` jest typu INT, prod używa IDENTITY i przechowuje pochodzenie w `ad_ext_id` (INT). Okres obowiązywania adresu opisują kolumny `ad_data_od`/`ad_data_do` — `NULL` w `ad_data_do` oznacza adres aktywny.
+Adresy przypisane do dłużnika, z typem określonym przez `ad_at_id` (FK do `adres_typ` z iteracji 1). Staging PK `ad_id` jest typu INT, prod używa IDENTITY i przechowuje pochodzenie w `ad_ext_id` (INT). Okres obowiązywania adresu opisują kolumny `ad_data_od`/`ad_data_do` — `NULL` w `ad_data_do` oznacza adres aktywny.
 
 <ul class="param-list">
   <li>
@@ -157,7 +157,7 @@ Adresy przypisane do dłużnika, z typem określonym przez `ad_at_id` (FK do `ad
 </ul>
 
 ### dbo.adres
-Prod `adres` generuje własny IDENTITY `ad_id` — staging PK trafia do kolumny `ad_ext_id` (INT). Idempotencja realizowana jest range-based: `WHERE stg.ad_id > @max_ad_ext` (gdzie `@max_ad_ext = MAX(ad_ext_id)` w prod, domyślnie `-2147483648` dla stagingu pustego). Przed INSERT (przy `@stage > 1`) liczone są wiersze osierocone (brak rodzica w `mapowanie.dodani_dluznicy`) i raportowane jako `PRINT WARNING`; sam INSERT je niejawnie pomija przez INNER JOIN. FK `ad_dl_id` rozwiązywany przez INNER JOIN na `mapowanie.dodani_dluznicy` (staging `dl_id` → prod `dl_id`). FK `ad_at_id` rozwiązywany dwuetapowo: `staging.adres_typ.at_id = stg.ad_at_id`, następnie `prod.adres_typ.at_id = stg_at.at_ext_id` — staging `adres_typ.at_ext_id` przechowuje docelowy prod `at_id` po backfillu z iter1. Kolumny hardkodowane: `ad_zpi_id = 2` (stała `@ZPI_IMPORT`, źródło: import) oraz `ad_tworzacy_us_id = @system_admin_user_id`. Kolumna `ad_data_od` wypełniana jest przez `COALESCE(stg.ad_data_od, stg.mod_date)`, `ad_data_do` kopiowana 1:1. Po zakończeniu INSERT-a prod `ad_id` jest zapisywany z powrotem do staging `ad_ext_id` przez UPDATE po `#ad_mapping` — to odwzorowanie wykorzystuje sekcja `wlasciwosc_adres` w tym samym kroku oraz pośrednio kolejne iteracje. Pominięte przy INSERT: IDENTITY `ad_id`. Kolumny `aud_data`/`aud_login` są wypełniane explicite (odpowiednio `COALESCE(stg.mod_date, @aud_now)` i `@aud_login`), z pominięciem UDF-a obliczającego defaulty.
+Prod `adres` generuje własny IDENTITY `ad_id` — staging PK trafia do kolumny `ad_ext_id` (INT). Idempotencja realizowana jest range-based: `WHERE stg.ad_id > @max_ad_ext` (gdzie `@max_ad_ext = MAX(ad_ext_id)` w prod, domyślnie `-2147483648` dla stagingu pustego). Przed INSERT (przy `@stage > 1`) liczone są wiersze osierocone (brak rodzica w `mapowanie.dodani_dluznicy`) i raportowane jako `PRINT WARNING`; sam INSERT je niejawnie pomija przez INNER JOIN. FK `ad_dl_id` rozwiązywany przez INNER JOIN na `mapowanie.dodani_dluznicy` (staging `dl_id` → prod `dl_id`). FK `ad_at_id` rozwiązywany dwuetapowo: `staging.adres_typ.at_id = stg.ad_at_id`, następnie `prod.adres_typ.at_id = stg_at.at_ext_id` — staging `adres_typ.at_ext_id` przechowuje docelowy prod `at_id` po backfillu z iteracji 1. Kolumny hardkodowane: `ad_zpi_id = 2` (stała `@ZPI_IMPORT`, źródło: import) oraz `ad_tworzacy_us_id = @system_admin_user_id`. Kolumna `ad_data_od` wypełniana jest przez `COALESCE(stg.ad_data_od, stg.mod_date)`, `ad_data_do` kopiowana 1:1. Po zakończeniu INSERT-a prod `ad_id` jest zapisywany z powrotem do staging `ad_ext_id` przez UPDATE po `#ad_mapping` — to odwzorowanie wykorzystuje sekcja `wlasciwosc_adres` w tym samym kroku oraz pośrednio kolejne iteracje. Pominięte przy INSERT: IDENTITY `ad_id`. Kolumny `aud_data`/`aud_login` są wypełniane explicite (odpowiednio `COALESCE(stg.mod_date, @aud_now)` i `@aud_login`), z pominięciem UDF-a obliczającego defaulty.
 
 </details>
 
@@ -221,7 +221,7 @@ Prod `mail` generuje własny IDENTITY `ma_id` — staging PK trafia do kolumny `
   <span>Multi-row: tak</span>
 </div>
 
-Numery telefonów przypisane do dłużnika, z typem określonym przez `tn_tt_id` (FK do `telefon_typ` z iter1). Staging PK `tn_id` jest typu INT, prod używa IDENTITY i przechowuje pochodzenie w `tn_ext_id`. Okres obowiązywania opisują `tn_data_od`/`tn_data_do` — `NULL` w `tn_data_do` oznacza numer aktywny. Blok zawiera przemianowaną kolumnę FK do słownika typów (`tn_tt_id → tn_tnt_id`).
+Numery telefonów przypisane do dłużnika, z typem określonym przez `tn_tt_id` (FK do `telefon_typ` z iteracji 1). Staging PK `tn_id` jest typu INT, prod używa IDENTITY i przechowuje pochodzenie w `tn_ext_id`. Okres obowiązywania opisują `tn_data_od`/`tn_data_do` — `NULL` w `tn_data_do` oznacza numer aktywny. Blok zawiera przemianowaną kolumnę FK do słownika typów (`tn_tt_id → tn_tnt_id`).
 
 <ul class="param-list">
   <li>
@@ -262,11 +262,11 @@ Numery telefonów przypisane do dłużnika, z typem określonym przez `tn_tt_id`
 </ul>
 
 ### dbo.telefon
-Prod `telefon` generuje własny IDENTITY `tn_id` — staging PK trafia do kolumny `tn_ext_id` (INT). Idempotencja range-based: `WHERE stg.tn_id > @max_tn_ext`. Przed INSERT (przy `@stage > 1`) liczone są wiersze osierocone (brak rodzica w `mapowanie.dodani_dluznicy`) i raportowane jako `PRINT WARNING`; sam INSERT je niejawnie pomija przez INNER JOIN. FK `tn_dl_id` rozwiązywany przez INNER JOIN na `mapowanie.dodani_dluznicy`. Przy INSERT przemianowana jest kolumna FK do słownika typów: staging `tn_tt_id` trafia do prod `tn_tnt_id` (nazwy różnią się między staging a prod). Rozwiązanie FK dwuetapowe: `staging.telefon_typ.tt_id = stg.tn_tt_id`, następnie `prod.telefon_typ.tnt_id = stg_tt.tt_ext_id` — staging `telefon_typ.tt_ext_id` przechowuje docelowy prod `tnt_id` po backfillu z iter1. Kolumny hardkodowane: `tn_zpi_id = 2` (stała `@ZPI_IMPORT`, źródło: import) oraz `tn_tworzacy_us_id = @system_admin_user_id`. Kolumna `tn_data_od` wypełniana przez `COALESCE(stg.tn_data_od, stg.mod_date)`, `tn_data_do` 1:1. Po INSERT prod `tn_id` zapisywane z powrotem do staging `tn_ext_id` (UPDATE po `#tn_mapping`) — używa tego sekcja `wlasciwosc_telefon` w tym samym kroku. Pominięte przy INSERT: IDENTITY `tn_id`. `aud_data`/`aud_login` wypełniane explicite z pominięciem UDF-a.
+Prod `telefon` generuje własny IDENTITY `tn_id` — staging PK trafia do kolumny `tn_ext_id` (INT). Idempotencja range-based: `WHERE stg.tn_id > @max_tn_ext`. Przed INSERT (przy `@stage > 1`) liczone są wiersze osierocone (brak rodzica w `mapowanie.dodani_dluznicy`) i raportowane jako `PRINT WARNING`; sam INSERT je niejawnie pomija przez INNER JOIN. FK `tn_dl_id` rozwiązywany przez INNER JOIN na `mapowanie.dodani_dluznicy`. Przy INSERT przemianowana jest kolumna FK do słownika typów: staging `tn_tt_id` trafia do prod `tn_tnt_id` (nazwy różnią się między staging a prod). Rozwiązanie FK dwuetapowe: `staging.telefon_typ.tt_id = stg.tn_tt_id`, następnie `prod.telefon_typ.tnt_id = stg_tt.tt_ext_id` — staging `telefon_typ.tt_ext_id` przechowuje docelowy prod `tnt_id` po backfillu z iteracji 1. Kolumny hardkodowane: `tn_zpi_id = 2` (stała `@ZPI_IMPORT`, źródło: import) oraz `tn_tworzacy_us_id = @system_admin_user_id`. Kolumna `tn_data_od` wypełniana przez `COALESCE(stg.tn_data_od, stg.mod_date)`, `tn_data_do` 1:1. Po INSERT prod `tn_id` zapisywane z powrotem do staging `tn_ext_id` (UPDATE po `#tn_mapping`) — używa tego sekcja `wlasciwosc_telefon` w tym samym kroku. Pominięte przy INSERT: IDENTITY `tn_id`. `aud_data`/`aud_login` wypełniane explicite z pominięciem UDF-a.
 
 </details>
 
-Nagłówkowa tabela `wlasciwosc` jest ponownie ładowana w iter3 (trzykrotnie, `wdzi_id ∈ {1, 2, 3}`) tą samą procedurą co iter2 — pełny opis kolumn i mapowania patrz [iter2 › wlasciwosc](dluznicy.md#wlasciwosc). Poniższe trzy bloki opisują wyłącznie tabele łączące per dziedzina.
+Nagłówkowa tabela `wlasciwosc` jest ponownie ładowana w iteracji 3 (trzykrotnie, `wdzi_id ∈ {1, 2, 3}`) tą samą procedurą co iteracja 2 — pełny opis kolumn i mapowania patrz [iteracja 2 › wlasciwosc](dluznicy.md#wlasciwosc). Poniższe trzy bloki opisują wyłącznie tabele łączące per dziedzina.
 
 <details markdown="1">
 <summary><code>dbo.wlasciwosc_adres</code> (wdzi_id=2) — <span class="klasa-badge klasa-c">C</span> tabela łącząca właściwość z adresem</summary>
@@ -278,7 +278,7 @@ Nagłówkowa tabela `wlasciwosc` jest ponownie ładowana w iter3 (trzykrotnie, `
   <span>Multi-row: tak</span>
 </div>
 
-Tabela łącząca (junction) — każdy wiersz wiąże rekord `wlasciwosc` (z dziedziny adres, `wdzi_id = 2`) z konkretnym adresem. Ładowana razem z rodzicem `wlasciwosc` w tym samym kroku iter3 (SEKCJA 4 skryptu `03_iter3_adres_mail_telefon.sql`). Brak osobnego `ext_id` w stagingu — idempotencja zapewniona przez composite key na prod.
+Tabela łącząca (junction) — każdy wiersz wiąże rekord `wlasciwosc` (z dziedziny adres, `wdzi_id = 2`) z konkretnym adresem. Ładowana razem z rodzicem `wlasciwosc` w tym samym kroku iteracja 3 (SEKCJA 4 skryptu `03_iter3_adres_mail_telefon.sql`). Brak osobnego `ext_id` w stagingu — idempotencja zapewniona przez composite key na prod.
 
 <ul class="param-list">
   <li>
@@ -318,7 +318,7 @@ MERGE po composite key (`wa_wl_id`, `wa_ad_id`); brak kolumn hardkodowanych. Dzi
   <span>Multi-row: tak</span>
 </div>
 
-Tabela łącząca — każdy wiersz wiąże rekord `wlasciwosc` (dziedzina e-mail, `wdzi_id = 3`) z konkretnym adresem e-mail. Ładowana razem z rodzicem `wlasciwosc` (SEKCJA 5 skryptu iter3). Brak osobnego `ext_id` w stagingu — idempotencja zapewniona przez composite key na prod.
+Tabela łącząca — każdy wiersz wiąże rekord `wlasciwosc` (dziedzina e-mail, `wdzi_id = 3`) z konkretnym adresem e-mail. Ładowana razem z rodzicem `wlasciwosc` (SEKCJA 5 skryptu iteracja 3). Brak osobnego `ext_id` w stagingu — idempotencja zapewniona przez composite key na prod.
 
 <ul class="param-list">
   <li>
@@ -358,7 +358,7 @@ MERGE po composite key (`we_wl_id`, `we_ma_id`); brak kolumn hardkodowanych. Dzi
   <span>Multi-row: tak</span>
 </div>
 
-Tabela łącząca — każdy wiersz wiąże rekord `wlasciwosc` (dziedzina telefon, `wdzi_id = 1`) z konkretnym numerem telefonu. Ładowana razem z rodzicem `wlasciwosc` (SEKCJA 6 skryptu iter3). Brak osobnego `ext_id` w stagingu — idempotencja zapewniona przez composite key na prod.
+Tabela łącząca — każdy wiersz wiąże rekord `wlasciwosc` (dziedzina telefon, `wdzi_id = 1`) z konkretnym numerem telefonu. Ładowana razem z rodzicem `wlasciwosc` (SEKCJA 6 skryptu iteracja 3). Brak osobnego `ext_id` w stagingu — idempotencja zapewniona przez composite key na prod.
 
 <ul class="param-list">
   <li>

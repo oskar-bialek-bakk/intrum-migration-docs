@@ -8,9 +8,9 @@ Podstawy procesu migracji: czym jest migracja stagingowa, jakie poziomy walidacj
 
 <div class="feature-grid">
 
-<a class="feature-card" href="wstep/">
+<a class="feature-card" href="przeglad/">
   <span class="card-icon">📖</span>
-  <span class="card-title">Wstęp</span>
+  <span class="card-title">Przegląd</span>
   <p class="card-desc">Cel dokumentu, zakres migracji, podział odpowiedzialności między zespołami BAKK i Intrum.</p>
 </a>
 

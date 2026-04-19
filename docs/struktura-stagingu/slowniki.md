@@ -15,105 +15,6 @@ Tabele dzielą się na trzy klasy mapowania. Klasa A to czyste kopie referencyjn
   <span>Zależności: brak (fundament)</span>
 </div>
 
-## Diagram ER
-
-```mermaid
-erDiagram
-    waluta {
-        int wa_id PK
-        nvarchar wa_nazwa
-        nvarchar wa_nazwa_skrocona
-        varchar wa_uuid
-    }
-    kurs_walut {
-        int kw_id PK
-        varchar kw_kod
-        date kw_data
-        decimal kw_wartosc
-        int kw_wa_id FK
-    }
-    kontrahent {
-        int ko_id PK
-        nvarchar ko_firma
-        varchar ko_nip
-        int ko_id_migracja
-    }
-    umowa_kontrahent {
-        int uko_id PK
-        int uko_ko_id FK
-        nvarchar uko_nazwa
-        date uko_data_cesji
-    }
-    atrybut_dziedzina {
-        int atd_id PK
-        nvarchar atd_nazwa
-    }
-    atrybut_rodzaj {
-        int atr_id PK
-        nvarchar atr_nazwa
-    }
-    atrybut_typ {
-        int att_id PK
-        nvarchar att_nazwa
-        int att_atd_id FK
-        int att_atr_id FK
-    }
-    sprawa_typ {
-        int spt_id PK
-        nvarchar spt_nazwa
-    }
-    akcja_typ {
-        int akt_id PK
-        nvarchar akt_nazwa
-        varchar akt_uuid
-    }
-    rezultat_typ {
-        int ret_id PK
-        varchar ret_kod
-        nvarchar ret_nazwa
-    }
-    sprawa_etap {
-        int spe_id PK
-        nvarchar spe_nazwa
-        int spe_spt_id FK
-        int spe_akt_id FK
-    }
-    wlasciwosc_typ_walidacji {
-        int wtw_id PK
-        varchar wtw_nazwa
-    }
-    wlasciwosc_dziedzina {
-        int wdzi_id PK
-        varchar wdzi_nazwa
-    }
-    wlasciwosc_podtyp {
-        int wpt_id PK
-        varchar wpt_nazwa
-    }
-    wlasciwosc_typ {
-        int wt_id PK
-        varchar wt_nazwa
-        int wt_wtw_id FK
-    }
-    wlasciwosc_typ_podtyp_dziedzina {
-        int wtpd_id PK
-        int wtpd_wt_id FK
-        int wtpd_dzi_id FK
-        int wtpd_wpt_id FK
-    }
-
-    kurs_walut }o--|| waluta : "kw_wa_id"
-    umowa_kontrahent }o--|| kontrahent : "uko_ko_id"
-    atrybut_typ }o--|| atrybut_dziedzina : "att_atd_id"
-    atrybut_typ }o--|| atrybut_rodzaj : "att_atr_id"
-    sprawa_etap }o--|| sprawa_typ : "spe_spt_id"
-    sprawa_etap }o--o| akcja_typ : "spe_akt_id"
-    wlasciwosc_typ }o--|| wlasciwosc_typ_walidacji : "wt_wtw_id"
-    wlasciwosc_typ_podtyp_dziedzina }o--|| wlasciwosc_typ : "wtpd_wt_id"
-    wlasciwosc_typ_podtyp_dziedzina }o--|| wlasciwosc_dziedzina : "wtpd_dzi_id"
-    wlasciwosc_typ_podtyp_dziedzina }o--|| wlasciwosc_podtyp : "wtpd_wpt_id"
-```
-
 ## Tabele
 
 <details markdown="1">
@@ -611,7 +512,7 @@ Pominięte przy INSERT: `aud_data`/`aud_login` (systemowe). Kolumna biznesowa: `
   <span>Multi-row: tak</span>
 </div>
 
-Słownik typów spraw (np. windykacyjna, handlowa). MERGE po `spt_id` (tryb ID); kopia referencyjna. Referencjonowany przez `sprawa_etap.spe_spt_id` w tej samej iteracji (wave 2). Backfill NONE.
+Słownik typów spraw (np. windykacyjna, handlowa). MERGE po `spt_id` (tryb ID); kopia referencyjna. Referencjonowany przez `sprawa_etap.spe_spt_id` w tej samej iteracji (iteracja 2). Backfill NONE.
 
 <ul class="param-list">
   <li>
@@ -691,7 +592,7 @@ Staging `tt_id` → prod `tnt_id` (IDENTITY — nie wstawiamy explicit); staging
   <span>Multi-row: tak</span>
 </div>
 
-Słownik dziedzin atrybutów — określa typ encji, do której przypisywany jest atrybut. MERGE po `atd_id` (tryb ID); kopia referencyjna. Referencjonowany przez `atrybut_typ.att_atd_id` w wave 2.
+Słownik dziedzin atrybutów — określa typ encji, do której przypisywany jest atrybut. MERGE po `atd_id` (tryb ID); kopia referencyjna. Referencjonowany przez `atrybut_typ.att_atd_id` w iteracji 2.
 
 <ul class="param-list">
   <li>
@@ -731,7 +632,7 @@ Pominięte przy INSERT: `aud_data`/`aud_login` (systemowe). Kolumna biznesowa: `
   <span>Multi-row: tak</span>
 </div>
 
-Słownik rodzajów atrybutów — określa typ danych wartości atrybutu. MERGE po `atr_id` (tryb ID); kopia referencyjna. Referencjonowany przez `atrybut_typ.att_atr_id` w wave 2.
+Słownik rodzajów atrybutów — określa typ danych wartości atrybutu. MERGE po `atr_id` (tryb ID); kopia referencyjna. Referencjonowany przez `atrybut_typ.att_atr_id` w iteracji 2.
 
 <ul class="param-list">
   <li>
@@ -824,12 +725,12 @@ Słownik typów akcji możliwych do wykonania w ramach sprawy. Prod ma IDENTITY 
 ### dbo.akcja_typ
 Prod PK `akt_id` jest IDENTITY — staging `akt_id` nie jest wstawiany jako PK produkcji. MERGE po `akt_uuid`; prod `akt_id` przechwytywany przez OUTPUT i zapisywany do `staging.akcja_typ.akt_ext_id`. Wszystkie kolumny biznesowe (`akt_kod_akcji`, `akt_nazwa`, `akt_rodzaj`, `akt_ikona`, `akt_koszt`, `akt_wielokrotna`, `akt_akk_id`) kopiowane ze stagingu. Pominięte: prod `akt_id` (IDENTITY), `aud_data`/`aud_login` (systemowe).
 
-!!! note "Uwaga — fixup w iter5"
+!!! note "Uwaga — fixup w iteracji 5"
     Ta tabela jest ponownie zasilana w [iteracji 5](akcje.md) — MERGE
     wymusza wartości domyślne dla kolumn <code>akt_akk_id</code>,
     <code>akt_koszt</code>, <code>akt_wielokrotna</code>.
-    Iter1 ładuje bazowe dane ze stagingu,
-    iter5 nadpisuje domyślnymi wartościami.
+    Iteracja 1 ładuje bazowe dane ze stagingu,
+    iteracja 5 nadpisuje domyślnymi wartościami.
 
 </details>
 
@@ -876,11 +777,11 @@ Słownik typów rezultatów akcji — możliwe wyniki wykonania akcji. Prod ma I
 ### dbo.rezultat_typ
 Prod PK `ret_id` jest IDENTITY — staging `ret_id` zapisywany do `staging.rezultat_typ.ret_ext_id` przez OUTPUT. Kolumna prod `ret_systemowy` (nieistniejąca w stagingu) hardkodowana jako `0`. Kolumny `ret_kod`, `ret_nazwa`, `ret_konczy` kopiowane ze stagingu. Pominięte: prod `ret_id` (IDENTITY), `aud_data`/`aud_login` (systemowe).
 
-!!! note "Uwaga — fixup w iter5"
+!!! note "Uwaga — fixup w iteracji 5"
     Ta tabela jest ponownie zasilana w [iteracji 5](akcje.md) — MERGE
     wymusza wartość domyślną dla kolumny <code>ret_systemowy=0</code>.
-    Iter1 ładuje bazowe dane ze stagingu,
-    iter5 nadpisuje domyślnymi wartościami.
+    Iteracja 1 ładuje bazowe dane ze stagingu,
+    iteracja 5 nadpisuje domyślnymi wartościami.
 
 </details>
 
@@ -894,7 +795,7 @@ Prod PK `ret_id` jest IDENTITY — staging `ret_id` zapisywany do `staging.rezul
   <span>Multi-row: tak</span>
 </div>
 
-Słownik typów atrybutów definiujący dostępne pola dodatkowe dla encji. Wave 2 — ładowany po zasileniu `atrybut_dziedzina` i `atrybut_rodzaj`. MERGE po `att_uuid`. Dwa FK rozwiązywane przez JOIN na `ext_id` poprzednich tabel.
+Słownik typów atrybutów definiujący dostępne pola dodatkowe dla encji. Iteracja 2 — ładowany po zasileniu `atrybut_dziedzina` i `atrybut_rodzaj`. MERGE po `att_uuid`. Dwa FK rozwiązywane przez JOIN na `ext_id` poprzednich tabel.
 
 <ul class="param-list">
   <li>
@@ -944,7 +845,7 @@ FK `att_atd_id` rozwiązywany przez JOIN: `staging.atrybut_dziedzina.atd_id` →
   <span>Multi-row: tak</span>
 </div>
 
-Słownik etapów sprawy (np. sądowy, egzekucyjny, polubowny). Staging `sprawa_etap` mapuje do prod `sprawa_etap_typ` — zmiana nazwy tabeli. Wave 2 — ładowany po `sprawa_typ` i `akcja_typ`. MERGE po `spe_uuid` (staging) vs `spet_uuid` (prod).
+Słownik etapów sprawy (np. sądowy, egzekucyjny, polubowny). Staging `sprawa_etap` mapuje do prod `sprawa_etap_typ` — zmiana nazwy tabeli. Iteracja 2 — ładowany po `sprawa_typ` i `akcja_typ`. MERGE po `spe_uuid` (staging) vs `spet_uuid` (prod).
 
 <ul class="param-list">
   <li>
@@ -994,7 +895,7 @@ Zmiana nazwy tabeli: staging `sprawa_etap` → prod `sprawa_etap_typ`. Zmiana na
   <span>Multi-row: tak</span>
 </div>
 
-Słownik źródeł pochodzenia informacji o dłużnikach i wierzytelnościach. MERGE po `zpi_uuid`; prod `zpi_id` nie jest IDENTITY — wstawiany explicit ze stagingu. Wave 3.
+Słownik źródeł pochodzenia informacji o dłużnikach i wierzytelnościach. MERGE po `zpi_uuid`; prod `zpi_id` nie jest IDENTITY — wstawiany explicit ze stagingu. Iteracja 3.
 
 <ul class="param-list">
   <li>
@@ -1039,7 +940,7 @@ MERGE po `zpi_uuid`; `zpi_id` wstawiany explicit (prod `zpi_id` nie jest IDENTIT
   <span>Multi-row: tak</span>
 </div>
 
-Słownik typów walidacji właściwości (reguły walidacji wartości pola). MERGE po `wtw_uuid`; prod `wtw_id` jest IDENTITY. Wave 3. Referencjonowany przez `wlasciwosc_typ.wt_wtw_id` w wave 4.
+Słownik typów walidacji właściwości (reguły walidacji wartości pola). MERGE po `wtw_uuid`; prod `wtw_id` jest IDENTITY. Iteracja 3. Referencjonowany przez `wlasciwosc_typ.wt_wtw_id` w iteracji 4.
 
 <ul class="param-list">
   <li>
@@ -1079,7 +980,7 @@ MERGE po `wtw_uuid`; prod `wtw_id` IDENTITY — staging `wtw_id` → `staging.wl
   <span>Multi-row: tak</span>
 </div>
 
-Słownik dziedzin właściwości — określa typ encji, do której przypisywana jest właściwość. MERGE po `wdzi_uuid`; prod `wdzi_id` jest IDENTITY. Wave 3. Referencjonowany przez `wlasciwosc_typ_podtyp_dziedzina` w wave 4.
+Słownik dziedzin właściwości — określa typ encji, do której przypisywana jest właściwość. MERGE po `wdzi_uuid`; prod `wdzi_id` jest IDENTITY. Iteracja 3. Referencjonowany przez `wlasciwosc_typ_podtyp_dziedzina` w iteracji 4.
 
 <ul class="param-list">
   <li>
@@ -1119,7 +1020,7 @@ MERGE po `wdzi_uuid`; prod `wdzi_id` IDENTITY — staging `wdzi_id` → `staging
   <span>Multi-row: tak</span>
 </div>
 
-Słownik podtypów właściwości — klasyfikacja uszczegółowiająca typ właściwości. MERGE po `wpt_uuid`; prod `wpt_id` jest IDENTITY. Wave 3. Referencjonowany przez `wlasciwosc_typ_podtyp_dziedzina` w wave 4.
+Słownik podtypów właściwości — klasyfikacja uszczegółowiająca typ właściwości. MERGE po `wpt_uuid`; prod `wpt_id` jest IDENTITY. Iteracja 3. Referencjonowany przez `wlasciwosc_typ_podtyp_dziedzina` w iteracji 4.
 
 <ul class="param-list">
   <li>
@@ -1159,7 +1060,7 @@ MERGE po `wpt_uuid`; prod `wpt_id` IDENTITY — staging `wpt_id` → `staging.wl
   <span>Multi-row: tak</span>
 </div>
 
-Słownik typów właściwości — definiuje dostępne pola dodatkowe z przypisaną regułą walidacji. MERGE po `wt_uuid`. Wave 4 — zależny od `wlasciwosc_typ_walidacji`. FK `wt_wtw_id` rozwiązywany przez `ext_id`.
+Słownik typów właściwości — definiuje dostępne pola dodatkowe z przypisaną regułą walidacji. MERGE po `wt_uuid`. Iteracja 4 — zależny od `wlasciwosc_typ_walidacji`. FK `wt_wtw_id` rozwiązywany przez `ext_id`.
 
 <ul class="param-list">
   <li>
@@ -1204,7 +1105,7 @@ FK `wt_wtw_id` rozwiązywany przez JOIN: `staging.wlasciwosc_typ_walidacji.wtw_i
   <span>Multi-row: tak</span>
 </div>
 
-Tabela łącząca typ właściwości z jej dziedziną i podtypem — konfiguruje dostępne kombinacje w systemie. MERGE po `wtpd_uuid`. Wave 4 — zależna od `wlasciwosc_typ`, `wlasciwosc_dziedzina` i `wlasciwosc_podtyp`.
+Tabela łącząca typ właściwości z jej dziedziną i podtypem — konfiguruje dostępne kombinacje w systemie. MERGE po `wtpd_uuid`. Iteracja 4 — zależna od `wlasciwosc_typ`, `wlasciwosc_dziedzina` i `wlasciwosc_podtyp`.
 
 <ul class="param-list">
   <li>

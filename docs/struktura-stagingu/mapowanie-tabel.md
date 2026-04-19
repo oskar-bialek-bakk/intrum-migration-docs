@@ -52,8 +52,8 @@ na stronie iteracji, do której należy tabela.
     Niektóre tabele produkcyjne są zasilane z kilku tabel stagingowych w różnych
     iteracjach. Najważniejszy przypadek to `dm_data_web.ksiegowanie`, które
     otrzymuje wiersze z trzech źródeł: bezpośredni MERGE `dbo.ksiegowanie`
-    (iter 8), fan-out z `dbo.operacja` (iter 8) oraz fan-out z
-    `dbo.harmonogram` (iter 9). Podobnie `dm_data_web.wlasciwosc` jest
+    (iteracja 8), fan-out z `dbo.operacja` (iteracja 8) oraz fan-out z
+    `dbo.harmonogram` (iteracja 9). Podobnie `dm_data_web.wlasciwosc` jest
     zasilana z czterech par iteracji (dłużnik / adres / mail / telefon)
     przez wspólną procedurę `usp_migrate_wlasciwosc_domain`.
 
@@ -114,4 +114,4 @@ i notatki mapowania.
 | [8](finanse.md) | `dbo.operacja` | `dm_data_web.ksiegowanie`<br>`dm_data_web.ksiegowanie_dekret` | <span class="klasa-badge klasa-c">C</span> |
 | [9](harmonogram.md) | `dbo.harmonogram` | `dm_data_web.dokument`<br>`dm_data_web.ksiegowanie`<br>`dm_data_web.ksiegowanie_dekret` | <span class="klasa-badge klasa-c">C</span> |
 
-Razem: **49 mapowań** (2 × A, 14 × B, 33 × C) z 9 iteracji. Niektóre tabele stagingowe pojawiają się w kilku wierszach — np. `atrybut` (4 różne `att_atd_id`), `akcja_typ` / `rezultat_typ` (iter 1 + iter 5 re-MERGE).
+Razem: **49 mapowań** (2 × A, 14 × B, 33 × C) z 9 iteracji. Niektóre tabele stagingowe pojawiają się w kilku wierszach — np. `atrybut` (4 różne `att_atd_id`), `akcja_typ` / `rezultat_typ` (iteracja 1 + iteracja 5 re-MERGE).

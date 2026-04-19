@@ -1,4 +1,4 @@
-# Iteracja 3 — Dane kontaktowe (kumulatywnie: iter 2 + adres / mail / telefon)
+# Iteracja 3 — Dane kontaktowe (kumulatywnie: iteracja 2 + adres / mail / telefon)
 
 ```mermaid
 erDiagram
