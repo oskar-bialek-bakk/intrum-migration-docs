@@ -153,5 +153,5 @@ Iteracja 5  → akcja, rezultat
 Iteracja 6  → wierzytelnosc, atrybut (att_atd_id=2)
 Iteracja 7  → wierzytelnosc_rola, dokument, atrybut (att_atd_id=1)
 Iteracja 8  → ksiegowanie, operacja, ksiegowanie_dekret       (dane finansowe)
-Iteracja 9  → harmonogram, zabezpieczenie                     (ostatnie)
+Iteracja 9  → harmonogram                                     (ostatnia)
 ```

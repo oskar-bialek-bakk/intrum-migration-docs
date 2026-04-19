@@ -82,7 +82,7 @@ nav:
     - Wierzytelności: struktura-stagingu/wierzytelnosci.md
     - Role wierzytelności i dokumenty: struktura-stagingu/role-wierzytelnosci-i-dokumenty.md
     - Dane finansowe: struktura-stagingu/finanse.md
-    - Harmonogram i zabezpieczenia: struktura-stagingu/harmonogram.md
+    - Harmonogram: struktura-stagingu/harmonogram.md
     - Mapowanie staging → prod: struktura-stagingu/mapowanie-tabel.md
   - Przebieg migracji:
     - przebieg-migracji/index.md
