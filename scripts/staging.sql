@@ -399,8 +399,8 @@ CREATE TABLE dbo.wlasciwosc_typ_podtyp_dziedzina (
 CREATE TABLE dbo.dluznik (
     dl_id           INT           NOT NULL,
     dl_plec         VARCHAR(1)    NULL,
-    dl_imie         VARCHAR(200)  NOT NULL,
-    dl_nazwisko     VARCHAR(200)  NOT NULL,
+    dl_imie         VARCHAR(200)  NULL,
+    dl_nazwisko     VARCHAR(200)  NULL,
     dl_dowod        VARCHAR(50)   NULL,
     dl_paszport     VARCHAR(50)   NULL,
     dl_dluznik      VARCHAR(50)   NULL,
