@@ -43,10 +43,10 @@ Dokumentacja techniczna procesu migracji danych stagingowych do bazy produkcyjne
   <p class="card-desc">Odbiór danych w środowisku produkcyjnym po stronie zespołu Intrum.</p>
 </a>
 
-<a class="feature-card" href="slowniki/">
+<a class="feature-card" href="struktura-stagingu/slowniki/">
   <span class="card-icon">❋</span>
-  <span class="card-title">Słowniki</span>
-  <p class="card-desc">Reguły walidacji i konwencje kolumn audytowych stosowane w systemie.</p>
+  <span class="card-title">Tabele słownikowe</span>
+  <p class="card-desc">Słowniki i tabele referencyjne stagingu (iteracja 1) — opis kolumn i mapowanie na prod.</p>
 </a>
 
 </div>

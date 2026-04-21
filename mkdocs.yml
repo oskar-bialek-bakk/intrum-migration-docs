@@ -74,16 +74,16 @@ nav:
     - Korekta danych po walidacji: przygotowanie-danych/korekta-danych-po-walidacji.md
   - Struktura stagingu:
     - struktura-stagingu/index.md
-    - Tabele słownikowe: struktura-stagingu/slowniki.md
-    - Dłużnicy i atrybuty dłużników: struktura-stagingu/dluznicy.md
-    - Dane kontaktowe (adres, mail, telefon): struktura-stagingu/kontakty.md
-    - Sprawy i role: struktura-stagingu/sprawy.md
-    - Akcje i rezultaty: struktura-stagingu/akcje.md
-    - Wierzytelności: struktura-stagingu/wierzytelnosci.md
-    - Role wierzytelności i dokumenty: struktura-stagingu/role-wierzytelnosci-i-dokumenty.md
-    - Dane finansowe: struktura-stagingu/finanse.md
-    - Harmonogram: struktura-stagingu/harmonogram.md
-    - Mapowanie staging → prod: struktura-stagingu/mapowanie-tabel.md
+    - Iteracja 1 — słowniki: struktura-stagingu/slowniki.md
+    - Iteracja 2 — dłużnicy: struktura-stagingu/dluznicy.md
+    - Iteracja 3 — kontakty: struktura-stagingu/kontakty.md
+    - Iteracja 4 — sprawy: struktura-stagingu/sprawy.md
+    - Iteracja 5 — akcje: struktura-stagingu/akcje.md
+    - Iteracja 6 — wierzytelności: struktura-stagingu/wierzytelnosci.md
+    - Iteracja 7 — Role wierzytelności i dokumenty: struktura-stagingu/role-wierzytelnosci-i-dokumenty.md
+    - Iteracja 8 — finanse: struktura-stagingu/finanse.md
+    - Iteracja 9 — harmonogram: struktura-stagingu/harmonogram.md
+    - Tabele generyczne: struktura-stagingu/tabele-generyczne.md
   - Przebieg migracji:
     - przebieg-migracji/index.md
     - Uruchomienie: przebieg-migracji/uruchomienie.md
