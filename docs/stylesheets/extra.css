@@ -1290,9 +1290,15 @@
 
 .kategoria-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 0.75rem;
   margin: 0.75rem 0 1rem 0;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 600px) {
+  .kategoria-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 900px) {
+  .kategoria-grid { grid-template-columns: repeat(3, 1fr); }
 }
 .kategoria-card {
   display: block;
@@ -1321,6 +1327,7 @@ a.kategoria-card:hover {
   font-weight: 700;
   font-size: 0.95em;
   color: var(--md-default-fg-color);
+  white-space: nowrap;
 }
 .kategoria-card .kategoria-meta {
   font-size: 0.72em;
