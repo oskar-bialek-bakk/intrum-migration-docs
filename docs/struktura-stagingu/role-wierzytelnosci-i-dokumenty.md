@@ -11,7 +11,7 @@ Iteracja 7 obejmuje role wierzytelności (strony umów — dłużnik główny, p
 <div class="iter-meta">
   <span>Iteracja: 7</span>
   <span>Zależności: Iteracja 6</span>
-  <span>Walidacje: <a href="../przygotowanie-danych/walidacje.md#biz_12">BIZ_12</a>, <a href="../przygotowanie-danych/walidacje.md#biz_16">BIZ_16</a></span>
+  <span>Walidacje: <a href="../przygotowanie-danych/walidacje.md#str_11">STR_11</a>, <a href="../przygotowanie-danych/walidacje.md#biz_16">BIZ_16</a></span>
   <span>Zakres: role wierzytelności i dokumenty</span>
 </div>
 
@@ -172,4 +172,5 @@ Nagłówek dokumentu finansowego powiązanego z wierzytelnością — faktury, n
 - Walidacje referencyjne (atrybut polimorficzny): [REF_15 (atrybut_typ istnieje)](../przygotowanie-danych/walidacje.md), [REF_16 (att_atd_id=1 → dokument)](../przygotowanie-danych/walidacje.md)
 - Walidacje formatu: [FMT_08 (data wymagalności ≥ data wystawienia)](../przygotowanie-danych/walidacje.md)
 - Walidacje techniczne: [TECH_05 (do_wi_id wymagane)](../przygotowanie-danych/walidacje.md), [TECH_07 (at_ob_id wymagane)](../przygotowanie-danych/walidacje.md)
-- Walidacje biznesowe: [BIZ_12 (nadmierna liczba dokumentów per wierzytelność), BIZ_16 (dokument bez daty wymagalności — BLOKUJĄCE)](../przygotowanie-danych/walidacje.md)
+- Walidacje integralności strukturalnej: [STR_11 (nadmierna liczba dokumentów per wierzytelność)](../przygotowanie-danych/walidacje.md#str_11)
+- Walidacje biznesowe: [BIZ_16 (dokument bez daty wymagalności — BLOKUJĄCE)](../przygotowanie-danych/walidacje.md#biz_16)

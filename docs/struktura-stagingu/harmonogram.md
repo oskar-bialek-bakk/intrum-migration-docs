@@ -11,7 +11,7 @@ Iteracja 9 obejmuje harmonogramy spłat — raty powiązane z wierzytelnościami
 <div class="iter-meta">
   <span>Iteracja: 9</span>
   <span>Zależności: Iteracja 6</span>
-  <span>Walidacje: <a href="../przygotowanie-danych/walidacje.md#biz_15">BIZ_15</a></span>
+  <span>Walidacje: <a href="../przygotowanie-danych/walidacje.md#str_07">STR_07</a></span>
   <span>Zakres: harmonogramy spłat i przypomnienia</span>
 </div>
 
@@ -141,5 +141,5 @@ Rata harmonogramu spłat powiązana z wierzytelnością — data płatności, nu
 - Poprzednia iteracja: [Dane finansowe](finanse.md)
 - Źródłowe wierzytelności: [Wierzytelności](wierzytelnosci.md)
 - Słowniki bazowe iteracja 1: [dokument_typ](slowniki.md#dbodokument_typ), [ksiegowanie_typ](slowniki.md#dboksiegowanie_typ), [ksiegowanie_konto](slowniki.md#dboksiegowanie_konto)
-- Walidacje biznesowe: [BIZ_15 (harmonogram bez wierzytelności, OSTRZEŻENIE)](../przygotowanie-danych/walidacje.md#biz_15)
+- Walidacje integralności strukturalnej: [STR_07 (harmonogram bez wierzytelności, OSTRZEŻENIE)](../przygotowanie-danych/walidacje.md#str_07)
 - Koniec migracji etap 1 — [Kolejność ładowania](../przygotowanie-danych/kolejnosc-zasilania-tabel.md)

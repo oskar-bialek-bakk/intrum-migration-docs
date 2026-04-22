@@ -11,7 +11,7 @@ Iteracja 5 obejmuje akcje prowadzone w ramach spraw oraz ich rezultaty — konta
 <div class="iter-meta">
   <span>Iteracja: 5</span>
   <span>Zależności: Iteracja 4</span>
-  <span>Walidacje: <a href="../przygotowanie-danych/walidacje.md#biz_08">BIZ_08</a></span>
+  <span>Walidacje: <a href="../przygotowanie-danych/walidacje.md#str_06">STR_06</a></span>
   <span>Zakres: akcje prowadzone w sprawach oraz ich rezultaty</span>
 </div>
 
@@ -113,11 +113,11 @@ Akcje wykonane w ramach spraw — operacyjna jednostka pracy na sprawie (telefon
 <div class="dict-meta">
   <span>Tabela prod: <code>dm_data_web.rezultat</code></span>
   <span>Kształt mapowania: <span class="ksztalt-badge ksztalt-przeksztalcenie">przekształcenie</span></span>
-  <span>Obowiązkowa: tak (BIZ_08: każda akcja musi mieć ≥1 rezultat)</span>
+  <span>Obowiązkowa: tak (STR_06: każda akcja musi mieć ≥1 rezultat)</span>
   <span>Multi-row: tak (1 akcja → N rezultatów, ale typowo 1:1)</span>
 </div>
 
-Rezultaty akcji — wynik wykonania akcji (kontakt osiągnięty, brak odbioru, odmowa płatności, zobowiązanie do zapłaty itp.). Tabela materializuje wymóg BIZ_08: akcja bez rezultatu jest nieprawidłowa. Każdy rezultat wskazuje akcję, której dotyczy, oraz typ rezultatu ze słownika `rezultat_typ`.
+Rezultaty akcji — wynik wykonania akcji (kontakt osiągnięty, brak odbioru, odmowa płatności, zobowiązanie do zapłaty itp.). Tabela materializuje wymóg STR_06: akcja bez rezultatu jest nieprawidłowa. Każdy rezultat wskazuje akcję, której dotyczy, oraz typ rezultatu ze słownika `rezultat_typ`.
 
 <ul class="param-list">
   <li>
@@ -156,4 +156,4 @@ Rezultaty akcji — wynik wykonania akcji (kontakt osiągnięty, brak odbioru, o
 - Słowniki bazowe iteracja 1: [akcja_typ](slowniki.md#dboakcja_typ), [rezultat_typ](slowniki.md#dborezultat_typ)
 - Walidacje referencyjne (akcja): [REF_14 (sprawa), REF_32 (typ akcji)](../przygotowanie-danych/walidacje.md)
 - Walidacje referencyjne (rezultat): [REF_33 (akcja), REF_34 (typ rezultatu)](../przygotowanie-danych/walidacje.md)
-- Walidacje biznesowe: [BIZ_08 (akcja musi mieć ≥1 rezultat, BLOKUJĄCE)](../przygotowanie-danych/walidacje.md#biz_08)
+- Walidacje integralności strukturalnej: [STR_06 (akcja musi mieć ≥1 rezultat, BLOKUJĄCE)](../przygotowanie-danych/walidacje.md#str_06)

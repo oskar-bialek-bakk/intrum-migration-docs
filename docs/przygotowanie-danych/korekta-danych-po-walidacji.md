@@ -23,31 +23,31 @@ Każdy rekord raportu to jeden naruszający identyfikator — kody reguł powtar
   </thead>
   <tbody>
     <tr class="row-alert">
-      <td><code>BIZ_08</code></td>
+      <td><code>STR_06</code></td>
       <td><span class="status-pill status-fail">BLOCKING</span></td>
       <td class="num">201</td>
       <td>Akcja nie ma żadnego rezultatu — wymagany co najmniej jeden</td>
     </tr>
     <tr class="row-alert">
-      <td><code>BIZ_08</code></td>
+      <td><code>STR_06</code></td>
       <td><span class="status-pill status-fail">BLOCKING</span></td>
       <td class="num">202</td>
       <td>Akcja nie ma żadnego rezultatu — wymagany co najmniej jeden</td>
     </tr>
     <tr class="row-alert">
-      <td><code>BIZ_08</code></td>
+      <td><code>STR_06</code></td>
       <td><span class="status-pill status-fail">BLOCKING</span></td>
       <td class="num">203</td>
       <td>Akcja nie ma żadnego rezultatu — wymagany co najmniej jeden</td>
     </tr>
     <tr class="row-alert">
-      <td><code>BIZ_08</code></td>
+      <td><code>STR_06</code></td>
       <td><span class="status-pill status-fail">BLOCKING</span></td>
       <td class="num">204</td>
       <td>Akcja nie ma żadnego rezultatu — wymagany co najmniej jeden</td>
     </tr>
     <tr class="row-alert">
-      <td><code>BIZ_08</code></td>
+      <td><code>STR_06</code></td>
       <td><span class="status-pill status-fail">BLOCKING</span></td>
       <td class="num">205</td>
       <td>Akcja nie ma żadnego rezultatu — wymagany co najmniej jeden</td>

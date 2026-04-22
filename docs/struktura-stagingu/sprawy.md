@@ -11,7 +11,7 @@ Iteracja 4 obejmuje sprawy — kontekst zadłużenia klienta, wraz z rolami spra
 <div class="iter-meta">
   <span>Iteracja: 4</span>
   <span>Zależności: Iteracja 2</span>
-  <span>Walidacje: <a href="../przygotowanie-danych/walidacje.md#biz_01">BIZ_01</a>, <a href="../przygotowanie-danych/walidacje.md#biz_02a">BIZ_02a</a>, <a href="../przygotowanie-danych/walidacje.md#biz_02b">BIZ_02b</a>, <a href="../przygotowanie-danych/walidacje.md#biz_07">BIZ_07</a>, <a href="../przygotowanie-danych/walidacje.md#biz_11">BIZ_11</a></span>
+  <span>Walidacje: <a href="../przygotowanie-danych/walidacje.md#str_01">STR_01</a>, <a href="../przygotowanie-danych/walidacje.md#str_02">STR_02</a>, <a href="../przygotowanie-danych/walidacje.md#str_03">STR_03</a>, <a href="../przygotowanie-danych/walidacje.md#biz_07">BIZ_07</a>, <a href="../przygotowanie-danych/walidacje.md#str_10">STR_10</a></span>
   <span>Zakres: sprawy, role spraw i atrybuty</span>
 </div>
 
@@ -146,11 +146,11 @@ Rekord sprawy — jednostka pracy systemu DEBT Manager, powiązana z dłużnikie
 <div class="dict-meta">
   <span>Tabela prod: <code>dm_data_web.sprawa_rola</code></span>
   <span>Kształt mapowania: przekształcenie</span>
-  <span>Obowiązkowa: tak (BIZ_01: każda sprawa musi mieć ≥1 dłużnika)</span>
+  <span>Obowiązkowa: tak (STR_01: każda sprawa musi mieć ≥1 dłużnika)</span>
   <span>Multi-row: tak (1 sprawa → N dłużników w różnych rolach)</span>
 </div>
 
-Tabela łącząca (junction) — każdy wiersz wiąże sprawę z dłużnikiem wraz z rolami w jakiej dłużnik (lub powiązana ze sprawą osoba) występuje w sprawie (np. dłużnik główny, poręczyciel, pełnomocnik). Jedna sprawa może mieć wielu dłużników w różnych rolach. Tabela jest materializacją wymogu BIZ_01 (sprawa bez dłużnika jest nieprawidłowa).
+Tabela łącząca (junction) — każdy wiersz wiąże sprawę z dłużnikiem wraz z rolami w jakiej dłużnik (lub powiązana ze sprawą osoba) występuje w sprawie (np. dłużnik główny, poręczyciel, pełnomocnik). Jedna sprawa może mieć wielu dłużników w różnych rolach. Tabela jest materializacją wymogu STR_01 (sprawa bez dłużnika jest nieprawidłowa).
 
 <ul class="param-list">
   <li>
@@ -189,4 +189,4 @@ Tabela łącząca (junction) — każdy wiersz wiąże sprawę z dłużnikiem wr
 - Walidacje referencyjne (sprawa): [REF_24 (typ sprawy), REF_31 (etap sprawy), REF_25 (etap-typ)](../przygotowanie-danych/walidacje.md)
 - Walidacje referencyjne (sprawa_rola): [REF_01 (dłużnik), REF_02 (sprawa), REF_03 (typ roli)](../przygotowanie-danych/walidacje.md)
 - Walidacje techniczne: [TECH_03 (sp_numer_rachunku wymagane)](../przygotowanie-danych/walidacje.md)
-- Walidacje biznesowe: [BIZ_01 (sprawa musi mieć ≥1 dłużnika)](../przygotowanie-danych/walidacje.md)
+- Walidacje integralności strukturalnej: [STR_01 (sprawa musi mieć ≥1 dłużnika)](../przygotowanie-danych/walidacje.md#str_01)

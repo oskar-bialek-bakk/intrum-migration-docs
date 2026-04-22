@@ -59,6 +59,14 @@ Wszystkie błędy **blokujące** muszą zostać poprawione przed migracją.
   <p class="kategoria-desc">Głównie ostrzeżenia. Sprawdzają zgodność zapisu z oczekiwanym formatem (PESEL, NIP, e-mail, telefon, daty).</p>
 </a>
 
+<a class="kategoria-card kategoria-str" href="#kat-str">
+  <div class="kategoria-header">
+    <span class="kategoria-code">STR</span>
+    <span class="kategoria-meta">Integralność strukturalna</span>
+  </div>
+  <p class="kategoria-desc">Niezmienniki relacyjne nieopisywane przez FK ani NOT NULL — wymagane dzieci (≥1), bilans podwójnego zapisu, rekordy osierocone, anomalie kardynalności względem progów.</p>
+</a>
+
 <a class="kategoria-card kategoria-biz" href="#kat-biz">
   <div class="kategoria-header">
     <span class="kategoria-code">BIZ</span>
@@ -533,31 +541,103 @@ Zakres i progi poszczególnych sprawdzeń mogą zostać dostosowane do specyficz
 
 <div class="api-section" markdown>
 
-### BIZ — Reguły biznesowe {#kat-biz}
+### STR — Integralność strukturalna {#kat-str}
 
-<div class="walidacja-card walidacja-biz" id="biz_01">
+<div class="walidacja-card walidacja-str" id="str_01">
 <div class="walidacja-header">
-  <span class="walidacja-code">BIZ_01</span>
+  <span class="walidacja-code">STR_01</span>
   <span class="walidacja-sev sev-block">Blokujące</span>
 </div>
 <p class="walidacja-desc">Każda sprawa musi mieć co najmniej jeden rekord w <code>sprawa_rola</code> — sprawa bez przypisanego dłużnika jest nieprawidłowa.</p>
 </div>
 
-<div class="walidacja-card walidacja-biz" id="biz_02a">
+<div class="walidacja-card walidacja-str" id="str_02">
 <div class="walidacja-header">
-  <span class="walidacja-code">BIZ_02a</span>
+  <span class="walidacja-code">STR_02</span>
   <span class="walidacja-sev sev-info">Informacja</span>
 </div>
 <p class="walidacja-desc">Sprawa bez powiązanej wierzytelności — dozwolone, ale taka sprawa nie może mieć powiązanych dokumentów ani księgowań.</p>
 </div>
 
-<div class="walidacja-card walidacja-biz" id="biz_02b">
+<div class="walidacja-card walidacja-str" id="str_03">
 <div class="walidacja-header">
-  <span class="walidacja-code">BIZ_02b</span>
+  <span class="walidacja-code">STR_03</span>
   <span class="walidacja-sev sev-block">Blokujące</span>
 </div>
 <p class="walidacja-desc">Sprawa bez wierzytelności ma powiązane dokumenty lub dekrety księgowania — niedozwolone, dane muszą zostać poprawione.</p>
 </div>
+
+<div class="walidacja-card walidacja-str" id="str_04">
+<div class="walidacja-header">
+  <span class="walidacja-code">STR_04</span>
+  <span class="walidacja-sev sev-block">Blokujące</span>
+</div>
+<p class="walidacja-desc">Księgowanie nie ma żadnego dekretu — zapis księgowy bez linii szczegółowych jest nieprawidłowy.</p>
+</div>
+
+<div class="walidacja-card walidacja-str" id="str_05">
+<div class="walidacja-header">
+  <span class="walidacja-code">STR_05</span>
+  <span class="walidacja-sev sev-block">Blokujące</span>
+</div>
+<p class="walidacja-desc">Suma kwot dekretów na jednym księgowaniu nie wynosi zero — naruszenie zasady podwójnego zapisu.</p>
+</div>
+
+<div class="walidacja-card walidacja-str" id="str_06">
+<div class="walidacja-header">
+  <span class="walidacja-code">STR_06</span>
+  <span class="walidacja-sev sev-block">Blokujące</span>
+</div>
+<p class="walidacja-desc">Akcja nie ma żadnego rezultatu — każda akcja musi mieć co najmniej jeden rezultat.</p>
+</div>
+
+<div class="walidacja-card walidacja-str" id="str_07">
+<div class="walidacja-header">
+  <span class="walidacja-code">STR_07</span>
+  <span class="walidacja-sev sev-warn">Ostrzeżenie</span>
+</div>
+<p class="walidacja-desc">Harmonogram spłat powiązany z nieistniejącą wierzytelnością — rekord osierocony.</p>
+</div>
+
+<div class="walidacja-card walidacja-str" id="str_08">
+<div class="walidacja-header">
+  <span class="walidacja-code">STR_08</span>
+  <span class="walidacja-sev sev-warn">Ostrzeżenie</span>
+</div>
+<p class="walidacja-desc">Dłużnik ma nadmierną liczbę numerów telefonu — próg konfigurowalny w <code>dm_staging.configuration.threshold_config</code> (klucz: <code>max_phones_per_dluznik</code>).</p>
+</div>
+
+<div class="walidacja-card walidacja-str" id="str_09">
+<div class="walidacja-header">
+  <span class="walidacja-code">STR_09</span>
+  <span class="walidacja-sev sev-warn">Ostrzeżenie</span>
+</div>
+<p class="walidacja-desc">Dłużnik ma nadmierną liczbę adresów — próg konfigurowalny w <code>dm_staging.configuration.threshold_config</code> (klucz: <code>max_adresy_per_dluznik</code>).</p>
+</div>
+
+<div class="walidacja-card walidacja-str" id="str_10">
+<div class="walidacja-header">
+  <span class="walidacja-code">STR_10</span>
+  <span class="walidacja-sev sev-warn">Ostrzeżenie</span>
+</div>
+<p class="walidacja-desc">Sprawa ma nadmierną liczbę akcji — próg konfigurowalny w <code>dm_staging.configuration.threshold_config</code> (klucz: <code>max_akcje_per_sprawa</code>).</p>
+</div>
+
+<div class="walidacja-card walidacja-str" id="str_11">
+<div class="walidacja-header">
+  <span class="walidacja-code">STR_11</span>
+  <span class="walidacja-sev sev-warn">Ostrzeżenie</span>
+</div>
+<p class="walidacja-desc">Wierzytelność ma nadmierną liczbę dokumentów — próg konfigurowalny w <code>dm_staging.configuration.threshold_config</code> (klucz: <code>max_dokumenty_per_wierzytelnosc</code>).</p>
+</div>
+
+</div>
+
+---
+
+<div class="api-section" markdown>
+
+### BIZ — Reguły biznesowe {#kat-biz}
 
 <div class="walidacja-card walidacja-biz" id="biz_03">
 <div class="walidacja-header">
@@ -575,68 +655,12 @@ Zakres i progi poszczególnych sprawdzeń mogą zostać dostosowane do specyficz
 <p class="walidacja-desc">Wierzytelność nie ma żadnego powiązanego dokumentu — sytuacja podejrzana, wymaga weryfikacji.</p>
 </div>
 
-<div class="walidacja-card walidacja-biz" id="biz_05">
-<div class="walidacja-header">
-  <span class="walidacja-code">BIZ_05</span>
-  <span class="walidacja-sev sev-block">Blokujące</span>
-</div>
-<p class="walidacja-desc">Księgowanie nie ma żadnego dekretu — zapis księgowy bez linii szczegółowych jest nieprawidłowy.</p>
-</div>
-
-<div class="walidacja-card walidacja-biz" id="biz_06">
-<div class="walidacja-header">
-  <span class="walidacja-code">BIZ_06</span>
-  <span class="walidacja-sev sev-block">Blokujące</span>
-</div>
-<p class="walidacja-desc">Suma kwot dekretów na jednym księgowaniu nie wynosi zero — naruszenie zasady podwójnego zapisu.</p>
-</div>
-
 <div class="walidacja-card walidacja-biz" id="biz_07">
 <div class="walidacja-header">
   <span class="walidacja-code">BIZ_07</span>
   <span class="walidacja-sev sev-warn">Ostrzeżenie</span>
 </div>
 <p class="walidacja-desc">Sprawa nie ma żadnej akcji — przypadek bez historii działań jest nietypowy.</p>
-</div>
-
-<div class="walidacja-card walidacja-biz" id="biz_08">
-<div class="walidacja-header">
-  <span class="walidacja-code">BIZ_08</span>
-  <span class="walidacja-sev sev-block">Blokujące</span>
-</div>
-<p class="walidacja-desc">Akcja nie ma żadnego rezultatu — każda akcja musi mieć co najmniej jeden rezultat.</p>
-</div>
-
-<div class="walidacja-card walidacja-biz" id="biz_09">
-<div class="walidacja-header">
-  <span class="walidacja-code">BIZ_09</span>
-  <span class="walidacja-sev sev-warn">Ostrzeżenie</span>
-</div>
-<p class="walidacja-desc">Dłużnik ma nadmierną liczbę numerów telefonu — próg konfigurowalny w <code>dm_staging.configuration.threshold_config</code> (klucz: <code>max_phones_per_dluznik</code>).</p>
-</div>
-
-<div class="walidacja-card walidacja-biz" id="biz_10">
-<div class="walidacja-header">
-  <span class="walidacja-code">BIZ_10</span>
-  <span class="walidacja-sev sev-warn">Ostrzeżenie</span>
-</div>
-<p class="walidacja-desc">Dłużnik ma nadmierną liczbę adresów — próg konfigurowalny w <code>dm_staging.configuration.threshold_config</code> (klucz: <code>max_adresy_per_dluznik</code>).</p>
-</div>
-
-<div class="walidacja-card walidacja-biz" id="biz_11">
-<div class="walidacja-header">
-  <span class="walidacja-code">BIZ_11</span>
-  <span class="walidacja-sev sev-warn">Ostrzeżenie</span>
-</div>
-<p class="walidacja-desc">Sprawa ma nadmierną liczbę akcji — próg konfigurowalny w <code>dm_staging.configuration.threshold_config</code> (klucz: <code>max_akcje_per_sprawa</code>).</p>
-</div>
-
-<div class="walidacja-card walidacja-biz" id="biz_12">
-<div class="walidacja-header">
-  <span class="walidacja-code">BIZ_12</span>
-  <span class="walidacja-sev sev-warn">Ostrzeżenie</span>
-</div>
-<p class="walidacja-desc">Wierzytelność ma nadmierną liczbę dokumentów — próg konfigurowalny w <code>dm_staging.configuration.threshold_config</code> (klucz: <code>max_dokumenty_per_wierzytelnosc</code>).</p>
 </div>
 
 <div class="walidacja-card walidacja-biz" id="biz_13">
@@ -653,14 +677,6 @@ Zakres i progi poszczególnych sprawdzeń mogą zostać dostosowane do specyficz
   <span class="walidacja-sev sev-info">Informacja</span>
 </div>
 <p class="walidacja-desc">Wierzytelność nie ma żadnych powiązanych księgowań — wierzytelność nigdy nie trafiła do księgowości.</p>
-</div>
-
-<div class="walidacja-card walidacja-biz" id="biz_15">
-<div class="walidacja-header">
-  <span class="walidacja-code">BIZ_15</span>
-  <span class="walidacja-sev sev-warn">Ostrzeżenie</span>
-</div>
-<p class="walidacja-desc">Harmonogram spłat powiązany z nieistniejącą wierzytelnością — rekord osierocony.</p>
 </div>
 
 <div class="walidacja-card walidacja-biz" id="biz_16">

@@ -1036,11 +1036,13 @@
 .walidacja-card.walidacja-tech { border-left-color: #60a5fa; } /* blue — techniczne */
 .walidacja-card.walidacja-fmt  { border-left-color: #4ade80; } /* green — formaty */
 .walidacja-card.walidacja-biz  { border-left-color: #fb923c; } /* orange — biznesowe */
+.walidacja-card.walidacja-str  { border-left-color: #2dd4bf; } /* teal — strukturalne */
 
 [data-md-color-scheme="default"] .walidacja-card.walidacja-ref  { border-left-color: #7c3aed; }
 [data-md-color-scheme="default"] .walidacja-card.walidacja-tech { border-left-color: #2563eb; }
 [data-md-color-scheme="default"] .walidacja-card.walidacja-fmt  { border-left-color: #16a34a; }
 [data-md-color-scheme="default"] .walidacja-card.walidacja-biz  { border-left-color: #ea580c; }
+[data-md-color-scheme="default"] .walidacja-card.walidacja-str  { border-left-color: #0d9488; }
 
 /* ─── KPI dashboard (raport-pomigracyjny) ─── */
 
@@ -1351,3 +1353,7 @@ a.kategoria-card:hover {
 [data-md-color-scheme="default"] .kategoria-card.kategoria-count   { border-left-color: #2563eb; }
 [data-md-color-scheme="default"] .kategoria-card.kategoria-sum     { border-left-color: #7c3aed; }
 [data-md-color-scheme="default"] .kategoria-card.kategoria-anomaly { border-left-color: #d97706; }
+
+/* Walidacje palette — STR (struktura) */
+.kategoria-card.kategoria-str  { border-left-color: #2dd4bf; }
+[data-md-color-scheme="default"] .kategoria-card.kategoria-str  { border-left-color: #0d9488; }

@@ -14,7 +14,7 @@ Iteracja 3 obejmuje dane kontaktowe dłużników — adresy pocztowe, adresy e-m
 <div class="iter-meta">
   <span>Iteracja: 3</span>
   <span>Zależności: Iteracja 2</span>
-  <span>Walidacje: <a href="../przygotowanie-danych/walidacje.md#biz_09">BIZ_09</a>, <a href="../przygotowanie-danych/walidacje.md#biz_10">BIZ_10</a></span>
+  <span>Walidacje: <a href="../przygotowanie-danych/walidacje.md#str_08">STR_08</a>, <a href="../przygotowanie-danych/walidacje.md#str_09">STR_09</a></span>
   <span>Zakres: dane kontaktowe dłużników</span>
 </div>
 
@@ -280,4 +280,4 @@ Numery telefonów przypisane do dłużnika, z typem określonym przez `tn_tt_id`
 - Walidacje referencyjne (mail): [REF_13](../przygotowanie-danych/walidacje.md)
 - Walidacje referencyjne (telefon): [REF_11, REF_12](../przygotowanie-danych/walidacje.md)
 - Walidacje formatu: [FMT_04 (kod pocztowy), FMT_05 (e-mail), FMT_06, FMT_07 (telefon)](../przygotowanie-danych/walidacje.md)
-- Walidacje biznesowe: [BIZ_09 (limit telefonów), BIZ_10 (limit adresów)](../przygotowanie-danych/walidacje.md)
+- Walidacje integralności strukturalnej: [STR_08 (limit telefonów)](../przygotowanie-danych/walidacje.md#str_08), [STR_09 (limit adresów)](../przygotowanie-danych/walidacje.md#str_09)

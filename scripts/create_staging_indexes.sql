@@ -10,18 +10,18 @@ SET NOCOUNT ON;
 USE dm_staging;
 GO
 
--- sprawa_rola: REF_01, REF_02, BIZ_01
+-- sprawa_rola: REF_01, REF_02, STR_01
 CREATE INDEX IX_sprawa_rola_sp_id   ON dbo.sprawa_rola (spr_sp_id);
 CREATE INDEX IX_sprawa_rola_dl_id   ON dbo.sprawa_rola (spr_dl_id);
 
--- wierzytelnosc_rola: REF_04, REF_05, BIZ_01, BIZ_02b
+-- wierzytelnosc_rola: REF_04, REF_05, STR_01, STR_03
 CREATE INDEX IX_wierzytelnosc_rola_wi_id ON dbo.wierzytelnosc_rola (wir_wi_id);
 CREATE INDEX IX_wierzytelnosc_rola_sp_id ON dbo.wierzytelnosc_rola (wir_sp_id);
 
 -- wierzytelnosc: REF_06; critical for migration JOIN chain (wi_sp_id)
 CREATE INDEX IX_wierzytelnosc_sp_id ON dbo.wierzytelnosc (wi_sp_id);
 
--- dokument: REF_07, REF_08, BIZ_02b
+-- dokument: REF_07, REF_08, STR_03
 CREATE INDEX IX_dokument_wi_id  ON dbo.dokument (do_wi_id);
 CREATE INDEX IX_dokument_dot_id ON dbo.dokument (do_dot_id);
 
@@ -34,11 +34,11 @@ CREATE INDEX IX_telefon_dl_id ON dbo.telefon (tn_dl_id);
 -- mail: REF_13
 CREATE INDEX IX_mail_dl_id ON dbo.mail (ma_dl_id);
 
--- akcja: REF_14, REF_32, BIZ_08
+-- akcja: REF_14, REF_32, STR_06
 CREATE INDEX IX_akcja_sp_id  ON dbo.akcja (ak_sp_id);
 CREATE INDEX IX_akcja_akt_id ON dbo.akcja (ak_akt_id);
 
--- rezultat: REF_33, REF_34, BIZ_08
+-- rezultat: REF_33, REF_34, STR_06
 CREATE INDEX IX_rezultat_ak_id  ON dbo.rezultat (re_ak_id);
 CREATE INDEX IX_rezultat_ret_id ON dbo.rezultat (re_ret_id);
 
@@ -46,7 +46,7 @@ CREATE INDEX IX_rezultat_ret_id ON dbo.rezultat (re_ret_id);
 CREATE INDEX IX_atrybut_att_id  ON dbo.atrybut (at_att_id);
 CREATE INDEX IX_atrybut_ob_id   ON dbo.atrybut (at_ob_id);
 
--- ksiegowanie_dekret: REF_20, REF_21, REF_22, BIZ_02b, BIZ_05, BIZ_06
+-- ksiegowanie_dekret: REF_20, REF_21, REF_22, STR_03, STR_04, STR_05
 -- ksd_sp_id: iter8 JOIN to resolve prod sprawa via sp_ext_id
 -- ksd_ksksub_id: REF_35 validation
 CREATE INDEX IX_ksd_ks_id     ON dbo.ksiegowanie_dekret (ksd_ks_id);

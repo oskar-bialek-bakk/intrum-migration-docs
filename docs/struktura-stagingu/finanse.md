@@ -11,7 +11,7 @@ Iteracja 8 obejmuje księgowania i dekrety — kwoty obciążające/uznanie wier
 <div class="iter-meta">
   <span>Iteracja: 8</span>
   <span>Zależności: Iteracja 7</span>
-  <span>Walidacje: <a href="../przygotowanie-danych/walidacje.md#biz_05">BIZ_05</a>, <a href="../przygotowanie-danych/walidacje.md#biz_06">BIZ_06</a>, <a href="../przygotowanie-danych/walidacje.md#biz_17">BIZ_17</a>, <a href="../przygotowanie-danych/walidacje.md#biz_18">BIZ_18</a></span>
+  <span>Walidacje: <a href="../przygotowanie-danych/walidacje.md#str_04">STR_04</a>, <a href="../przygotowanie-danych/walidacje.md#str_05">STR_05</a>, <a href="../przygotowanie-danych/walidacje.md#biz_17">BIZ_17</a>, <a href="../przygotowanie-danych/walidacje.md#biz_18">BIZ_18</a></span>
   <span>Zakres: księgowania i dekrety</span>
 </div>
 
@@ -442,4 +442,5 @@ Operacja finansowa z systemu źródłowego — wpłaty, umorzenia, korekty, kosz
 - Walidacje referencyjne (ksiegowanie): [REF_29 (ks_kst_id → ksiegowanie_typ)](../przygotowanie-danych/walidacje.md)
 - Walidacje referencyjne (operacja): [REF_23 (oper_do_id → dokument)](../przygotowanie-danych/walidacje.md), [REF_27 (oper_waluta → waluta)](../przygotowanie-danych/walidacje.md)
 - Walidacje techniczne: [TECH_09 (ksd_ks_id wymagane, BLOKUJĄCE)](../przygotowanie-danych/walidacje.md), [TECH_10 (oper_waluta dla kwoty &gt; 0, OSTRZEŻENIE)](../przygotowanie-danych/walidacje.md)
-- Walidacje biznesowe: [BIZ_05 (księgowanie bez dekretu, BLOKUJĄCE)](../przygotowanie-danych/walidacje.md#biz_05), [BIZ_06 (suma dekretów ≠ 0, BLOKUJĄCE)](../przygotowanie-danych/walidacje.md#biz_06), [BIZ_17 (ks_data_ksiegowania z przyszłości, INFORMACJA)](../przygotowanie-danych/walidacje.md#biz_17), [BIZ_18 (ks_data_operacji z przyszłości, INFORMACJA)](../przygotowanie-danych/walidacje.md#biz_18)
+- Walidacje integralności strukturalnej: [STR_04 (księgowanie bez dekretu, BLOKUJĄCE)](../przygotowanie-danych/walidacje.md#str_04), [STR_05 (suma dekretów ≠ 0, BLOKUJĄCE)](../przygotowanie-danych/walidacje.md#str_05)
+- Walidacje biznesowe: [BIZ_17 (ks_data_ksiegowania z przyszłości, INFORMACJA)](../przygotowanie-danych/walidacje.md#biz_17), [BIZ_18 (ks_data_operacji z przyszłości, INFORMACJA)](../przygotowanie-danych/walidacje.md#biz_18)
