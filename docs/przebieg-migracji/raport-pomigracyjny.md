@@ -11,23 +11,33 @@ Raport jest przekazywany zespołowi Intrum jako podstawa formalnego odbioru. War
 <div class="api-section" markdown>
 <div class="api-section-title">Kategorie KPI</div>
 
-<ul class="param-list">
-  <li>
-    <span class="param-name">COUNT</span>
-    <span class="param-type">13 KPI</span>
-    <span class="param-desc">Uzgodnienie liczebności — czy liczba rekordów w każdej tabeli produkcyjnej odpowiada oczekiwanej (snapshot + staging).</span>
-  </li>
-  <li>
-    <span class="param-name">SUM</span>
-    <span class="param-type">4 KPI</span>
-    <span class="param-desc">Uzgodnienie finansowe — czy sumy kwot kluczowych kolumn finansowych (wierzytelności, dekrety) zgadzają się ze stagingiem.</span>
-  </li>
-  <li>
-    <span class="param-name">ANOMALY</span>
-    <span class="param-type">13 KPI</span>
-    <span class="param-desc">Jakość danych — rekordy bez wymaganego identyfikatora zewnętrznego, naruszenia zasady podwójnego zapisu, niespójności typologiczne i inne odchylenia.</span>
-  </li>
-</ul>
+<div class="kategoria-grid">
+
+<div class="kategoria-card kategoria-count">
+  <div class="kategoria-header">
+    <span class="kategoria-code">COUNT</span>
+    <span class="kategoria-meta">13 KPI</span>
+  </div>
+  <p class="kategoria-desc">Uzgodnienie liczebności — czy liczba rekordów w każdej tabeli produkcyjnej odpowiada oczekiwanej (snapshot + staging).</p>
+</div>
+
+<div class="kategoria-card kategoria-sum">
+  <div class="kategoria-header">
+    <span class="kategoria-code">SUM</span>
+    <span class="kategoria-meta">4 KPI</span>
+  </div>
+  <p class="kategoria-desc">Uzgodnienie finansowe — czy sumy kwot kluczowych kolumn finansowych (wierzytelności, dekrety) zgadzają się ze stagingiem.</p>
+</div>
+
+<div class="kategoria-card kategoria-anomaly">
+  <div class="kategoria-header">
+    <span class="kategoria-code">ANOMALY</span>
+    <span class="kategoria-meta">13 KPI</span>
+  </div>
+  <p class="kategoria-desc">Jakość danych — rekordy bez wymaganego identyfikatora zewnętrznego, naruszenia zasady podwójnego zapisu, niespójności typologiczne i inne odchylenia.</p>
+</div>
+
+</div>
 
 </div>
 

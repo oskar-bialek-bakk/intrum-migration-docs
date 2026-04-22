@@ -107,28 +107,3 @@ Iteracja 1 składa się z dwóch kroków:
 </a>
 
 </div>
-
----
-
-<div class="api-section" markdown>
-<div class="api-section-title">Podsumowanie kolejności</div>
-
-```
-Iteracja 1  → waluta, kurs_walut, kontrahent, umowa_kontrahent,
-               adres_typ, dluznik_typ, dokument_typ, ksiegowanie_konto,
-               ksiegowanie_typ, sprawa_rola_typ, sprawa_typ, telefon_typ,
-               atrybut_dziedzina, atrybut_rodzaj, akcja_typ, rezultat_typ,
-               atrybut_typ*, sprawa_etap*, zrodlo_pochodzenia_informacji,
-               wlasciwosc_typ_walidacji, wlasciwosc_dziedzina, wlasciwosc_podtyp,
-               wlasciwosc_typ*, wlasciwosc_typ_podtyp_dziedzina*          (* po spełnieniu zależności)
-Iteracja 2  → dluznik, atrybut (att_atd_id=3), wlasciwosc (dziedzina=4), wlasciwosc_dluznik
-Iteracja 3  → adres, mail, telefon, wlasciwosc (dziedzina=1,2,3), wlasciwosc_adres, wlasciwosc_email, wlasciwosc_telefon
-Iteracja 4  → sprawa, sprawa_rola, atrybut (att_atd_id=4)
-Iteracja 5  → akcja, rezultat
-Iteracja 6  → wierzytelnosc, atrybut (att_atd_id=2)
-Iteracja 7  → wierzytelnosc_rola, dokument, atrybut (att_atd_id=1)
-Iteracja 8  → ksiegowanie, operacja, ksiegowanie_dekret       (dane finansowe)
-Iteracja 9  → harmonogram                                     (ostatnia)
-```
-
-</div>

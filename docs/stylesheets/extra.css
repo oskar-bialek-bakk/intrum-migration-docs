@@ -1283,3 +1283,71 @@
   color: var(--md-default-fg-color--light);
   line-height: 1.4;
 }
+
+/* ─── Category cards (walidacje / raport-pomigracyjny kategorie) ─── */
+
+.kategoria-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+  margin: 0.75rem 0 1rem 0;
+}
+.kategoria-card {
+  display: block;
+  border: 1px solid var(--md-typeset-table-color);
+  border-left: 4px solid #9ca3af;
+  border-radius: 6px;
+  padding: 0.7rem 0.9rem;
+  background: var(--md-default-bg-color);
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+a.kategoria-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+  text-decoration: none;
+}
+.kategoria-card .kategoria-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.3rem;
+}
+.kategoria-card .kategoria-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 0.95em;
+  color: var(--md-default-fg-color);
+}
+.kategoria-card .kategoria-meta {
+  font-size: 0.72em;
+  font-weight: 700;
+  color: var(--md-default-fg-color--light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.kategoria-card .kategoria-desc {
+  margin: 0;
+  font-size: 0.85em;
+  color: var(--md-default-fg-color--light);
+  line-height: 1.45;
+}
+
+/* Walidacje palette — matches .walidacja-card variants */
+.kategoria-card.kategoria-ref  { border-left-color: #c084fc; }
+.kategoria-card.kategoria-tech { border-left-color: #60a5fa; }
+.kategoria-card.kategoria-fmt  { border-left-color: #4ade80; }
+.kategoria-card.kategoria-biz  { border-left-color: #fb923c; }
+[data-md-color-scheme="default"] .kategoria-card.kategoria-ref  { border-left-color: #7c3aed; }
+[data-md-color-scheme="default"] .kategoria-card.kategoria-tech { border-left-color: #2563eb; }
+[data-md-color-scheme="default"] .kategoria-card.kategoria-fmt  { border-left-color: #16a34a; }
+[data-md-color-scheme="default"] .kategoria-card.kategoria-biz  { border-left-color: #ea580c; }
+
+/* KPI palette — matches .kpi-typ-badge variants */
+.kategoria-card.kategoria-count   { border-left-color: #60a5fa; }
+.kategoria-card.kategoria-sum     { border-left-color: #c084fc; }
+.kategoria-card.kategoria-anomaly { border-left-color: #fbbf24; }
+[data-md-color-scheme="default"] .kategoria-card.kategoria-count   { border-left-color: #2563eb; }
+[data-md-color-scheme="default"] .kategoria-card.kategoria-sum     { border-left-color: #7c3aed; }
+[data-md-color-scheme="default"] .kategoria-card.kategoria-anomaly { border-left-color: #d97706; }

@@ -11,16 +11,68 @@ Po uruchomieniu walidacji zespół BAKK przekazuje raport w formie wyniku zapyta
 
 Każdy rekord raportu to jeden naruszający identyfikator — kody reguł powtarzają się tyle razy, ile rekordów narusza daną regułę.
 
-| Kod | Poziom | ID rekordu | Opis |
-|---|---|---|---|
-| BIZ_08 | BLOCKING | 201 | Akcja nie ma żadnego rezultatu — wymagany co najmniej jeden |
-| BIZ_08 | BLOCKING | 202 | Akcja nie ma żadnego rezultatu — wymagany co najmniej jeden |
-| BIZ_08 | BLOCKING | 203 | Akcja nie ma żadnego rezultatu — wymagany co najmniej jeden |
-| BIZ_08 | BLOCKING | 204 | Akcja nie ma żadnego rezultatu — wymagany co najmniej jeden |
-| BIZ_08 | BLOCKING | 205 | Akcja nie ma żadnego rezultatu — wymagany co najmniej jeden |
-| REF_14 | BLOCKING | 310 | `akcja.ak_sp_id` wskazuje na nieistniejącą sprawę |
-| REF_14 | BLOCKING | 311 | `akcja.ak_sp_id` wskazuje na nieistniejącą sprawę |
-| TECH_03 | BLOCKING | 88 | `sprawa.sp_numer_rachunku` ma wartość NULL — pole wymagane |
+<div class="report-dashboard">
+<table class="report-table">
+  <thead>
+    <tr>
+      <th class="col-kpi">Kod</th>
+      <th class="col-status">Poziom</th>
+      <th class="col-num">ID rekordu</th>
+      <th class="col-uwaga">Opis</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr class="row-alert">
+      <td><code>BIZ_08</code></td>
+      <td><span class="status-pill status-fail">BLOCKING</span></td>
+      <td class="num">201</td>
+      <td>Akcja nie ma żadnego rezultatu — wymagany co najmniej jeden</td>
+    </tr>
+    <tr class="row-alert">
+      <td><code>BIZ_08</code></td>
+      <td><span class="status-pill status-fail">BLOCKING</span></td>
+      <td class="num">202</td>
+      <td>Akcja nie ma żadnego rezultatu — wymagany co najmniej jeden</td>
+    </tr>
+    <tr class="row-alert">
+      <td><code>BIZ_08</code></td>
+      <td><span class="status-pill status-fail">BLOCKING</span></td>
+      <td class="num">203</td>
+      <td>Akcja nie ma żadnego rezultatu — wymagany co najmniej jeden</td>
+    </tr>
+    <tr class="row-alert">
+      <td><code>BIZ_08</code></td>
+      <td><span class="status-pill status-fail">BLOCKING</span></td>
+      <td class="num">204</td>
+      <td>Akcja nie ma żadnego rezultatu — wymagany co najmniej jeden</td>
+    </tr>
+    <tr class="row-alert">
+      <td><code>BIZ_08</code></td>
+      <td><span class="status-pill status-fail">BLOCKING</span></td>
+      <td class="num">205</td>
+      <td>Akcja nie ma żadnego rezultatu — wymagany co najmniej jeden</td>
+    </tr>
+    <tr class="row-alert">
+      <td><code>REF_14</code></td>
+      <td><span class="status-pill status-fail">BLOCKING</span></td>
+      <td class="num">310</td>
+      <td><code>akcja.ak_sp_id</code> wskazuje na nieistniejącą sprawę</td>
+    </tr>
+    <tr class="row-alert">
+      <td><code>REF_14</code></td>
+      <td><span class="status-pill status-fail">BLOCKING</span></td>
+      <td class="num">311</td>
+      <td><code>akcja.ak_sp_id</code> wskazuje na nieistniejącą sprawę</td>
+    </tr>
+    <tr class="row-alert">
+      <td><code>TECH_03</code></td>
+      <td><span class="status-pill status-fail">BLOCKING</span></td>
+      <td class="num">88</td>
+      <td><code>sprawa.sp_numer_rachunku</code> ma wartość NULL — pole wymagane</td>
+    </tr>
+  </tbody>
+</table>
+</div>
 
 </div>
 

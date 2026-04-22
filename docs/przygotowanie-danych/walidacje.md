@@ -33,28 +33,41 @@ Wszystkie błędy **blokujące** muszą zostać poprawione przed migracją.
 <div class="api-section" markdown>
 <div class="api-section-title">Kategorie walidacji</div>
 
-<ul class="param-list">
-  <li>
-    <span class="param-name">REF</span>
-    <span class="param-type">Spójność referencyjna</span>
-    <span class="param-desc">Wszystkie blokujące. Sprawdzają czy wartości w kolumnach FK wskazują na istniejące rekordy.</span>
-  </li>
-  <li>
-    <span class="param-name">TECH</span>
-    <span class="param-type">Walidacje techniczne</span>
-    <span class="param-desc">Mieszane poziomy. Sprawdzają wymagane kolumny NOT NULL i podstawowe reguły techniczne.</span>
-  </li>
-  <li>
-    <span class="param-name">FMT</span>
-    <span class="param-type">Walidacje formatów</span>
-    <span class="param-desc">Głównie ostrzeżenia. Sprawdzają zgodność zapisu z oczekiwanym formatem (PESEL, NIP, e-mail, telefon, daty).</span>
-  </li>
-  <li>
-    <span class="param-name">BIZ</span>
-    <span class="param-type">Reguły biznesowe</span>
-    <span class="param-desc">Mieszane poziomy. Sprawdzają zgodność danych z regułami domeny (sprawy bez dłużnika, niezbilansowane księgowania, akcje bez rezultatu).</span>
-  </li>
-</ul>
+<div class="kategoria-grid">
+
+<a class="kategoria-card kategoria-ref" href="#kat-ref">
+  <div class="kategoria-header">
+    <span class="kategoria-code">REF</span>
+    <span class="kategoria-meta">Spójność referencyjna</span>
+  </div>
+  <p class="kategoria-desc">Wszystkie blokujące. Sprawdzają czy wartości w kolumnach FK wskazują na istniejące rekordy.</p>
+</a>
+
+<a class="kategoria-card kategoria-tech" href="#kat-tech">
+  <div class="kategoria-header">
+    <span class="kategoria-code">TECH</span>
+    <span class="kategoria-meta">Walidacje techniczne</span>
+  </div>
+  <p class="kategoria-desc">Mieszane poziomy. Sprawdzają wymagane kolumny NOT NULL i podstawowe reguły techniczne.</p>
+</a>
+
+<a class="kategoria-card kategoria-fmt" href="#kat-fmt">
+  <div class="kategoria-header">
+    <span class="kategoria-code">FMT</span>
+    <span class="kategoria-meta">Walidacje formatów</span>
+  </div>
+  <p class="kategoria-desc">Głównie ostrzeżenia. Sprawdzają zgodność zapisu z oczekiwanym formatem (PESEL, NIP, e-mail, telefon, daty).</p>
+</a>
+
+<a class="kategoria-card kategoria-biz" href="#kat-biz">
+  <div class="kategoria-header">
+    <span class="kategoria-code">BIZ</span>
+    <span class="kategoria-meta">Reguły biznesowe</span>
+  </div>
+  <p class="kategoria-desc">Mieszane poziomy. Sprawdzają zgodność danych z regułami domeny (sprawy bez dłużnika, niezbilansowane księgowania, akcje bez rezultatu).</p>
+</a>
+
+</div>
 
 </div>
 
@@ -62,7 +75,7 @@ Wszystkie błędy **blokujące** muszą zostać poprawione przed migracją.
 
 <div class="api-section" markdown>
 
-### REF — Spójność referencyjna (wszystkie BLOKUJĄCE)
+### REF — Spójność referencyjna (wszystkie BLOKUJĄCE) {#kat-ref}
 
 <div class="walidacja-card walidacja-ref">
 <div class="walidacja-header">
@@ -350,7 +363,7 @@ Wszystkie błędy **blokujące** muszą zostać poprawione przed migracją.
 
 <div class="api-section" markdown>
 
-### TECH — Walidacje techniczne
+### TECH — Walidacje techniczne {#kat-tech}
 
 <div class="walidacja-card walidacja-tech">
 <div class="walidacja-header">
@@ -430,7 +443,7 @@ Wszystkie błędy **blokujące** muszą zostać poprawione przed migracją.
 
 <div class="api-section" markdown>
 
-### FMT — Walidacje formatów
+### FMT — Walidacje formatów {#kat-fmt}
 
 Zakres i progi poszczególnych sprawdzeń mogą zostać dostosowane do specyficznych wymagań Intrum podczas warsztatów analitycznych.
 
@@ -520,7 +533,7 @@ Zakres i progi poszczególnych sprawdzeń mogą zostać dostosowane do specyficz
 
 <div class="api-section" markdown>
 
-### BIZ — Reguły biznesowe
+### BIZ — Reguły biznesowe {#kat-biz}
 
 <div class="walidacja-card walidacja-biz" id="biz_01">
 <div class="walidacja-header">
