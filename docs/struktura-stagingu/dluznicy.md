@@ -137,7 +137,7 @@ Główny rekord dłużnika — obejmuje zarówno osoby fizyczne (`dl_dt_id` ∈ 
   <li>
     <span class="param-name pii">dl_pesel</span>
     <span class="param-type">VARCHAR</span>
-    <span class="param-desc">Numer PESEL dłużnika - wymagany dla wartości dl_dt_id równych (1,2)</span>
+    <span class="param-desc">Numer PESEL dłużnika - wymagany dla wartości dl_dt_id równych (1,2). Z poprawnego PESEL po stronie prod wyliczana jest data urodzenia (kolumna dl_data_urodzenia w dbo.dluznik); dla wartości NULL, niepoprawnego formatu lub nieprawidłowej daty kalendarzowej data urodzenia pozostaje NULL.</span>
   </li>
   <li>
     <span class="param-name fk required">dl_dt_id</span>
