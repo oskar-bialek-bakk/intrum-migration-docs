@@ -211,18 +211,31 @@ EXEC sp_addextendedproperty 'MS_Description', 'Dłużnicy - osoby fizyczne i pod
 EXEC sp_addextendedproperty 'MS_Description', 'Klucz główny dłużnika w stagingu', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_id';
 EXEC sp_addextendedproperty 'MS_Description', 'Kod płci dłużnika - wartość tekstowa mapowana na prod przez mapowanie.plec', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_plec';
 EXEC sp_addextendedproperty 'MS_Description', 'Imię dłużnika - wymagane dla wartości dl_dt_id równych (1,2)', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_imie';
+EXEC sp_addextendedproperty 'MS_Description', 'Drugie imię dłużnika (PII) - opcjonalne, dla wartości dl_dt_id równych (1,2)', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_drugie_imie';
 EXEC sp_addextendedproperty 'MS_Description', 'Nazwisko dłużnika - wymagane dla wartości dl_dt_id równych (1,2)', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_nazwisko';
 EXEC sp_addextendedproperty 'MS_Description', 'Numer dowodu osobistego dłużnika', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_dowod';
 EXEC sp_addextendedproperty 'MS_Description', 'Numer paszportu dłużnika', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_paszport';
 EXEC sp_addextendedproperty 'MS_Description', 'Wewnętrzny numer ewidencyjny dłużnika', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_dluznik';
 EXEC sp_addextendedproperty 'MS_Description', 'Numer PESEL dłużnika - wymagany dla wartości dl_dt_id równych (1,2)', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_pesel';
+EXEC sp_addextendedproperty 'MS_Description', 'Miejsce urodzenia dłużnika (PII) - opcjonalne, najczęściej wypełniane dla osób fizycznych (dl_dt_id 1,2)', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_miejsce_urodzenia';
+EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika krajów (dbo.kraj) - kraj pochodzenia/obywatelstwa dłużnika; opcjonalne', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_kraj_id';
 EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika typów dłużnika - determinuje wymagane pola: (1,2) osoba fizyczna, (3,4) podmiot gospodarczy', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_dt_id';
 EXEC sp_addextendedproperty 'MS_Description', 'Uwagi dotyczące dłużnika', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_uwagi';
 EXEC sp_addextendedproperty 'MS_Description', 'Nazwa firmy dłużnika - wymagana dla wartości dl_dt_id równych (3,4)', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_firma';
+EXEC sp_addextendedproperty 'MS_Description', 'Numer KRS (Krajowy Rejestr Sądowy) - opcjonalny, dla podmiotów gospodarczych (dl_dt_id 3,4)', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_krs';
 EXEC sp_addextendedproperty 'MS_Description', 'Identyfikator paczki importu, z której pochodzi rekord', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_import_info';
 EXEC sp_addextendedproperty 'MS_Description', 'Numer NIP dłużnika - wymagany dla wartości dl_dt_id równych (3,4)', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_nip';
 EXEC sp_addextendedproperty 'MS_Description', 'Numer REGON dłużnika', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_regon';
 EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - obsługiwana triggerami insert; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'mod_date';
+
+-- ------------------------------------------------------------
+-- dbo.kraj
+-- ------------------------------------------------------------
+EXEC sp_addextendedproperty 'MS_Description', 'Słownik krajów (kopia referencyjna z prod) - referencjonowany m.in. przez dluznik.dl_kraj_id', 'SCHEMA', 'dbo', 'TABLE', 'kraj';
+EXEC sp_addextendedproperty 'MS_Description', 'Identyfikator kraju (PK; zgodny z prod kraj.kraj_id)', 'SCHEMA', 'dbo', 'TABLE', 'kraj', 'COLUMN', 'kraj_id';
+EXEC sp_addextendedproperty 'MS_Description', 'Pełna nazwa kraju w języku polskim', 'SCHEMA', 'dbo', 'TABLE', 'kraj', 'COLUMN', 'kraj_nazwa';
+EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - obsługiwana triggerami insert; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'kraj', 'COLUMN', 'mod_date';
+EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - obsługiwana triggerami insert; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'kraj', 'COLUMN', 'kraj_uuid';
 
 -- ------------------------------------------------------------
 -- dbo.sprawa

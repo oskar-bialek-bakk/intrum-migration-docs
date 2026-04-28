@@ -69,6 +69,7 @@ DROP TABLE IF EXISTS dbo.umowa_kontrahent;
 DROP TABLE IF EXISTS dbo.kontrahent;
 DROP TABLE IF EXISTS dbo.sprawa;
 DROP TABLE IF EXISTS dbo.dluznik;
+DROP TABLE IF EXISTS dbo.kraj;
 DROP TABLE IF EXISTS dbo.atrybut_typ;
 DROP TABLE IF EXISTS dbo.atrybut_rodzaj;
 DROP TABLE IF EXISTS dbo.atrybut_dziedzina;
@@ -179,6 +180,17 @@ CREATE TABLE dbo.dluznik_typ (
     mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
     dt_uuid     UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     CONSTRAINT PK_dluznik_typ PRIMARY KEY (dt_id)
+);
+
+-- Country dictionary — referenced by dluznik.dl_kraj_id (and prod dluznik_dane.dld_kraj_id).
+-- ID-merge in iter1 (staging.kraj_id == prod.kraj_id), so the integration team
+-- supplies prod kraj_id values directly.
+CREATE TABLE dbo.kraj (
+    kraj_id     INT              NOT NULL,
+    kraj_nazwa  VARCHAR(255)     NULL,
+    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    kraj_uuid   UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
+    CONSTRAINT PK_kraj PRIMARY KEY (kraj_id)
 );
 
 CREATE TABLE dbo.dokument_typ (
@@ -397,24 +409,29 @@ CREATE TABLE dbo.wlasciwosc_typ_podtyp_dziedzina (
 -- ============================================================
 
 CREATE TABLE dbo.dluznik (
-    dl_id           INT           NOT NULL,
-    dl_plec         VARCHAR(1)    NULL,
-    dl_imie         VARCHAR(200)  NULL,
-    dl_nazwisko     VARCHAR(200)  NULL,
-    dl_dowod        VARCHAR(50)   NULL,
-    dl_paszport     VARCHAR(50)   NULL,
-    dl_dluznik      VARCHAR(50)   NULL,
-    dl_pesel        VARCHAR(11)   NULL,
-    dl_dt_id        INT           NOT NULL,
-    dl_uwagi        VARCHAR(4000) NULL,
-    dl_firma        VARCHAR(4000) NULL,
-    dl_import_info  INT           NULL,
-    dl_nip          VARCHAR(20)   NULL,
-    dl_regon        VARCHAR(20)   NULL,
-    mod_date        DATETIME      NOT NULL DEFAULT GETDATE(),
+    dl_id                INT             NOT NULL,
+    dl_plec              VARCHAR(1)      NULL,
+    dl_imie              VARCHAR(200)    NULL,
+    dl_drugie_imie       VARCHAR(MAX)    NULL,
+    dl_nazwisko          VARCHAR(200)    NULL,
+    dl_dowod             VARCHAR(50)     NULL,
+    dl_paszport          VARCHAR(50)     NULL,
+    dl_dluznik           VARCHAR(50)     NULL,
+    dl_pesel             VARCHAR(11)     NULL,
+    dl_miejsce_urodzenia VARCHAR(MAX)    NULL,
+    dl_kraj_id           INT             NULL,
+    dl_dt_id             INT             NOT NULL,
+    dl_uwagi             VARCHAR(4000)   NULL,
+    dl_firma             VARCHAR(4000)   NULL,
+    dl_krs               VARCHAR(50)     NULL,
+    dl_import_info       INT             NULL,
+    dl_nip               VARCHAR(20)     NULL,
+    dl_regon             VARCHAR(20)     NULL,
+    mod_date             DATETIME        NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_dluznik PRIMARY KEY (dl_id),
-    CONSTRAINT FK_dluznik_dluznik_typ  FOREIGN KEY (dl_dt_id) REFERENCES dbo.dluznik_typ  (dt_id),
-    CONSTRAINT FK_dluznik_plec_mapping FOREIGN KEY (dl_plec)  REFERENCES mapowanie.plec (pm_kod)
+    CONSTRAINT FK_dluznik_dluznik_typ  FOREIGN KEY (dl_dt_id)   REFERENCES dbo.dluznik_typ  (dt_id),
+    CONSTRAINT FK_dluznik_kraj         FOREIGN KEY (dl_kraj_id) REFERENCES dbo.kraj         (kraj_id),
+    CONSTRAINT FK_dluznik_plec_mapping FOREIGN KEY (dl_plec)    REFERENCES mapowanie.plec   (pm_kod)
 );
 
 CREATE TABLE dbo.sprawa (
@@ -982,6 +999,9 @@ IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.ksiego
 
 IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.sprawa_rola_typ')   AND name = 'sprt_ext_id')
     ALTER TABLE dbo.sprawa_rola_typ  ADD sprt_ext_id INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.kraj')              AND name = 'kraj_ext_id')
+    ALTER TABLE dbo.kraj             ADD kraj_ext_id INT NULL;
 
 IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.sprawa_typ')        AND name = 'spt_ext_id')
     ALTER TABLE dbo.sprawa_typ       ADD spt_ext_id  INT NULL;

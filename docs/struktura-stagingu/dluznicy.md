@@ -9,7 +9,7 @@ tags:
 Iteracja 2 obejmuje dane głównych dłużników — osoby fizyczne i osoby prawne wraz z atrybutami identyfikującymi. Dane z tej iteracji można załadować dopiero po Iteracji 1, ponieważ każdy dłużnik referuje typy ze słowników (typ dłużnika, dziedziny i typy atrybutów). Zobacz też: [walidacje](../przygotowanie-danych/walidacje.md), [kolejność ładowania](../przygotowanie-danych/kolejnosc-zasilania-tabel.md).
 
 !!! warning "Dane osobowe"
-    Tabele w tej iteracji zawierają dane osobowe (PII) — imię, nazwisko, PESEL, NIP, REGON, numer dowodu osobistego, numer paszportu, nazwa firmy. Kolumny zawierające dane osobowe są oznaczone znacznikiem PII.
+    Tabele w tej iteracji zawierają dane osobowe (PII) — imię, drugie imię, nazwisko, PESEL, NIP, REGON, KRS, numer dowodu osobistego, numer paszportu, miejsce urodzenia, nazwa firmy. Kolumny zawierające dane osobowe są oznaczone znacznikiem PII.
 
 <div class="iter-meta">
   <span>Iteracja: 2</span>
@@ -37,18 +37,27 @@ erDiagram
     }
 
     dluznik {
-        int     dl_id         PK
-        int     dl_dt_id      FK
-        varchar dl_plec       FK  "→ mapowanie_plec"
+        int     dl_id                PK
+        int     dl_dt_id             FK
+        varchar dl_plec              FK  "→ mapowanie_plec"
+        int     dl_kraj_id           FK
         varchar dl_imie
+        varchar dl_drugie_imie
         varchar dl_nazwisko
         varchar dl_pesel
+        varchar dl_miejsce_urodzenia
         varchar dl_nip
         varchar dl_regon
+        varchar dl_krs
         varchar dl_dowod
         varchar dl_paszport
         varchar dl_firma
         varchar dl_uwagi
+    }
+
+    kraj {
+        int     kraj_id    PK
+        varchar kraj_nazwa
     }
 
     atrybut_dziedzina {
@@ -77,6 +86,7 @@ erDiagram
 
     dluznik     }o--||  dluznik_typ       : "dl_dt_id"
     dluznik     }o--o|  mapowanie_plec    : "dl_plec"
+    dluznik     }o--o|  kraj              : "dl_kraj_id"
     atrybut     }o--||  atrybut_typ       : "at_att_id"
     atrybut_typ }o--||  atrybut_dziedzina : "att_atd_id"
     atrybut_typ }o--||  atrybut_rodzaj    : "att_atr_id"
@@ -96,7 +106,7 @@ erDiagram
   <span>Multi-row: tak</span>
 </div>
 
-Główny rekord dłużnika — obejmuje zarówno osoby fizyczne (`dl_dt_id` ∈ {1,2}), jak i podmioty gospodarcze (`dl_dt_id` ∈ {3,4}). Wypełniane pola zależą od typu dłużnika (`dl_dt_id`): dla osób fizycznych obowiązkowe są imię, nazwisko i PESEL; dla podmiotów gospodarczych — nazwa firmy i NIP.
+Główny rekord dłużnika — obejmuje zarówno osoby fizyczne (`dl_dt_id` ∈ {1,2}), jak i podmioty gospodarcze (`dl_dt_id` ∈ {3,4}). Wypełniane pola zależą od typu dłużnika (`dl_dt_id`): dla osób fizycznych obowiązkowe są imię, nazwisko i PESEL; dla podmiotów gospodarczych — nazwa firmy i NIP. Pola opcjonalne: drugie imię, miejsce urodzenia oraz kraj (FK do [`kraj`](slowniki.md#dbokraj)) dla osób fizycznych; KRS dla podmiotów gospodarczych.
 
 <ul class="param-list">
   <li>
@@ -113,6 +123,11 @@ Główny rekord dłużnika — obejmuje zarówno osoby fizyczne (`dl_dt_id` ∈ 
     <span class="param-name required pii">dl_imie</span>
     <span class="param-type">VARCHAR</span>
     <span class="param-desc">Imię dłużnika - wymagane dla wartości dl_dt_id równych (1,2)</span>
+  </li>
+  <li>
+    <span class="param-name pii">dl_drugie_imie</span>
+    <span class="param-type">VARCHAR</span>
+    <span class="param-desc">Drugie imię dłużnika - opcjonalne, dla wartości dl_dt_id równych (1,2)</span>
   </li>
   <li>
     <span class="param-name required pii">dl_nazwisko</span>
@@ -140,6 +155,16 @@ Główny rekord dłużnika — obejmuje zarówno osoby fizyczne (`dl_dt_id` ∈ 
     <span class="param-desc">Numer PESEL dłużnika - wymagany dla wartości dl_dt_id równych (1,2). Z poprawnego PESEL po stronie prod wyliczana jest data urodzenia (kolumna dl_data_urodzenia w dbo.dluznik); dla wartości NULL, niepoprawnego formatu lub nieprawidłowej daty kalendarzowej data urodzenia pozostaje NULL.</span>
   </li>
   <li>
+    <span class="param-name pii">dl_miejsce_urodzenia</span>
+    <span class="param-type">VARCHAR</span>
+    <span class="param-desc">Miejsce urodzenia dłużnika - opcjonalne, najczęściej wypełniane dla osób fizycznych (dl_dt_id 1,2)</span>
+  </li>
+  <li>
+    <span class="param-name fk">dl_kraj_id</span>
+    <span class="param-type">INT</span>
+    <span class="param-desc">FK do słownika krajów (dbo.kraj) - kraj pochodzenia/obywatelstwa dłużnika; opcjonalne. Wartość musi istnieć w dbo.kraj.kraj_id</span>
+  </li>
+  <li>
     <span class="param-name fk required">dl_dt_id</span>
     <span class="param-type">INT</span>
     <span class="param-desc">FK do słownika typów dłużnika - determinuje wymagane pola: (1,2) osoba fizyczna, (3,4) podmiot gospodarczy</span>
@@ -153,6 +178,11 @@ Główny rekord dłużnika — obejmuje zarówno osoby fizyczne (`dl_dt_id` ∈ 
     <span class="param-name pii">dl_firma</span>
     <span class="param-type">VARCHAR</span>
     <span class="param-desc">Nazwa firmy dłużnika - wymagana dla wartości dl_dt_id równych (3,4)</span>
+  </li>
+  <li>
+    <span class="param-name pii">dl_krs</span>
+    <span class="param-type">VARCHAR</span>
+    <span class="param-desc">Numer KRS (Krajowy Rejestr Sądowy) - opcjonalny, dla podmiotów gospodarczych (dl_dt_id 3,4)</span>
   </li>
   <li>
     <span class="param-name">dl_import_info</span>
@@ -217,6 +247,7 @@ Tabela pomocnicza — nie podlega migracji do prod. Zawiera słownik mapowania j
 - Poprzednia iteracja: [Tabele słownikowe](slowniki.md)
 - Następna iteracja: [Dane kontaktowe (adres, mail, telefon)](kontakty.md)
 - Walidacje referencyjne (dluznik): [REF_26, REF_30](../przygotowanie-danych/walidacje.md)
+- Słownik krajów (FK `dl_kraj_id`): [dbo.kraj](slowniki.md#dbokraj)
 - Walidacje referencyjne (atrybut): [REF_15, REF_16, REF_17, REF_18, REF_19, REF_28](../przygotowanie-danych/walidacje.md)
 - Walidacje formatu (dluznik): [FMT_01 (PESEL), FMT_02 (NIP), FMT_03 (REGON)](../przygotowanie-danych/walidacje.md)
 - Walidacje biznesowe (dluznik): [BIZ_13 (brak identyfikatora)](../przygotowanie-danych/walidacje.md)

@@ -334,6 +334,45 @@ Słownik typów dłużników (np. osoba fizyczna, firma). Referencjonowany przez
 
 </details>
 
+### dbo.kraj
+
+<details markdown="1">
+<summary><code>dbo.kraj</code> — <span class="ksztalt-badge ksztalt-11">1:1</span> słownik krajów</summary>
+
+<div class="dict-meta">
+  <span>Tabela prod: <code>dm_data_web.kraj</code></span>
+  <span>Kształt mapowania: 1:1</span>
+  <span>Obowiązkowa: tak (jeśli wypełniane jest <code>dluznik.dl_kraj_id</code>)</span>
+  <span>Multi-row: tak</span>
+</div>
+
+Słownik krajów (kopia referencyjna z prod). Identyfikatory w stagingu są zgodne z produkcją (`kraj_id` = prod `kraj_id`), więc wartości w `dluznik.dl_kraj_id` powinny pochodzić bezpośrednio z tego słownika. W produkcji znajduje się ok. 240 krajów; w stagingu ten słownik zasilamy kopiowaniem z prod, a iteracja 1 wykonuje idempotentny MERGE po `kraj_id`.
+
+<ul class="param-list">
+  <li>
+    <span class="param-name pk required">kraj_id</span>
+    <span class="param-type">INT</span>
+    <span class="param-desc">Identyfikator kraju (PK, zgodny z produkcją)</span>
+  </li>
+  <li>
+    <span class="param-name required">kraj_nazwa</span>
+    <span class="param-type">VARCHAR</span>
+    <span class="param-desc">Pełna nazwa kraju w języku polskim</span>
+  </li>
+  <li>
+    <span class="param-name deprecated">mod_date</span>
+    <span class="param-type">DATETIME</span>
+    <span class="param-desc">Kolumna techniczna - obsługiwana triggerami insert; nie wypełniać</span>
+  </li>
+  <li>
+    <span class="param-name deprecated">kraj_uuid</span>
+    <span class="param-type">UNIQUEIDENTIFIER</span>
+    <span class="param-desc">Kolumna techniczna - obsługiwana triggerami insert; nie wypełniać</span>
+  </li>
+</ul>
+
+</details>
+
 ### dbo.dokument_typ
 
 <details markdown="1">
