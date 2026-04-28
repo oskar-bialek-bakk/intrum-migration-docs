@@ -655,6 +655,8 @@ CREATE TABLE dbo.sprawa_rola (
     spr_sp_id   INT      NOT NULL,
     spr_dl_id   INT      NOT NULL,
     spr_sprt_id INT      NOT NULL,
+    spr_data_od DATE     NULL,
+    spr_data_do DATE     NULL,
     mod_date    DATETIME NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_sprawa_rola PRIMARY KEY (spr_id),
     CONSTRAINT FK_sprawa_rola_sprawa          FOREIGN KEY (spr_sp_id)   REFERENCES dbo.sprawa          (sp_id),

@@ -321,6 +321,8 @@ EXEC sp_addextendedproperty 'MS_Description', 'Klucz główny powiązania sprawy
 EXEC sp_addextendedproperty 'MS_Description', 'FK do sprawy', 'SCHEMA', 'dbo', 'TABLE', 'sprawa_rola', 'COLUMN', 'spr_sp_id';
 EXEC sp_addextendedproperty 'MS_Description', 'FK do dłużnika', 'SCHEMA', 'dbo', 'TABLE', 'sprawa_rola', 'COLUMN', 'spr_dl_id';
 EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika ról w sprawie', 'SCHEMA', 'dbo', 'TABLE', 'sprawa_rola', 'COLUMN', 'spr_sprt_id';
+EXEC sp_addextendedproperty 'MS_Description', 'Data początku obowiązywania roli dłużnika w sprawie. Pole opcjonalne - jeśli puste, podstawiana jest data wczytania wiersza do staging (mod_date)', 'SCHEMA', 'dbo', 'TABLE', 'sprawa_rola', 'COLUMN', 'spr_data_od';
+EXEC sp_addextendedproperty 'MS_Description', 'Data zakończenia obowiązywania roli dłużnika w sprawie. Pole opcjonalne - jeśli puste, podstawiana jest data sentinel 9999-12-31 (rola otwarta bezterminowo)', 'SCHEMA', 'dbo', 'TABLE', 'sprawa_rola', 'COLUMN', 'spr_data_do';
 EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - obsługiwana triggerami insert; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'sprawa_rola', 'COLUMN', 'mod_date';
 
 -- ------------------------------------------------------------

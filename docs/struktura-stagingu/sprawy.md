@@ -150,7 +150,7 @@ Rekord sprawy — jednostka pracy systemu DEBT Manager, powiązana z dłużnikie
   <span>Multi-row: tak (1 sprawa → N dłużników w różnych rolach)</span>
 </div>
 
-Tabela łącząca (junction) — każdy wiersz wiąże sprawę z dłużnikiem wraz z rolami w jakiej dłużnik (lub powiązana ze sprawą osoba) występuje w sprawie (np. dłużnik główny, poręczyciel, pełnomocnik). Jedna sprawa może mieć wielu dłużników w różnych rolach. Tabela jest materializacją wymogu STR_01 (sprawa bez dłużnika jest nieprawidłowa).
+Tabela łącząca (junction) — każdy wiersz wiąże sprawę z dłużnikiem wraz z rolami w jakiej dłużnik (lub powiązana ze sprawą osoba) występuje w sprawie (np. dłużnik główny, poręczyciel, pełnomocnik). Jedna sprawa może mieć wielu dłużników w różnych rolach. Tabela jest materializacją wymogu STR_01 (sprawa bez dłużnika jest nieprawidłowa). Opcjonalne okno obowiązywania roli: `spr_data_od`/`spr_data_do` (puste = rola otwarta bezterminowo).
 
 <ul class="param-list">
   <li>
@@ -172,6 +172,16 @@ Tabela łącząca (junction) — każdy wiersz wiąże sprawę z dłużnikiem wr
     <span class="param-name fk required">spr_sprt_id</span>
     <span class="param-type">INT</span>
     <span class="param-desc">FK do słownika ról w sprawie</span>
+  </li>
+  <li>
+    <span class="param-name">spr_data_od</span>
+    <span class="param-type">DATE</span>
+    <span class="param-desc">Data początku obowiązywania roli dłużnika w sprawie. Pole opcjonalne - jeśli puste, podstawiana jest data wczytania wiersza do staging</span>
+  </li>
+  <li>
+    <span class="param-name">spr_data_do</span>
+    <span class="param-type">DATE</span>
+    <span class="param-desc">Data zakończenia obowiązywania roli dłużnika w sprawie. Pole opcjonalne - jeśli puste, podstawiana jest data sentinel 9999-12-31 (rola otwarta bezterminowo)</span>
   </li>
   <li>
     <span class="param-name deprecated">mod_date</span>
