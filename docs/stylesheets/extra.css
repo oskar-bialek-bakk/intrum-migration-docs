@@ -1279,6 +1279,38 @@
   border-color: rgba(217, 119, 6, 0.25);
 }
 
+/* ─── KPI cards (raport-pomigracyjny.md) — mirror of .walidacja-card ─── */
+.kpi-card {
+  border: 1px solid var(--md-typeset-table-color);
+  border-left: 3px solid #9ca3af;
+  border-radius: 6px;
+  padding: 0.6rem 0.9rem;
+  margin: 0.5rem 0;
+  background: var(--md-default-bg-color);
+}
+.kpi-card .kpi-card-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  margin-bottom: 0.25rem;
+  flex-wrap: wrap;
+}
+.kpi-card .kpi-card-code {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  color: var(--md-default-fg-color);
+}
+.kpi-card .kpi-card-desc { margin: 0; font-size: 0.9em; color: var(--md-default-fg-color--light); }
+
+/* type color on left border — matches .kpi-typ-badge palette */
+.kpi-card.kpi-card-count   { border-left-color: #60a5fa; }
+.kpi-card.kpi-card-sum     { border-left-color: #c084fc; }
+.kpi-card.kpi-card-anomaly { border-left-color: #fbbf24; }
+
+[data-md-color-scheme="default"] .kpi-card.kpi-card-count   { border-left-color: #2563eb; }
+[data-md-color-scheme="default"] .kpi-card.kpi-card-sum     { border-left-color: #7c3aed; }
+[data-md-color-scheme="default"] .kpi-card.kpi-card-anomaly { border-left-color: #d97706; }
+
 /* Uwaga (note) text — small muted */
 .kpi-note {
   font-size: 0.8em;
