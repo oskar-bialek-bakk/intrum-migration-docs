@@ -37,6 +37,7 @@ erDiagram
         int     wir_id          PK
         int     wir_sp_id       FK
         int     wir_wi_id       FK
+        int     wir_rl_id       FK   "rola (opcjonalna)"
     }
 
     dokument {

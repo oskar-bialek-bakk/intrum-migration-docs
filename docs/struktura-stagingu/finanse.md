@@ -17,7 +17,7 @@ Iteracja 8 obejmuje księgowania i dekrety — kwoty obciążające/uznanie wier
 
 ## Diagram ER
 
-Diagram pokazuje dwie encje finansowe iteracji 8 (`ksiegowanie`, `ksiegowanie_dekret`) oraz minimalne stuby `ksiegowanie_typ`, `ksiegowanie_konto`, `waluta` (iteracja 1) i `dokument` (iteracja 7) jako punkty zaczepienia FK. Słownik typów księgowań — [Słowniki § dbo.ksiegowanie_typ](slowniki.md#dboksiegowanie_typ); słownik kont księgowych — [Słowniki § dbo.ksiegowanie_konto](slowniki.md#dboksiegowanie_konto); słownik walut — [Słowniki § dbo.waluta](slowniki.md); dokumenty — [Role wierzytelności i dokumenty § dbo.dokument](role-wierzytelnosci-i-dokumenty.md#dbodokument). Staging `dbo.operacja` nie ma bezpośredniego odpowiednika w modelu prod — jego kwoty są rozbijane na pozycje rodzajowe (kapitał, odsetki, opłaty, prowizje) i zasilają równocześnie `ksiegowanie` oraz `ksiegowanie_dekret`, dlatego nie pojawia się jako osobna encja na diagramie. Kolumny staging niewykorzystywane przez iterację 8 (`ksd_ksksub_id`, większość kolumn opisowych `operacja`) są wymienione w param-list, ale pominięte na diagramie.
+Diagram pokazuje trzy encje finansowe iteracji 8 (`ksiegowanie`, `ksiegowanie_dekret`, `operacja`) oraz minimalne stuby `ksiegowanie_typ`, `ksiegowanie_konto`, `ksiegowanie_konto_subkonto`, `waluta` (iteracja 1), `dokument` i `wierzytelnosc` (iteracje 6–7) jako punkty zaczepienia FK. Słownik typów księgowań — [Słowniki § dbo.ksiegowanie_typ](slowniki.md#dboksiegowanie_typ); słownik kont księgowych — [Słowniki § dbo.ksiegowanie_konto](slowniki.md#dboksiegowanie_konto); słownik walut — [Słowniki § dbo.waluta](slowniki.md); dokumenty — [Role wierzytelności i dokumenty § dbo.dokument](role-wierzytelnosci-i-dokumenty.md#dbodokument). Staging `dbo.operacja` nie ma bezpośredniego odpowiednika 1:1 w modelu prod — jego kwoty są rozbijane na pozycje rodzajowe (kapitał, odsetki, opłaty, prowizje) i zasilają równocześnie `ksiegowanie` oraz `ksiegowanie_dekret`.
 
 ```mermaid
 erDiagram
@@ -29,6 +29,10 @@ erDiagram
         int     ksk_id    PK
     }
 
+    ksiegowanie_konto_subkonto {
+        int     ksksub_id PK
+    }
+
     waluta {
         int     wa_id     PK
     }
@@ -37,30 +41,99 @@ erDiagram
         int     do_id     PK
     }
 
+    wierzytelnosc {
+        int     wi_id     PK
+    }
+
+    sprawa {
+        int     sp_id     PK
+    }
+
+    dokument_typ {
+        int     dot_id    PK
+    }
+
     ksiegowanie {
-        int      ks_id                      PK
+        int      ks_id                       PK
         date     ks_data_ksiegowania
         date     ks_data_operacji
         varchar  ks_uwagi
-        int      ks_kst_id                  FK
+        int      ks_kst_id                   FK
         bit      ks_pierwotne
+        bit      ks_korekta
     }
 
     ksiegowanie_dekret {
-        int      ksd_id                      PK
-        int      ksd_ks_id                   FK
-        int      ksd_ksk_id                  FK
-        int      ksd_do_id                   FK
-        int      ksd_wa_id                   FK
-        date     ksd_data_wymagalnosci
+        int      ksd_id                       PK
+        int      ksd_ks_id                    FK
+        int      ksd_do_id                    FK   "opcjonalny"
+        decimal  ksd_kwota                         "+ Winien / − Ma"
         date     ksd_data_naliczania_odsetek
+        date     ksd_data_wymagalnosci
+        int      ksd_ksk_id                   FK
+        varchar  ksd_uwagi
+        int      ksd_sp_id                    FK   "repertorium"
+        decimal  ksd_kurs_bazowy
+        decimal  ksd_kwota_wn_wyceny               "rezerwa"
+        decimal  ksd_kwota_ma_wyceny               "rezerwa"
+        int      ksd_wa_id_wyceny             FK   "rezerwa"
+        decimal  ksd_kwota_wn_bazowa               "PLN"
+        decimal  ksd_kwota_ma_bazowa               "PLN"
+        int      ksd_wa_id                    FK
+        int      ksd_ksksub_id                FK   "schema-only iter8"
     }
 
-    ksiegowanie         }o--||  ksiegowanie_typ    : "ks_kst_id"
-    ksiegowanie_dekret  }o--||  ksiegowanie        : "ksd_ks_id"
-    ksiegowanie_dekret  }o--||  ksiegowanie_konto  : "ksd_ksk_id"
-    ksiegowanie_dekret  }o--||  dokument           : "ksd_do_id"
-    ksiegowanie_dekret  }o--||  waluta             : "ksd_wa_id"
+    operacja {
+        int      oper_id                          PK
+        int      oper_wi_id                       FK
+        varchar  oper_waluta                           "kod SWIFT"
+        varchar  oper_rejestr_kod                      "Wn vs Ma"
+        varchar  oper_typ_dekretu
+        varchar  oper_opis_dekretu
+        int      oper_dokument_typ_prod_id        FK   "→ dokument_typ"
+        int      oper_dokument_podtyp_prod_id
+        varchar  oper_dokument_typ_prod_opis
+        varchar  oper_dokument_podtyp_prod_opis
+        int      oper_dokument_prod_id            FK   "→ dokument"
+        varchar  oper_opis_slowny
+        varchar  oper_opis
+        varchar  oper_strona
+        decimal  oper_kwota
+        decimal  oper_kwota_dekretu
+        decimal  oper_kwota_kapitalu                  "→ KAP"
+        decimal  oper_kwota_odsetek                   "→ ODU"
+        decimal  oper_kowta_odsetek_karnych           "→ ODK (sic)"
+        decimal  oper_kwota_oplaty                    "→ OPL"
+        decimal  oper_kwota_prowizji                  "→ PRW"
+        decimal  oper_kwota_w_pln
+        decimal  oper_kwota_dekretu_w_pln
+        decimal  oper_kwota_kapitalu_w_pln
+        decimal  oper_kwota_odsetek_w_pln
+        decimal  oper_kowta_odsetek_karnych_w_pln
+        decimal  oper_kwota_oplaty_w_pln
+        decimal  oper_kwota_prowizji_w_pln
+        date     oper_data_waluty
+        date     oper_data_danych
+        date     oper_data_dekretu
+        date     oper_data_ksiegowania
+        varchar  oper_beneficjent_nazwa
+        varchar  oper_remitter_nazwa
+        varchar  oper_konto
+        int      oper_do_id                       FK
+    }
+
+    ksiegowanie         }o--||  ksiegowanie_typ            : "ks_kst_id"
+    ksiegowanie_dekret  }o--||  ksiegowanie                : "ksd_ks_id"
+    ksiegowanie_dekret  }o--||  ksiegowanie_konto          : "ksd_ksk_id"
+    ksiegowanie_dekret  }o--o|  ksiegowanie_konto_subkonto : "ksd_ksksub_id"
+    ksiegowanie_dekret  }o--o|  dokument                   : "ksd_do_id"
+    ksiegowanie_dekret  }o--o|  sprawa                     : "ksd_sp_id"
+    ksiegowanie_dekret  }o--o|  waluta                     : "ksd_wa_id"
+    ksiegowanie_dekret  }o--o|  waluta                     : "ksd_wa_id_wyceny"
+    operacja            }o--o|  wierzytelnosc              : "oper_wi_id"
+    operacja            }o--o|  dokument_typ               : "oper_dokument_typ_prod_id"
+    operacja            }o--o|  dokument                   : "oper_dokument_prod_id"
+    operacja            }o--o|  dokument                   : "oper_do_id"
 ```
 
 ## Tabele
@@ -109,6 +182,11 @@ Nagłówek księgowania finansowego — data operacji, data zaksięgowania, typ 
     <span class="param-name">ks_pierwotne</span>
     <span class="param-type">BIT</span>
     <span class="param-desc">Flaga: księgowanie pierwotne (1) vs. korygujące (0).</span>
+  </li>
+  <li>
+    <span class="param-name">ks_korekta</span>
+    <span class="param-type">BIT</span>
+    <span class="param-desc">Flaga: księgowanie jest korektą (1) wcześniejszego księgowania pierwotnego — komplementarna do <code>ks_pierwotne</code>.</span>
   </li>
   <li>
     <span class="param-name deprecated">mod_date</span>

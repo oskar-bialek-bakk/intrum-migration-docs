@@ -39,30 +39,36 @@ erDiagram
     }
 
     adres {
-        int     ad_id          PK
-        int     ad_dl_id       FK
-        int     ad_at_id       FK
-        varchar ad_ulica
-        varchar ad_nr_domu
-        varchar ad_nr_lokalu
-        varchar ad_kod
-        varchar ad_miejscowosc
-        varchar ad_poczta
-        varchar ad_panstwo
-        varchar ad_uwagi
+        int      ad_id          PK
+        int      ad_dl_id       FK
+        int      ad_at_id       FK
+        varchar  ad_ulica
+        varchar  ad_nr_domu
+        varchar  ad_nr_lokalu
+        varchar  ad_kod
+        varchar  ad_miejscowosc
+        varchar  ad_poczta
+        varchar  ad_panstwo
+        varchar  ad_uwagi
+        datetime ad_data_od
+        datetime ad_data_do            "NULL = aktywny"
     }
 
     mail {
-        int     ma_id            PK
-        int     ma_dl_id         FK
-        varchar ma_adres_mailowy
+        int      ma_id            PK
+        int      ma_dl_id         FK
+        varchar  ma_adres_mailowy
+        datetime ma_data_od
+        datetime ma_data_do            "NULL = aktywny"
     }
 
     telefon {
-        int     tn_id    PK
-        int     tn_dl_id FK
-        int     tn_tt_id FK
-        varchar tn_numer
+        int      tn_id    PK
+        int      tn_dl_id FK
+        int      tn_tt_id FK
+        varchar  tn_numer
+        datetime tn_data_od
+        datetime tn_data_do            "NULL = aktywny"
     }
 
     adres       }o--||  dluznik     : "ad_dl_id"

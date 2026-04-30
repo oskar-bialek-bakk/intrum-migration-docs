@@ -52,7 +52,9 @@ erDiagram
         varchar dl_dowod
         varchar dl_paszport
         varchar dl_firma
+        varchar dl_dluznik           "wewnetrzny numer ewidencyjny"
         varchar dl_uwagi
+        int     dl_import_info       "ID paczki importu"
     }
 
     kraj {

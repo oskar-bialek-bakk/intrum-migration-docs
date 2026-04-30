@@ -32,6 +32,9 @@ erDiagram
 
     wlasciwosc {
         int         wl_id              PK
+        int         wl_wtpd_id         FK   "→ wlasciwosc_typ_podtyp_dziedzina"
+        datetime    wl_aktywny_od
+        datetime    wl_aktywny_do            "NULL = aktywna"
     }
 
     wlasciwosc_dluznik {

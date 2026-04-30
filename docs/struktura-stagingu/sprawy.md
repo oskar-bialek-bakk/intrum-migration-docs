@@ -42,19 +42,24 @@ erDiagram
     }
 
     sprawa {
-        int     sp_id             PK
-        int     sp_spe_id         FK
-        int     sp_spt_id         FK
-        varchar sp_numer_sprawy
-        varchar sp_pracownik          "→ GE_USER.US_LOGIN w prod"
-        varchar sp_numer_rachunku
+        int      sp_id              PK
+        int      sp_spe_id          FK
+        int      sp_spt_id          FK
+        varchar  sp_numer_sprawy
+        varchar  sp_pracownik             "→ GE_USER.US_LOGIN w prod"
+        varchar  sp_numer_rachunku
+        varchar  sp_import_info           "ID paczki importu"
+        datetime sp_data_obslugi_od
+        datetime sp_data_obslugi_do
     }
 
     sprawa_rola {
-        int     spr_id      PK
-        int     spr_sp_id   FK
-        int     spr_dl_id   FK
-        int     spr_sprt_id FK
+        int      spr_id      PK
+        int      spr_sp_id   FK
+        int      spr_dl_id   FK
+        int      spr_sprt_id FK
+        date     spr_data_od        "puste = data wczytania"
+        date     spr_data_do        "puste = 9999-12-31"
     }
 
     sprawa       }o--||  sprawa_etap     : "sp_spe_id"
