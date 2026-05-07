@@ -97,6 +97,7 @@ DROP TABLE IF EXISTS dbo.akcja_typ;
 
 -- logowanie and configuration schema cleanup
 DROP TABLE IF EXISTS log.prod_snapshot;
+DROP TABLE IF EXISTS log.check_toggle;
 DROP TABLE IF EXISTS log.configuration;
 DROP TABLE IF EXISTS log.validation_result;
 DROP TABLE IF EXISTS log.postmigration_check;
@@ -806,6 +807,9 @@ CREATE TABLE log.migration_run (
     records_success  INT               NULL,
     records_failed   INT               NULL,
     notes            NVARCHAR(MAX)     NULL,
+    toggle_config_hash       CHAR(64)    NULL,   -- SHA-256 of the JSON body actually loaded
+    toggle_config_fetched_at DATETIME    NULL,   -- when run_load_toggles.js fetched it (UTC)
+    toggle_config_source     VARCHAR(20) NULL,   -- 'remote' | 'file' | 'env' | 'cache'
     CONSTRAINT PK_migration_run PRIMARY KEY (run_id)
 );
 
@@ -840,7 +844,7 @@ CREATE TABLE log.validation_result (
     check_name     VARCHAR(100)      NOT NULL,
     check_type     VARCHAR(30)       NOT NULL,   -- REFERENTIAL / TECHNICAL / BUSINESS_RULE / FORMAT
     severity       VARCHAR(10)       NOT NULL,   -- BLOCKING / WARNING / INFO
-    affected_count INT               NOT NULL DEFAULT 0,
+    affected_count INT               NULL,                  -- NULL = check was skipped (see log.check_toggle)
     sample_ids     VARCHAR(500)      NULL,
     detail         NVARCHAR(MAX)     NULL,
     logged_at      DATETIME          NOT NULL DEFAULT GETDATE(),
@@ -856,7 +860,7 @@ CREATE TABLE log.postmigration_check (
     expected_value NVARCHAR(200)     NULL,
     actual_value   NVARCHAR(200)     NULL,
     delta          NVARCHAR(200)     NULL,
-    pass           BIT               NOT NULL DEFAULT 0,
+    pass           BIT               NULL,                            -- NULL = KPI was skipped (see log.check_toggle)
     note           NVARCHAR(MAX)     NULL,
     checked_at     DATETIME          NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_postmigration_check PRIMARY KEY (check_id),
@@ -876,6 +880,146 @@ CREATE TABLE log.configuration (
 -- Value must exist in prod GE_USER table (FK enforced on wlasciwosc).
 -- Update this value to match the actual system admin user ID in prod before running migration.
 INSERT INTO log.configuration (setting_name, setting_value) VALUES ('system_admin_user_id', '5');
+
+-- ============================================================
+-- Validation/KPI toggle configuration
+-- See migration/internal/superpowers/specs/2026-05-06-validation-toggles-design.md
+-- ============================================================
+CREATE TABLE log.check_toggle (
+    short_id   VARCHAR(20)   NOT NULL,
+    check_name VARCHAR(100)  NOT NULL,
+    check_kind VARCHAR(20)   NOT NULL,    -- 'VALIDATION' | 'KPI'
+    severity   VARCHAR(10)   NOT NULL,    -- BLOCKING/WARNING/INFO (validations); CRITICAL/INFO (KPIs)
+    enabled    BIT           NOT NULL DEFAULT 1,
+    reason     NVARCHAR(500) NULL,
+    source     VARCHAR(20)   NOT NULL DEFAULT 'default',  -- 'default' | 'json_override'
+    CONSTRAINT PK_check_toggle PRIMARY KEY (check_name),
+    CONSTRAINT UQ_check_toggle_short_id UNIQUE (short_id)
+);
+
+INSERT INTO log.check_toggle (short_id, check_name, check_kind, severity) VALUES
+    ('BIZ_03', 'BIZ_03_dluznik_no_sprawa_rola', 'VALIDATION', 'WARNING'),
+    ('BIZ_04', 'BIZ_04_wierzytelnosc_no_dokument', 'VALIDATION', 'WARNING'),
+    ('BIZ_07', 'BIZ_07_sprawa_no_akcja', 'VALIDATION', 'WARNING'),
+    ('BIZ_13', 'BIZ_13_dluznik_no_identifier', 'VALIDATION', 'INFO'),
+    ('BIZ_14', 'BIZ_14_wierzytelnosc_no_ksiegowanie', 'VALIDATION', 'INFO'),
+    ('BIZ_16', 'BIZ_16_dokument_no_due_date', 'VALIDATION', 'BLOCKING'),
+    ('BIZ_17', 'BIZ_17_ksiegowanie_future_accounting_date', 'VALIDATION', 'INFO'),
+    ('BIZ_18', 'BIZ_18_ksiegowanie_future_operation_date', 'VALIDATION', 'INFO'),
+    ('BIZ_19', 'BIZ_19_wierzytelnosc_future_liability_date', 'VALIDATION', 'INFO'),
+    ('BIZ_20', 'BIZ_20_adres_active_per_type_exceeds_limit', 'VALIDATION', 'BLOCKING'),
+    ('FMT_01', 'FMT_01_dluznik_pesel_format', 'VALIDATION', 'WARNING'),
+    ('FMT_02', 'FMT_02_dluznik_nip_format', 'VALIDATION', 'WARNING'),
+    ('FMT_03', 'FMT_03_dluznik_regon_format', 'VALIDATION', 'WARNING'),
+    ('FMT_04', 'FMT_04_adres_kod_pocztowy_format', 'VALIDATION', 'WARNING'),
+    ('FMT_05', 'FMT_05_mail_adres_format', 'VALIDATION', 'WARNING'),
+    ('FMT_06', 'FMT_06_telefon_numer_min_digits', 'VALIDATION', 'WARNING'),
+    ('FMT_07', 'FMT_07_telefon_brak_numeru_kierunkowego', 'VALIDATION', 'INFO'),
+    ('FMT_08', 'FMT_08_dokument_data_wymagalnosci_przed_wystawieniem', 'VALIDATION', 'WARNING'),
+    ('FMT_11', 'FMT_11_akcja_data_zakonczenia_w_przyszlosci', 'VALIDATION', 'WARNING'),
+    ('FMT_12', 'FMT_12_wierzytelnosc_data_umowy_w_przyszlosci', 'VALIDATION', 'WARNING'),
+    ('KPI_ANO_01', 'KPI_ANO_01_wi_bez_dokumentu', 'KPI', 'INFO'),
+    ('KPI_ANO_02', 'KPI_ANO_02_ks_bez_dekretu', 'KPI', 'INFO'),
+    ('KPI_ANO_03', 'KPI_ANO_03_dluznik_bez_roli', 'KPI', 'INFO'),
+    ('KPI_ANO_04', 'KPI_ANO_04_sprawa_bez_wi_rola', 'KPI', 'INFO'),
+    ('KPI_ANO_05a', 'KPI_ANO_05a_dluznik_telefon_anomaly', 'KPI', 'INFO'),
+    ('KPI_ANO_05b', 'KPI_ANO_05b_dluznik_adres_anomaly', 'KPI', 'INFO'),
+    ('KPI_ANO_05c', 'KPI_ANO_05c_sprawa_akcja_anomaly', 'KPI', 'INFO'),
+    ('KPI_ANO_05d', 'KPI_ANO_05d_wi_dokument_anomaly', 'KPI', 'INFO'),
+    ('KPI_ANO_06', 'KPI_ANO_06_dluznik_bez_identyfikatora', 'KPI', 'INFO'),
+    ('KPI_ANO_07', 'KPI_ANO_07_double_entry_balance_prod', 'KPI', 'INFO'),
+    ('KPI_ANO_08', 'KPI_ANO_08_ext_id_null', 'KPI', 'INFO'),
+    ('KPI_ANO_09', 'KPI_ANO_09_ext_id_duplicate', 'KPI', 'INFO'),
+    ('KPI_ANO_10', 'KPI_ANO_10_wi_bez_wierzytelnosc_rola', 'KPI', 'INFO'),
+    ('KPI_ANO_11', 'KPI_ANO_11_dluznik_dob_brak_pomimo_pesel', 'KPI', 'INFO'),
+    ('KPI_CNT_01', 'KPI_CNT_01_dluznik', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_02', 'KPI_CNT_02_sprawa', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_03', 'KPI_CNT_03_wierzytelnosc', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_04', 'KPI_CNT_04_sprawa_rola', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_05', 'KPI_CNT_05_wierzytelnosc_rola', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_06', 'KPI_CNT_06_adres', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_07', 'KPI_CNT_07_telefon', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_08', 'KPI_CNT_08_mail', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_09', 'KPI_CNT_09_akcja', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_10', 'KPI_CNT_10_dokument', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_11', 'KPI_CNT_11_ksiegowanie', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_12', 'KPI_CNT_12_ksiegowanie_dekret', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_13', 'KPI_CNT_13_migration_errors', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_14', 'KPI_CNT_14_rachunek_bankowy', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_15', 'KPI_CNT_15_operator', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_16', 'KPI_CNT_16_atrybut_wartosc', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_17', 'KPI_CNT_17_atrybut_dluznik', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_18', 'KPI_CNT_18_atrybut_sprawa', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_19', 'KPI_CNT_19_atrybut_wierzytelnosc', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_20', 'KPI_CNT_20_atrybut_dokument', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_21', 'KPI_CNT_21_wlasciwosc', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_22', 'KPI_CNT_22_wlasciwosc_dluznik', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_23', 'KPI_CNT_23_wlasciwosc_adres', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_24', 'KPI_CNT_24_wlasciwosc_email', 'KPI', 'CRITICAL'),
+    ('KPI_CNT_25', 'KPI_CNT_25_wlasciwosc_telefon', 'KPI', 'CRITICAL'),
+    ('KPI_SUM_01', 'KPI_SUM_01_ksd_kwota_total', 'KPI', 'CRITICAL'),
+    ('KPI_SUM_02', 'KPI_SUM_02_oper_kwota_pln_vs_ksd_wn', 'KPI', 'CRITICAL'),
+    ('KPI_SUM_03', 'KPI_SUM_03_kapital_pln', 'KPI', 'CRITICAL'),
+    ('KPI_SUM_04', 'KPI_SUM_04_odsetki_pln', 'KPI', 'CRITICAL'),
+    ('REF_01', 'REF_01_sprawa_rola_dluznik', 'VALIDATION', 'BLOCKING'),
+    ('REF_02', 'REF_02_sprawa_rola_sprawa', 'VALIDATION', 'BLOCKING'),
+    ('REF_03', 'REF_03_sprawa_rola_sprawa_rola_typ', 'VALIDATION', 'BLOCKING'),
+    ('REF_04', 'REF_04_wierzytelnosc_rola_wierzytelnosc', 'VALIDATION', 'BLOCKING'),
+    ('REF_05', 'REF_05_wierzytelnosc_rola_sprawa', 'VALIDATION', 'BLOCKING'),
+    ('REF_06', 'REF_06_wierzytelnosc_umowa_kontrahent', 'VALIDATION', 'BLOCKING'),
+    ('REF_07', 'REF_07_dokument_wierzytelnosc', 'VALIDATION', 'BLOCKING'),
+    ('REF_08', 'REF_08_dokument_dokument_typ', 'VALIDATION', 'BLOCKING'),
+    ('REF_09', 'REF_09_adres_dluznik', 'VALIDATION', 'BLOCKING'),
+    ('REF_10', 'REF_10_adres_adres_typ', 'VALIDATION', 'BLOCKING'),
+    ('REF_11', 'REF_11_telefon_dluznik', 'VALIDATION', 'BLOCKING'),
+    ('REF_12', 'REF_12_telefon_telefon_typ', 'VALIDATION', 'BLOCKING'),
+    ('REF_13', 'REF_13_mail_dluznik', 'VALIDATION', 'BLOCKING'),
+    ('REF_14', 'REF_14_akcja_sprawa', 'VALIDATION', 'BLOCKING'),
+    ('REF_15', 'REF_15_atrybut_atrybut_typ', 'VALIDATION', 'BLOCKING'),
+    ('REF_16', 'REF_16_atrybut_dokument', 'VALIDATION', 'BLOCKING'),
+    ('REF_17', 'REF_17_atrybut_wierzytelnosc', 'VALIDATION', 'BLOCKING'),
+    ('REF_18', 'REF_18_atrybut_dluznik', 'VALIDATION', 'BLOCKING'),
+    ('REF_19', 'REF_19_atrybut_sprawa', 'VALIDATION', 'BLOCKING'),
+    ('REF_20', 'REF_20_ksiegowanie_dekret_ksiegowanie', 'VALIDATION', 'BLOCKING'),
+    ('REF_21', 'REF_21_ksiegowanie_dekret_ksiegowanie_konto', 'VALIDATION', 'BLOCKING'),
+    ('REF_22', 'REF_22_ksiegowanie_dekret_dokument', 'VALIDATION', 'BLOCKING'),
+    ('REF_23', 'REF_23_operacja_wierzytelnosc', 'VALIDATION', 'BLOCKING'),
+    ('REF_24', 'REF_24_sprawa_sprawa_typ', 'VALIDATION', 'BLOCKING'),
+    ('REF_25', 'REF_25_sprawa_etap_sprawa_typ', 'VALIDATION', 'BLOCKING'),
+    ('REF_26', 'REF_26_dluznik_dluznik_typ', 'VALIDATION', 'BLOCKING'),
+    ('REF_27', 'REF_27_operacja_waluta', 'VALIDATION', 'BLOCKING'),
+    ('REF_28', 'REF_28_operacja_dokument', 'VALIDATION', 'BLOCKING'),
+    ('REF_29', 'REF_29_ksiegowanie_ksiegowanie_typ', 'VALIDATION', 'BLOCKING'),
+    ('REF_30', 'REF_30_dluznik_plec', 'VALIDATION', 'BLOCKING'),
+    ('REF_31', 'REF_31_sprawa_sprawa_etap', 'VALIDATION', 'BLOCKING'),
+    ('REF_32', 'REF_32_akcja_akcja_typ', 'VALIDATION', 'BLOCKING'),
+    ('REF_33', 'REF_33_rezultat_akcja', 'VALIDATION', 'BLOCKING'),
+    ('REF_34', 'REF_34_rezultat_rezultat_typ', 'VALIDATION', 'BLOCKING'),
+    ('REF_35', 'REF_35_ksiegowanie_dekret_konto_subkonto', 'VALIDATION', 'BLOCKING'),
+    ('STR_01', 'STR_01_sprawa_no_rola', 'VALIDATION', 'BLOCKING'),
+    ('STR_02', 'STR_02_sprawa_no_wierzytelnosc', 'VALIDATION', 'INFO'),
+    ('STR_03', 'STR_03_sprawa_no_wierzytelnosc_but_has_related', 'VALIDATION', 'BLOCKING'),
+    ('STR_04', 'STR_04_ksiegowanie_no_dekret', 'VALIDATION', 'BLOCKING'),
+    ('STR_05', 'STR_05_double_entry_imbalance', 'VALIDATION', 'BLOCKING'),
+    ('STR_06', 'STR_06_akcja_no_rezultat', 'VALIDATION', 'BLOCKING'),
+    ('STR_07', 'STR_07_harmonogram_no_wierzytelnosc', 'VALIDATION', 'WARNING'),
+    ('STR_08', 'STR_08_dluznik_too_many_phones', 'VALIDATION', 'WARNING'),
+    ('STR_09', 'STR_09_dluznik_too_many_adresy', 'VALIDATION', 'WARNING'),
+    ('STR_10', 'STR_10_sprawa_too_many_akcje', 'VALIDATION', 'WARNING'),
+    ('STR_11', 'STR_11_wierzytelnosc_too_many_dokumenty', 'VALIDATION', 'WARNING'),
+    ('TECH_01', 'TECH_01_dluznik_dl_plec_null', 'VALIDATION', 'WARNING'),
+    ('TECH_03', 'TECH_03_sprawa_sp_numer_rachunku_null', 'VALIDATION', 'BLOCKING'),
+    ('TECH_04', 'TECH_04_wierzytelnosc_wi_uko_id_null', 'VALIDATION', 'BLOCKING'),
+    ('TECH_05', 'TECH_05_dokument_do_wi_id_null', 'VALIDATION', 'WARNING'),
+    ('TECH_06', 'TECH_06_akcja_ak_sp_id_null', 'VALIDATION', 'BLOCKING'),
+    ('TECH_07', 'TECH_07_atrybut_at_ob_id_null', 'VALIDATION', 'BLOCKING'),
+    ('TECH_08', 'TECH_08_atrybut_at_wartosc_null', 'VALIDATION', 'WARNING'),
+    ('TECH_09', 'TECH_09_ksiegowanie_dekret_ksd_ks_id_null', 'VALIDATION', 'BLOCKING'),
+    ('TECH_10', 'TECH_10_operacja_oper_waluta_null_with_amount', 'VALIDATION', 'WARNING');
+
+-- Safety: catch any duplicate short_id at seed time (would cause silent toggle misroutes)
+IF EXISTS (SELECT short_id FROM log.check_toggle GROUP BY short_id HAVING COUNT(*) > 1)
+    THROW 50020, 'Duplicate short_id detected in log.check_toggle seed. Fix staging.sql before proceeding.', 1;
 
 -- ============================================================
 -- Shared migration helper procedures (used by iter2-9 scripts)

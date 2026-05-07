@@ -89,3 +89,6 @@ nav:
     - Uruchomienie: przebieg-migracji/uruchomienie.md
     - Raport pomigracyjny: przebieg-migracji/raport-pomigracyjny.md
   - Odbiór: odbior/odbior-danych.md
+  - Toggle Configuration:
+    - Overview: check-toggles.md
+    - Available Checks: check-toggles-catalog.md
