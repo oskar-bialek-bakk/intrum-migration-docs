@@ -71,6 +71,7 @@ nav:
     - przygotowanie-danych/index.md
     - Kolejność zasilania tabel: przygotowanie-danych/kolejnosc-zasilania-tabel.md
     - Walidacje przed migracją: przygotowanie-danych/walidacje.md
+    - Konfiguracja walidacji i KPI: przygotowanie-danych/konfiguracja-walidacji.md
     - Korekta danych po walidacji: przygotowanie-danych/korekta-danych-po-walidacji.md
   - Struktura stagingu:
     - struktura-stagingu/index.md
@@ -89,6 +90,3 @@ nav:
     - Uruchomienie: przebieg-migracji/uruchomienie.md
     - Raport pomigracyjny: przebieg-migracji/raport-pomigracyjny.md
   - Odbiór: odbior/odbior-danych.md
-  - Toggle Configuration:
-    - Overview: check-toggles.md
-    - Available Checks: check-toggles-catalog.md
