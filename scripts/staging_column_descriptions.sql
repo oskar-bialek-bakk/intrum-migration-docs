@@ -117,7 +117,7 @@ EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - obsługiwana
 -- ------------------------------------------------------------
 -- dbo.waluta
 -- ------------------------------------------------------------
-EXEC sp_addextendedproperty 'MS_Description', 'Kopia referencyjna tabeli walut z produkcji (dm_data_web_pipeline) - wypełniana przed uruchomieniem migracji, nie edytować', 'SCHEMA', 'dbo', 'TABLE', 'waluta';
+EXEC sp_addextendedproperty 'MS_Description', 'Kopia referencyjna tabeli walut z produkcji (baza źródłowa) - wypełniana przed uruchomieniem migracji, nie edytować', 'SCHEMA', 'dbo', 'TABLE', 'waluta';
 EXEC sp_addextendedproperty 'MS_Description', 'Identyfikator waluty (PK, zgodny z produkcją)', 'SCHEMA', 'dbo', 'TABLE', 'waluta', 'COLUMN', 'wa_id';
 EXEC sp_addextendedproperty 'MS_Description', 'Pełna nazwa waluty (np. Polski Złoty, Euro)', 'SCHEMA', 'dbo', 'TABLE', 'waluta', 'COLUMN', 'wa_nazwa';
 EXEC sp_addextendedproperty 'MS_Description', 'Skrócona nazwa waluty (kod ISO, np. PLN, EUR)', 'SCHEMA', 'dbo', 'TABLE', 'waluta', 'COLUMN', 'wa_nazwa_skrocona';
