@@ -25,7 +25,7 @@ Diagram pokazuje tabele kontaktowe iteracja 3 oraz ich powiązanie z `dluznik` (
 ```mermaid
 erDiagram
     dluznik {
-        int     dl_id    PK
+        bigint  dl_id    PK
     }
 
     adres_typ {
@@ -39,8 +39,8 @@ erDiagram
     }
 
     adres {
-        int      ad_id          PK
-        int      ad_dl_id       FK
+        bigint   ad_id          PK
+        bigint   ad_dl_id       FK
         int      ad_at_id       FK
         varchar  ad_ulica
         varchar  ad_nr_domu
@@ -55,16 +55,16 @@ erDiagram
     }
 
     mail {
-        int      ma_id            PK
-        int      ma_dl_id         FK
+        bigint   ma_id            PK
+        bigint   ma_dl_id         FK
         varchar  ma_adres_mailowy
         datetime ma_data_od
         datetime ma_data_do            "NULL = aktywny"
     }
 
     telefon {
-        int      tn_id    PK
-        int      tn_dl_id FK
+        bigint   tn_id    PK
+        bigint   tn_dl_id FK
         int      tn_tt_id FK
         varchar  tn_numer
         datetime tn_data_od
@@ -97,12 +97,12 @@ Adresy przypisane do dłużnika, z typem określonym przez `ad_at_id` (FK do sł
 <ul class="param-list">
   <li>
     <span class="param-name pk required">ad_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">Klucz główny adresu w stagingu</span>
   </li>
   <li>
     <span class="param-name fk required">ad_dl_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">FK do dłużnika (dluznik.dl_id)</span>
   </li>
   <li>
@@ -188,12 +188,12 @@ Adresy e-mail przypisane do dłużnika. Okres obowiązywania opisują kolumny `m
 <ul class="param-list">
   <li>
     <span class="param-name pk required">ma_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">Klucz główny adresu e-mail w stagingu</span>
   </li>
   <li>
     <span class="param-name fk required">ma_dl_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">FK do dłużnika (dluznik.dl_id)</span>
   </li>
   <li>
@@ -239,12 +239,12 @@ Numery telefonów przypisane do dłużnika, z typem określonym przez `tn_tt_id`
 <ul class="param-list">
   <li>
     <span class="param-name pk required">tn_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">Klucz główny numeru telefonu w stagingu</span>
   </li>
   <li>
     <span class="param-name fk required">tn_dl_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">FK do dłużnika (dluznik.dl_id)</span>
   </li>
   <li>

@@ -22,7 +22,7 @@ Diagram pokazuje tabele iteracji 4 (sprawa + sprawa_rola wraz z ich słownikami)
 ```mermaid
 erDiagram
     dluznik {
-        int     dl_id    PK
+        bigint  dl_id    PK
     }
 
     sprawa_typ {
@@ -42,7 +42,7 @@ erDiagram
     }
 
     sprawa {
-        int      sp_id              PK
+        bigint   sp_id              PK
         int      sp_spe_id          FK
         int      sp_spt_id          FK
         varchar  sp_numer_sprawy
@@ -54,9 +54,9 @@ erDiagram
     }
 
     sprawa_rola {
-        int      spr_id      PK
-        int      spr_sp_id   FK
-        int      spr_dl_id   FK
+        bigint   spr_id      PK
+        bigint   spr_sp_id   FK
+        bigint   spr_dl_id   FK
         int      spr_sprt_id FK
         date     spr_data_od        "puste = data wczytania"
         date     spr_data_do        "puste = 9999-12-31"
@@ -89,8 +89,8 @@ Rekord sprawy — jednostka pracy systemu DEBT Manager, powiązana z dłużnikie
 <ul class="param-list">
   <li>
     <span class="param-name pk required">sp_id</span>
-    <span class="param-type">INT</span>
-    <span class="param-desc">Klucz główny sprawy w stagingu</span>
+    <span class="param-type">BIGINT</span>
+    <span class="param-desc">Klucz główny sprawy w stagingu (BIGINT — 8-bajtowy, dopuszcza identyfikatory źródłowe spoza zakresu INT)</span>
   </li>
   <li>
     <span class="param-name required">sp_numer_sprawy</span>
@@ -160,18 +160,18 @@ Tabela łącząca (junction) — każdy wiersz wiąże sprawę z dłużnikiem wr
 <ul class="param-list">
   <li>
     <span class="param-name pk required">spr_id</span>
-    <span class="param-type">INT</span>
-    <span class="param-desc">Klucz główny powiązania sprawy z dłużnikiem</span>
+    <span class="param-type">BIGINT</span>
+    <span class="param-desc">Klucz główny powiązania sprawy z dłużnikiem (BIGINT IDENTITY — 8-bajtowy)</span>
   </li>
   <li>
     <span class="param-name fk required">spr_sp_id</span>
-    <span class="param-type">INT</span>
-    <span class="param-desc">FK do sprawy</span>
+    <span class="param-type">BIGINT</span>
+    <span class="param-desc">FK do sprawy (BIGINT — kaskada typu z <code>sprawa.sp_id</code>)</span>
   </li>
   <li>
     <span class="param-name fk required">spr_dl_id</span>
-    <span class="param-type">INT</span>
-    <span class="param-desc">FK do dłużnika</span>
+    <span class="param-type">BIGINT</span>
+    <span class="param-desc">FK do dłużnika (BIGINT — kaskada typu z <code>dluznik.dl_id</code>)</span>
   </li>
   <li>
     <span class="param-name fk required">spr_sprt_id</span>

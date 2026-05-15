@@ -37,7 +37,7 @@ erDiagram
     }
 
     dluznik {
-        int     dl_id                PK
+        bigint  dl_id                PK
         int     dl_dt_id             FK
         varchar dl_plec              FK  "→ mapowanie_plec"
         int     dl_kraj_id           FK
@@ -80,8 +80,8 @@ erDiagram
     }
 
     atrybut {
-        int     at_id     PK
-        int     at_ob_id       "polymorficzny: dl_id / sp_id / wi_id / do_id"
+        bigint  at_id     PK
+        bigint  at_ob_id       "polymorficzny: dl_id / sp_id / wi_id / do_id"
         int     at_att_id FK   "dziedzina i rodzaj dziedziczone z atrybut_typ"
         varchar at_wartosc
     }
@@ -113,8 +113,8 @@ Główny rekord dłużnika — obejmuje zarówno osoby fizyczne (`dl_dt_id` ∈ 
 <ul class="param-list">
   <li>
     <span class="param-name pk required">dl_id</span>
-    <span class="param-type">INT</span>
-    <span class="param-desc">Klucz główny dłużnika w stagingu</span>
+    <span class="param-type">BIGINT</span>
+    <span class="param-desc">Klucz główny dłużnika w stagingu (BIGINT — 8-bajtowy, dopuszcza identyfikatory źródłowe spoza zakresu INT)</span>
   </li>
   <li>
     <span class="param-name">dl_plec</span>

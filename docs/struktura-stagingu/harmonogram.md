@@ -22,11 +22,11 @@ Diagram pokazuje źródłową tabelę staging `harmonogram` ze wszystkimi kolumn
 ```mermaid
 erDiagram
     wierzytelnosc {
-        int     wi_id     PK
+        bigint  wi_id     PK
     }
 
     dokument {
-        int     do_id     PK
+        bigint  do_id     PK
     }
 
     ksiegowanie {
@@ -34,12 +34,12 @@ erDiagram
     }
 
     ksiegowanie_dekret {
-        int     ksd_id    PK
+        bigint  ksd_id    PK
     }
 
     harmonogram {
-        int      hr_id              PK
-        int      hr_wi_id           FK
+        bigint   hr_id              PK
+        bigint   hr_wi_id           FK
         varchar  hr_typ                    "umowny / sądowy"
         date     hr_data_raty
         int      hr_numer_raty
@@ -73,12 +73,12 @@ Rata harmonogramu spłat powiązana z wierzytelnością — data płatności, nu
 <ul class="param-list">
   <li>
     <span class="param-name pk required">hr_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">Klucz główny raty harmonogramu.</span>
   </li>
   <li>
     <span class="param-name fk required">hr_wi_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">FK do wierzytelności (iteracja 6).</span>
   </li>
   <li>

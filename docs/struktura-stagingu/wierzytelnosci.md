@@ -22,7 +22,7 @@ Diagram pokazuje tabelę iteracji 6 (`wierzytelnosc`) oraz powiązanie ze `spraw
 ```mermaid
 erDiagram
     sprawa {
-        int     sp_id    PK
+        bigint  sp_id    PK
     }
 
     umowa_kontrahent {
@@ -30,8 +30,8 @@ erDiagram
     }
 
     wierzytelnosc {
-        int     wi_id           PK
-        int     wi_sp_id        FK
+        bigint  wi_id           PK
+        bigint  wi_sp_id        FK
         int     wi_uko_id       FK
         varchar wi_numer
         varchar wi_tytul
@@ -61,13 +61,13 @@ Nagłówek wierzytelności — roszczenie finansowe przypisane do sprawy. Jeden 
 <ul class="param-list">
   <li>
     <span class="param-name pk required">wi_id</span>
-    <span class="param-type">INT</span>
-    <span class="param-desc">Klucz główny wierzytelności w stagingu</span>
+    <span class="param-type">BIGINT</span>
+    <span class="param-desc">Klucz główny wierzytelności w stagingu (BIGINT — 8-bajtowy, dopuszcza identyfikatory źródłowe spoza zakresu INT)</span>
   </li>
   <li>
     <span class="param-name fk required">wi_sp_id</span>
-    <span class="param-type">INT</span>
-    <span class="param-desc">FK do sprawy</span>
+    <span class="param-type">BIGINT</span>
+    <span class="param-desc">FK do sprawy (BIGINT — kaskada typu z <code>sprawa.sp_id</code>)</span>
   </li>
   <li>
     <span class="param-name fk required">wi_uko_id</span>

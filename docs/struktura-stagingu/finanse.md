@@ -38,15 +38,15 @@ erDiagram
     }
 
     dokument {
-        int     do_id     PK
+        bigint  do_id     PK
     }
 
     wierzytelnosc {
-        int     wi_id     PK
+        bigint  wi_id     PK
     }
 
     sprawa {
-        int     sp_id     PK
+        bigint  sp_id     PK
     }
 
     dokument_typ {
@@ -64,15 +64,15 @@ erDiagram
     }
 
     ksiegowanie_dekret {
-        int      ksd_id                       PK
+        bigint   ksd_id                       PK
         int      ksd_ks_id                    FK
-        int      ksd_do_id                    FK   "opcjonalny"
+        bigint   ksd_do_id                    FK   "opcjonalny"
         decimal  ksd_kwota                         "+ Winien / − Ma"
         date     ksd_data_naliczania_odsetek
         date     ksd_data_wymagalnosci
         int      ksd_ksk_id                   FK
         varchar  ksd_uwagi
-        int      ksd_sp_id                    FK   "repertorium"
+        bigint   ksd_sp_id                    FK   "repertorium"
         decimal  ksd_kurs_bazowy
         decimal  ksd_kwota_wn_wyceny               "rezerwa"
         decimal  ksd_kwota_ma_wyceny               "rezerwa"
@@ -84,8 +84,8 @@ erDiagram
     }
 
     operacja {
-        int      oper_id                          PK
-        int      oper_wi_id                       FK
+        bigint   oper_id                          PK
+        bigint   oper_wi_id                       FK
         varchar  oper_waluta                           "kod SWIFT"
         varchar  oper_rejestr_kod                      "Wn vs Ma"
         varchar  oper_typ_dekretu
@@ -94,7 +94,7 @@ erDiagram
         int      oper_dokument_podtyp_prod_id
         varchar  oper_dokument_typ_prod_opis
         varchar  oper_dokument_podtyp_prod_opis
-        int      oper_dokument_prod_id            FK   "→ dokument"
+        bigint   oper_dokument_prod_id            FK   "→ dokument"
         varchar  oper_opis_slowny
         varchar  oper_opis
         varchar  oper_strona
@@ -119,7 +119,7 @@ erDiagram
         varchar  oper_beneficjent_nazwa
         varchar  oper_remitter_nazwa
         varchar  oper_konto
-        int      oper_do_id                       FK
+        bigint   oper_do_id                       FK
     }
 
     ksiegowanie         }o--||  ksiegowanie_typ            : "ks_kst_id"
@@ -214,7 +214,7 @@ Dekret księgowania — pozycja szczegółowa nagłówka, przypisana do dokument
 <ul class="param-list">
   <li>
     <span class="param-name pk required">ksd_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">Klucz główny dekretu w stagingu.</span>
   </li>
   <li>
@@ -224,7 +224,7 @@ Dekret księgowania — pozycja szczegółowa nagłówka, przypisana do dokument
   </li>
   <li>
     <span class="param-name fk">ksd_do_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">FK do dokumentu (opcjonalny — dekret może nie być powiązany z dokumentem).</span>
   </li>
   <li>
@@ -249,7 +249,7 @@ Dekret księgowania — pozycja szczegółowa nagłówka, przypisana do dokument
   </li>
   <li>
     <span class="param-name fk">ksd_sp_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">FK do sprawy (pomocnicze — służy do wyznaczenia repertorium dekretu).</span>
   </li>
   <li>
@@ -323,12 +323,12 @@ Operacja finansowa z systemu źródłowego — wpłaty, umorzenia, korekty, kosz
 <ul class="param-list">
   <li>
     <span class="param-name pk required">oper_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">Klucz główny operacji.</span>
   </li>
   <li>
     <span class="param-name fk">oper_wi_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">FK do wierzytelności (powiązanie wierzytelność ↔ księgowanie jest pośrednie, przez dekret).</span>
   </li>
   <li>
@@ -373,7 +373,7 @@ Operacja finansowa z systemu źródłowego — wpłaty, umorzenia, korekty, kosz
   </li>
   <li>
     <span class="param-name">oper_dokument_prod_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">Identyfikator dokumentu w systemie źródłowym (pole informacyjne).</span>
   </li>
   <li>
@@ -498,7 +498,7 @@ Operacja finansowa z systemu źródłowego — wpłaty, umorzenia, korekty, kosz
   </li>
   <li>
     <span class="param-name fk">oper_do_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">FK do dokumentu powiązanego z operacją (walidowany przez REF_23; dekrety operacji w prod mają ksd_do_id = NULL).</span>
   </li>
   <li>

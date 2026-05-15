@@ -27,6 +27,7 @@ Dane dostarczane przez zespół Intrum muszą zostać załadowane do bazy `dm_st
 
 1. **Wartości FK** muszą odnosić się do identyfikatorów ze stagingu, nie z bazy produkcyjnej.
 2. Tabele w obrębie tej samej iteracji nie mają zależności między sobą i mogą być ładowane równolegle (chyba że zaznaczono inaczej).
+3. **Zakres identyfikatorów scope-PK w stagingu** (`dl_id`, `sp_id`, `wi_id`, `ad_id`, `ma_id`, `tn_id`, `do_id`, `ksd_id`, `at_id`, `hr_id`, `oper_id`, `wl_id`, `wd_id`, `wa_id`, `we_id`, `wt_id`, `zab_id`) — typ `BIGINT` (zakres do 9 223 372 036 854 775 807). Identyfikatory z systemu źródłowego mogą przekraczać zakres `INT` (2 147 483 647). Identyfikatory tabel słownikowych i tabel wyłączonych z migracji encyjnej (`akcja.ak_id`, `ksiegowanie.ks_id`, `kontrahent.ko_id`, `umowa_kontrahent.uko_id`, wszystkie `*_typ`, `kraj`, `waluta`, `kurs_walut`) pozostają typu `INT`.
 
 ---
 

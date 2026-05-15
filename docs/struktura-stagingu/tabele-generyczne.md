@@ -20,8 +20,8 @@ Tabele generyczne to staging-owe tabele, do których ładuje się dane dotycząc
 ```mermaid
 erDiagram
     atrybut {
-        int         at_id              PK
-        int         at_ob_id           FK
+        bigint      at_id              PK
+        bigint      at_ob_id           FK   "polimorficzny FK → dl_id/sp_id/wi_id/do_id"
         int         at_att_id          FK
         varchar     at_wartosc
     }
@@ -31,34 +31,34 @@ erDiagram
     }
 
     wlasciwosc {
-        int         wl_id              PK
+        bigint      wl_id              PK
         int         wl_wtpd_id         FK   "→ wlasciwosc_typ_podtyp_dziedzina"
         datetime    wl_aktywny_od
         datetime    wl_aktywny_do            "NULL = aktywna"
     }
 
     wlasciwosc_dluznik {
-        int         wd_id              PK
-        int         wd_wl_id           FK
-        int         wd_dl_id           FK
+        bigint      wd_id              PK
+        bigint      wd_wl_id           FK
+        bigint      wd_dl_id           FK
     }
 
     wlasciwosc_adres {
-        int         wa_id              PK
-        int         wa_wl_id           FK
-        int         wa_ad_id           FK
+        bigint      wa_id              PK
+        bigint      wa_wl_id           FK
+        bigint      wa_ad_id           FK
     }
 
     wlasciwosc_email {
-        int         we_id              PK
-        int         we_wl_id           FK
-        int         we_ma_id           FK
+        bigint      we_id              PK
+        bigint      we_wl_id           FK
+        bigint      we_ma_id           FK
     }
 
     wlasciwosc_telefon {
-        int         wt_id              PK
-        int         wt_wl_id           FK
-        int         wt_tn_id           FK
+        bigint      wt_id              PK
+        bigint      wt_wl_id           FK
+        bigint      wt_tn_id           FK
     }
 
     wlasciwosc_dluznik }o--|| wlasciwosc : "wd_wl_id"
@@ -93,13 +93,13 @@ Atrybut jest wiersza-na-obiekt — jedna tabela `dbo.atrybut` ładuje dane atryb
 <ul class="param-list">
   <li>
     <span class="param-name pk required">at_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">Klucz główny atrybutu</span>
   </li>
   <li>
     <span class="param-name fk required">at_ob_id</span>
-    <span class="param-type">INT</span>
-    <span class="param-desc">FK do encji docelowej - identyfikator obiektu określonego przez atrybut_typ.att_atd_id</span>
+    <span class="param-type">BIGINT</span>
+    <span class="param-desc">FK polimorficzny do encji docelowej - identyfikator obiektu określonego przez atrybut_typ.att_atd_id (referuje dl_id / sp_id / wi_id / do_id, dlatego BIGINT)</span>
   </li>
   <li>
     <span class="param-name fk required">at_att_id</span>
@@ -139,7 +139,7 @@ Właściwość działa w układzie par `wlasciwosc` + tabela łącznikowa specyf
 <ul class="param-list">
   <li>
     <span class="param-name pk required">wl_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">Klucz główny właściwości</span>
   </li>
   <li>

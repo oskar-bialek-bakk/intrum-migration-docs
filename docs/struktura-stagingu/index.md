@@ -10,6 +10,19 @@ tags:
 
 Sekcja opisuje tabele bazy stagingowej `dm_staging` w podziale na dziewięć iteracji ładowania oraz wspólne definicje referencyjne. Każda strona zawiera diagram ER, szczegółowe definicje kolumn i odwzorowanie na tabele produkcyjne `dm_data_web`.
 
+## Typ klucza głównego: BIGINT vs INT
+
+W tabelach danych (np. `dluznik`, `sprawa`, `wierzytelnosc`, `dokument`)
+klucze główne mają typ `BIGINT`, ponieważ identyfikatory źródłowe z systemu
+Intrum mogą przekraczać zakres `INT` (≈ 2.1 mld). Wartości te trafiają do
+PROD jako kolumny `*_ext_id` (`VARCHAR`), więc po stronie stagingu musimy
+zapewnić odpowiednią pojemność.
+
+W tabelach słownikowych (`*_typ`, `kraj`, `waluta`, `sprawa_etap` itp.)
+oraz w tabelach z bezpośrednim mapowaniem PK staging → PK prod
+(`ksiegowanie`, `kontrahent`, `umowa_kontrahent`) klucze główne pozostają
+typu `INT`.
+
 ## Fale dostawy danych
 
 <div class="feature-grid">

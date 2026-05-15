@@ -144,25 +144,25 @@ CREATE TABLE mapowanie.plec (
 
 -- Persistent staging→prod ID mapping tables (populated by iter2/iter4 via OUTPUT)
 CREATE TABLE mapowanie.dodani_dluznicy (
-    staging_dl_id INT NOT NULL,
+    staging_dl_id BIGINT NOT NULL,
     prod_dl_id    INT NOT NULL,
     CONSTRAINT PK_dodani_dluznicy PRIMARY KEY (staging_dl_id)
 );
 
 CREATE TABLE mapowanie.dodane_sprawy (
-    staging_sp_id INT NOT NULL,
+    staging_sp_id BIGINT NOT NULL,
     prod_sp_id    INT NOT NULL,
     CONSTRAINT PK_dodane_sprawy PRIMARY KEY (staging_sp_id)
 );
 
 CREATE TABLE mapowanie.dodane_wierzytelnosci (
-    staging_wi_id INT NOT NULL,
+    staging_wi_id BIGINT NOT NULL,
     prod_wi_id    INT NOT NULL,
     CONSTRAINT PK_dodane_wierzytelnosci PRIMARY KEY (staging_wi_id)
 );
 
 CREATE TABLE mapowanie.dodane_dokumenty (
-    staging_do_id INT NOT NULL,
+    staging_do_id BIGINT NOT NULL,
     prod_do_id    INT NOT NULL,
     CONSTRAINT PK_dodane_dokumenty PRIMARY KEY (staging_do_id)
 );
@@ -410,7 +410,7 @@ CREATE TABLE dbo.wlasciwosc_typ_podtyp_dziedzina (
 -- ============================================================
 
 CREATE TABLE dbo.dluznik (
-    dl_id                INT             NOT NULL,
+    dl_id                BIGINT          NOT NULL,
     dl_plec              VARCHAR(1)      NULL,
     dl_imie              VARCHAR(200)    NULL,
     dl_drugie_imie       VARCHAR(MAX)    NULL,
@@ -436,7 +436,7 @@ CREATE TABLE dbo.dluznik (
 );
 
 CREATE TABLE dbo.sprawa (
-    sp_id               INT          NOT NULL,
+    sp_id               BIGINT       NOT NULL,
     sp_numer_sprawy     VARCHAR(50)  NOT NULL,
     sp_numer_rachunku   VARCHAR(50)  NULL,
     sp_pracownik        VARCHAR(50)  NULL,
@@ -452,8 +452,8 @@ CREATE TABLE dbo.sprawa (
 );
 
 CREATE TABLE dbo.wierzytelnosc (
-    wi_id           INT          NOT NULL,
-    wi_sp_id        INT          NOT NULL,
+    wi_id           BIGINT       NOT NULL,
+    wi_sp_id        BIGINT       NOT NULL,
     wi_uko_id       INT          NULL,
     wi_numer        VARCHAR(50)  NULL,
     wi_tytul        VARCHAR(200) NULL,
@@ -482,8 +482,8 @@ CREATE TABLE dbo.ksiegowanie (
 -- ============================================================
 
 CREATE TABLE dbo.adres (
-    ad_id           INT           NOT NULL,
-    ad_dl_id        INT           NOT NULL,
+    ad_id           BIGINT        NOT NULL,
+    ad_dl_id        BIGINT        NOT NULL,
     ad_ulica        VARCHAR(200)  NULL,
     ad_nr_domu      VARCHAR(20)   NULL,
     ad_nr_lokalu    VARCHAR(20)   NULL,
@@ -503,7 +503,7 @@ CREATE TABLE dbo.adres (
 
 CREATE TABLE dbo.akcja (
     ak_id               INT      NOT NULL,
-    ak_sp_id            INT      NOT NULL,
+    ak_sp_id            BIGINT   NOT NULL,
     ak_akt_id           INT      NULL,
     ak_data_zakonczenia DATE     NULL,
     mod_date            DATETIME NOT NULL DEFAULT GETDATE(),
@@ -513,7 +513,7 @@ CREATE TABLE dbo.akcja (
 );
 
 CREATE TABLE dbo.rezultat (
-    re_id               INT  NOT NULL IDENTITY(1,1),
+    re_id               BIGINT NOT NULL IDENTITY(1,1),
     re_ak_id            INT  NOT NULL,
     re_ret_id           INT  NOT NULL,
     re_data_wykonania   DATE NULL,
@@ -524,8 +524,8 @@ CREATE TABLE dbo.rezultat (
 );
 
 CREATE TABLE dbo.atrybut (
-    at_id       INT           NOT NULL,
-    at_ob_id    INT           NOT NULL,
+    at_id       BIGINT        NOT NULL,
+    at_ob_id    BIGINT        NOT NULL,
     at_wartosc  VARCHAR(100)  NOT NULL,
     at_att_id   INT           NOT NULL,
     mod_date    DATETIME      NOT NULL DEFAULT GETDATE(),
@@ -534,8 +534,8 @@ CREATE TABLE dbo.atrybut (
 );
 
 CREATE TABLE dbo.dokument (
-    do_id                   INT          NOT NULL,
-    do_wi_id                INT          NOT NULL,
+    do_id                   BIGINT       NOT NULL,
+    do_wi_id                BIGINT       NOT NULL,
     do_numer_dokumentu      VARCHAR(200) NULL,
     do_data_wystawienia     DATE         NULL,
     do_dot_id               INT          NOT NULL,
@@ -557,7 +557,7 @@ CREATE TABLE dbo.dokument_odsetki_przerwy_typ (
 
 CREATE TABLE dbo.dokument_odsetki_przerwy (
     dop_id                      BIGINT   IDENTITY(1,1) NOT NULL,
-    dop_do_id                   INT      NULL,
+    dop_do_id                   BIGINT   NULL,
     dop_data_od                 DATETIME NULL,
     dop_data_do                 DATETIME NULL,
     dop_licz_od_niewymagalnych  BIT      NOT NULL DEFAULT 0,
@@ -570,8 +570,8 @@ CREATE TABLE dbo.dokument_odsetki_przerwy (
 );
 
 CREATE TABLE dbo.harmonogram (
-    hr_id               INT             NOT NULL,
-    hr_wi_id            INT             NOT NULL,
+    hr_id               BIGINT          NOT NULL,
+    hr_wi_id            BIGINT          NOT NULL,
     hr_typ              VARCHAR(50)     NOT NULL,
     hr_data_raty        DATE            NOT NULL,
     hr_numer_raty       INT             NOT NULL,
@@ -584,15 +584,15 @@ CREATE TABLE dbo.harmonogram (
 );
 
 CREATE TABLE dbo.ksiegowanie_dekret (
-    ksd_id                      INT           NOT NULL,
+    ksd_id                      BIGINT        NOT NULL,
     ksd_ks_id                   INT           NOT NULL,
-    ksd_do_id                   INT           NULL,
+    ksd_do_id                   BIGINT        NULL,
     ksd_kwota                   DECIMAL(18,2) NOT NULL,
     ksd_data_naliczania_odsetek DATE          NULL,
     ksd_data_wymagalnosci       DATE          NULL,
     ksd_ksk_id                  INT           NOT NULL,
     ksd_uwagi                   VARCHAR(500)  NULL,
-    ksd_sp_id                   INT           NULL,
+    ksd_sp_id                   BIGINT        NULL,
     -- multi-currency columns (already on prod; added to staging for migration)
     ksd_kurs_bazowy             DECIMAL(18,4) NULL,
     ksd_kwota_wn_wyceny         DECIMAL(18,2) NULL,
@@ -613,8 +613,8 @@ CREATE TABLE dbo.ksiegowanie_dekret (
 );
 
 CREATE TABLE dbo.mail (
-    ma_id               INT          NOT NULL,
-    ma_dl_id            INT          NOT NULL,
+    ma_id               BIGINT       NOT NULL,
+    ma_dl_id            BIGINT       NOT NULL,
     ma_adres_mailowy    VARCHAR(50)  NULL,
     ma_data_od          DATETIME     NULL,
     ma_data_do          DATETIME     NULL,
@@ -624,8 +624,8 @@ CREATE TABLE dbo.mail (
 );
 
 CREATE TABLE dbo.operacja (
-    oper_id                          INT           NOT NULL,
-    oper_wi_id                       INT           NULL,
+    oper_id                          BIGINT        NOT NULL,
+    oper_wi_id                       BIGINT        NULL,
     oper_waluta                      VARCHAR(3)    NULL,
     oper_rejestr_kod                 VARCHAR(20)   NULL,
     oper_typ_dekretu                 VARCHAR(20)   NULL,
@@ -634,7 +634,7 @@ CREATE TABLE dbo.operacja (
     oper_dokument_podtyp_prod_id     INT           NULL,
     oper_dokument_typ_prod_opis      VARCHAR(200)  NULL,
     oper_dokument_podtyp_prod_opis   VARCHAR(200)  NULL,
-    oper_dokument_prod_id            INT           NULL,
+    oper_dokument_prod_id            BIGINT        NULL,
     oper_opis_slowny                 VARCHAR(500)  NULL,
     oper_opis                        VARCHAR(500)  NULL,
     oper_strona                      VARCHAR(10)   NULL,
@@ -659,7 +659,7 @@ CREATE TABLE dbo.operacja (
     oper_beneficjent_nazwa           VARCHAR(500)  NULL,
     oper_remitter_nazwa              VARCHAR(500)  NULL,
     oper_konto                       VARCHAR(50)   NULL,
-    oper_do_id                       INT           NULL,
+    oper_do_id                       BIGINT        NULL,
     mod_date                         DATETIME      NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_operacja PRIMARY KEY (oper_id),
     CONSTRAINT FK_operacja_wierzytelnosc    FOREIGN KEY (oper_wi_id)                REFERENCES dbo.wierzytelnosc (wi_id),
@@ -669,9 +669,9 @@ CREATE TABLE dbo.operacja (
 );
 
 CREATE TABLE dbo.sprawa_rola (
-    spr_id      INT      NOT NULL IDENTITY(1,1),
-    spr_sp_id   INT      NOT NULL,
-    spr_dl_id   INT      NOT NULL,
+    spr_id      BIGINT   NOT NULL IDENTITY(1,1),
+    spr_sp_id   BIGINT   NOT NULL,
+    spr_dl_id   BIGINT   NOT NULL,
     spr_sprt_id INT      NOT NULL,
     spr_data_od DATE     NULL,
     spr_data_do DATE     NULL,
@@ -683,8 +683,8 @@ CREATE TABLE dbo.sprawa_rola (
 );
 
 CREATE TABLE dbo.telefon (
-    tn_id       INT          NOT NULL,
-    tn_dl_id    INT          NOT NULL,
+    tn_id       BIGINT       NOT NULL,
+    tn_dl_id    BIGINT       NOT NULL,
     tn_numer    VARCHAR(50)  NULL,
     tn_tt_id    INT          NOT NULL,
     tn_data_od  DATETIME     NULL,
@@ -701,7 +701,7 @@ CREATE TABLE dbo.telefon (
 -- ============================================================
 
 CREATE TABLE dbo.wlasciwosc (
-    wl_id           INT      NOT NULL,
+    wl_id           BIGINT   NOT NULL,
     wl_wtpd_id      INT      NOT NULL,
     wl_aktywny_od   DATETIME NOT NULL,
     wl_aktywny_do   DATETIME NULL,
@@ -711,9 +711,9 @@ CREATE TABLE dbo.wlasciwosc (
 );
 
 CREATE TABLE dbo.wlasciwosc_dluznik (
-    wd_id       INT      NOT NULL,
-    wd_wl_id    INT      NOT NULL,
-    wd_dl_id    INT      NOT NULL,
+    wd_id       BIGINT   NOT NULL,
+    wd_wl_id    BIGINT   NOT NULL,
+    wd_dl_id    BIGINT   NOT NULL,
     mod_date    DATETIME NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_wlasciwosc_dluznik PRIMARY KEY (wd_id),
     CONSTRAINT FK_wd_wl FOREIGN KEY (wd_wl_id) REFERENCES dbo.wlasciwosc (wl_id),
@@ -721,9 +721,9 @@ CREATE TABLE dbo.wlasciwosc_dluznik (
 );
 
 CREATE TABLE dbo.wlasciwosc_adres (
-    wa_id       INT      NOT NULL,
-    wa_wl_id    INT      NOT NULL,
-    wa_ad_id    INT      NOT NULL,
+    wa_id       BIGINT   NOT NULL,
+    wa_wl_id    BIGINT   NOT NULL,
+    wa_ad_id    BIGINT   NOT NULL,
     mod_date    DATETIME NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_wlasciwosc_adres PRIMARY KEY (wa_id),
     CONSTRAINT FK_wa_wl FOREIGN KEY (wa_wl_id) REFERENCES dbo.wlasciwosc (wl_id),
@@ -731,9 +731,9 @@ CREATE TABLE dbo.wlasciwosc_adres (
 );
 
 CREATE TABLE dbo.wlasciwosc_email (
-    we_id       INT      NOT NULL,
-    we_wl_id    INT      NOT NULL,
-    we_ma_id    INT      NOT NULL,
+    we_id       BIGINT   NOT NULL,
+    we_wl_id    BIGINT   NOT NULL,
+    we_ma_id    BIGINT   NOT NULL,
     mod_date    DATETIME NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_wlasciwosc_email PRIMARY KEY (we_id),
     CONSTRAINT FK_we_wl FOREIGN KEY (we_wl_id) REFERENCES dbo.wlasciwosc (wl_id),
@@ -741,9 +741,9 @@ CREATE TABLE dbo.wlasciwosc_email (
 );
 
 CREATE TABLE dbo.wlasciwosc_telefon (
-    wt_id       INT      NOT NULL,
-    wt_wl_id    INT      NOT NULL,
-    wt_tn_id    INT      NOT NULL,
+    wt_id       BIGINT   NOT NULL,
+    wt_wl_id    BIGINT   NOT NULL,
+    wt_tn_id    BIGINT   NOT NULL,
     mod_date    DATETIME NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_wlasciwosc_telefon PRIMARY KEY (wt_id),
     CONSTRAINT FK_wt_wl FOREIGN KEY (wt_wl_id) REFERENCES dbo.wlasciwosc (wl_id),
@@ -751,9 +751,9 @@ CREATE TABLE dbo.wlasciwosc_telefon (
 );
 
 CREATE TABLE dbo.wierzytelnosc_rola (
-    wir_id      INT      NOT NULL IDENTITY(1,1),
-    wir_sp_id   INT      NOT NULL,
-    wir_wi_id   INT      NOT NULL,
+    wir_id      BIGINT   NOT NULL IDENTITY(1,1),
+    wir_sp_id   BIGINT   NOT NULL,
+    wir_wi_id   BIGINT   NOT NULL,
     wir_rl_id   INT      NOT NULL,
     mod_date    DATETIME NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_wierzytelnosc_rola PRIMARY KEY (wir_id),
@@ -762,9 +762,9 @@ CREATE TABLE dbo.wierzytelnosc_rola (
 );
 
 CREATE TABLE dbo.zabezpieczenie (
-    zab_id                  INT           NOT NULL,
-    zab_wi_id               INT           NULL,
-    zab_dl_id               INT           NULL,
+    zab_id                  BIGINT        NOT NULL,
+    zab_wi_id               BIGINT        NULL,
+    zab_dl_id               BIGINT        NULL,
     zab_relacja             VARCHAR(200)  NULL,
     zab_opis                VARCHAR(200)  NULL,
     zab_procent_zm_rez      DECIMAL(18,2) NULL,

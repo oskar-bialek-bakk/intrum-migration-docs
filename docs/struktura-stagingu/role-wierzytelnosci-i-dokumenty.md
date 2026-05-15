@@ -22,11 +22,11 @@ Diagram pokazuje dwie tabele iteracji 7 (`wierzytelnosc_rola`, `dokument`) oraz 
 ```mermaid
 erDiagram
     sprawa {
-        int     sp_id    PK
+        bigint  sp_id    PK
     }
 
     wierzytelnosc {
-        int     wi_id    PK
+        bigint  wi_id    PK
     }
 
     dokument_typ {
@@ -34,15 +34,15 @@ erDiagram
     }
 
     wierzytelnosc_rola {
-        int     wir_id          PK
-        int     wir_sp_id       FK
-        int     wir_wi_id       FK
+        bigint  wir_id          PK
+        bigint  wir_sp_id       FK
+        bigint  wir_wi_id       FK
         int     wir_rl_id       FK   "rola (opcjonalna)"
     }
 
     dokument {
-        int     do_id                   PK
-        int     do_wi_id                FK
+        bigint  do_id                   PK
+        bigint  do_wi_id                FK
         int     do_dot_id               FK
         varchar do_numer_dokumentu
         varchar do_tytul_dokumentu
@@ -75,17 +75,17 @@ Staging `wierzytelnosc_rola` zawiera wiersze ról (wierzyciel, wierzyciel pierwo
 <ul class="param-list">
   <li>
     <span class="param-name pk required">wir_id</span>
-    <span class="param-type">INT</span>
-    <span class="param-desc">Klucz główny powiązania wierzytelności ze sprawą w stagingu</span>
+    <span class="param-type">BIGINT</span>
+    <span class="param-desc">Klucz główny powiązania wierzytelności ze sprawą w stagingu (IDENTITY)</span>
   </li>
   <li>
     <span class="param-name fk required">wir_sp_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">FK do sprawy</span>
   </li>
   <li>
     <span class="param-name fk required">wir_wi_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">FK do wierzytelności</span>
   </li>
   <li>
@@ -121,12 +121,12 @@ Nagłówek dokumentu finansowego powiązanego z wierzytelnością — faktury, n
 <ul class="param-list">
   <li>
     <span class="param-name pk required">do_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">Klucz główny dokumentu w stagingu</span>
   </li>
   <li>
     <span class="param-name fk required">do_wi_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">FK do wierzytelności</span>
   </li>
   <li>

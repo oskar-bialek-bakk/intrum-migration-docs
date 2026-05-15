@@ -22,7 +22,7 @@ Diagram pokazuje tabele iteracji 5 (`akcja`, `rezultat`) wraz ze słownikami typ
 ```mermaid
 erDiagram
     sprawa {
-        int     sp_id    PK
+        bigint  sp_id    PK
     }
 
     akcja_typ {
@@ -41,13 +41,13 @@ erDiagram
 
     akcja {
         int     ak_id                  PK
-        int     ak_sp_id               FK
+        bigint  ak_sp_id               FK
         int     ak_akt_id              FK
         date    ak_data_zakonczenia        "→ ak_zakonczono w prod"
     }
 
     rezultat {
-        int     re_id              PK
+        bigint  re_id              PK
         int     re_ak_id           FK
         int     re_ret_id          FK
         date    re_data_wykonania
@@ -83,7 +83,7 @@ Akcje wykonane w ramach spraw — operacyjna jednostka pracy na sprawie (telefon
   </li>
   <li>
     <span class="param-name fk required">ak_sp_id</span>
-    <span class="param-type">INT</span>
+    <span class="param-type">BIGINT</span>
     <span class="param-desc">FK do sprawy</span>
   </li>
   <li>
@@ -122,8 +122,8 @@ Rezultaty akcji — wynik wykonania akcji (kontakt osiągnięty, brak odbioru, o
 <ul class="param-list">
   <li>
     <span class="param-name pk required">re_id</span>
-    <span class="param-type">INT</span>
-    <span class="param-desc">Klucz główny rezultatu akcji w stagingu</span>
+    <span class="param-type">BIGINT</span>
+    <span class="param-desc">Klucz główny rezultatu akcji w stagingu (IDENTITY)</span>
   </li>
   <li>
     <span class="param-name fk required">re_ak_id</span>

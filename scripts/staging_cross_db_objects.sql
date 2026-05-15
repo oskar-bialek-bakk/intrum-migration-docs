@@ -28,7 +28,7 @@ GO
 -- Shared procedure: migrate atrybut_wartosc by domain
 -- Used by iter2 (att_atd_id=3, dluznik), iter4 (att_atd_id=4, sprawa),
 -- iter6 (att_atd_id=2, wierzytelnosc), and iter7 (att_atd_id=1, dokument).
--- Caller MUST create #atw_mapping (staging_at_id INT, prod_atw_id INT) before calling.
+-- Caller MUST create #atw_mapping (staging_at_id BIGINT, prod_atw_id INT) before calling.
 -- ============================================================
 GO
 CREATE OR ALTER PROCEDURE dbo.usp_migrate_atrybut_wartosc
@@ -59,7 +59,7 @@ BEGIN
     INSERT INTO dm_data_web_pipeline.dbo.atrybut_wartosc WITH (TABLOCK) (
         atw_att_id, atw_wartosc, atw_ext_id, aud_data, aud_login
     )
-    OUTPUT CAST(inserted.atw_ext_id AS INT), inserted.atw_id
+    OUTPUT CAST(inserted.atw_ext_id AS BIGINT), inserted.atw_id
     INTO #atw_mapping (staging_at_id, prod_atw_id)
     SELECT
         att.att_id,
@@ -78,11 +78,11 @@ BEGIN
 
     -- Backfill mapping for prior-run rows
     INSERT INTO #atw_mapping (staging_at_id, prod_atw_id)
-    SELECT CAST(atw.atw_ext_id AS INT), atw.atw_id
+    SELECT CAST(atw.atw_ext_id AS BIGINT), atw.atw_id
     FROM dm_data_web_pipeline.dbo.atrybut_wartosc atw WITH (NOLOCK)
     JOIN dbo.atrybut stg WITH (NOLOCK) ON atw.atw_ext_id = CAST(stg.at_id AS VARCHAR(100))
     JOIN dbo.atrybut_typ stg_att WITH (NOLOCK) ON stg_att.att_id = stg.at_att_id
-    LEFT JOIN #atw_mapping am ON am.staging_at_id = CAST(atw.atw_ext_id AS INT)
+    LEFT JOIN #atw_mapping am ON am.staging_at_id = CAST(atw.atw_ext_id AS BIGINT)
     WHERE stg_att.att_atd_id = @att_atd_id
       AND am.staging_at_id IS NULL;
 
@@ -162,7 +162,7 @@ BEGIN
     END;
 
     -- Step 3: Snapshot existing idempotency pairs into #wl_exist
-    CREATE TABLE #wl_exist (entity_id INT, wtpd_id INT);
+    CREATE TABLE #wl_exist (entity_id BIGINT, wtpd_id INT);
 
     SET @sql = N'
         INSERT INTO #wl_exist (entity_id, wtpd_id)
@@ -174,7 +174,7 @@ BEGIN
     EXEC sp_executesql @sql;
 
     -- Step 4: MERGE into wlasciwosc (always INSERT via ON 1=0)
-    CREATE TABLE #wl_map (staging_wl_id INT, prod_wl_id INT);
+    CREATE TABLE #wl_map (staging_wl_id BIGINT, prod_wl_id INT);
 
     DECLARE @fk_join   NVARCHAR(500);
     DECLARE @fk_filter NVARCHAR(500);
