@@ -806,6 +806,99 @@ Słownik typów rezultatów akcji — możliwe wyniki wykonania akcji windykacyj
 
 </details>
 
+### dbo.operacja_rejestr_typ
+
+<details markdown="1">
+<summary><code>dbo.operacja_rejestr_typ</code> — <span class="ksztalt-badge ksztalt-przeksztalcenie">przekształcenie</span> słownik typów rejestrów operacji finansowych</summary>
+
+<div class="dict-meta">
+  <span>Tabela prod: brak — słownik konfiguracyjny po stronie staging</span>
+  <span>Kształt mapowania: konfiguracja</span>
+  <span>Obowiązkowa: tak (jeśli wypełniane jest <code>operacja.oper_rejestr_kod</code>)</span>
+  <span>Multi-row: tak</span>
+</div>
+
+Słownik typów rejestrów finansowych — każdy wiersz określa kod (np. `wplata`, `korekta`) wraz z przypisaną stroną dekretu (`WN` lub `MA`). Referencjonowany przez `operacja.oper_rejestr_kod` i steruje rozdziałem kwoty operacji na stronę Winien/Ma w dekretach. Słownik istnieje wyłącznie po stronie staging — w iteracji 8 wpisy `operacja` są rozkładane na pozycje `ksiegowanie` / `ksiegowanie_dekret` w prod (sama tabela `operacja_rejestr_typ` nie jest kopiowana do prod).
+
+<ul class="param-list">
+  <li>
+    <span class="param-name pk required">or_id</span>
+    <span class="param-type">INT</span>
+    <span class="param-desc">Identyfikator typu rejestru (PK)</span>
+  </li>
+  <li>
+    <span class="param-name required">or_kod</span>
+    <span class="param-type">VARCHAR(20)</span>
+    <span class="param-desc">Krótki kod (np. wplata, umorzenie, korekta) — unikalny</span>
+  </li>
+  <li>
+    <span class="param-name">or_nazwa</span>
+    <span class="param-type">VARCHAR(100)</span>
+    <span class="param-desc">Czytelna nazwa typu rejestru</span>
+  </li>
+  <li>
+    <span class="param-name required">or_strona</span>
+    <span class="param-type">VARCHAR(2)</span>
+    <span class="param-desc">Strona dekretu: <code>WN</code> (Winien) lub <code>MA</code> (Ma)</span>
+  </li>
+  <li>
+    <span class="param-name deprecated">or_uuid</span>
+    <span class="param-type">UNIQUEIDENTIFIER</span>
+    <span class="param-desc">Kolumna techniczna — DEFAULT NEWID() przy insertcie; nie wypełniać (słownik staging-only, brak prod MERGE)</span>
+  </li>
+  <li>
+    <span class="param-name deprecated">mod_date</span>
+    <span class="param-type">DATETIME</span>
+    <span class="param-desc">Kolumna techniczna — DEFAULT GETDATE() przy insertcie; nie wypełniać</span>
+  </li>
+</ul>
+
+</details>
+
+### dbo.harmonogram_typ
+
+<details markdown="1">
+<summary><code>dbo.harmonogram_typ</code> — <span class="ksztalt-badge ksztalt-przeksztalcenie">przekształcenie</span> słownik typów harmonogramu spłat</summary>
+
+<div class="dict-meta">
+  <span>Tabela prod: brak — słownik konfiguracyjny po stronie staging</span>
+  <span>Kształt mapowania: konfiguracja</span>
+  <span>Obowiązkowa: tak (jeśli wypełniana jest tabela <code>harmonogram</code>)</span>
+  <span>Multi-row: tak</span>
+</div>
+
+Słownik typów harmonogramu spłat. Referencjonowany przez `harmonogram.hr_typ`. Klient definiuje kody odpowiadające swoim typom (np. miesięczny, kwartalny, umowny, sądowy). Słownik istnieje wyłącznie po stronie staging — w iteracji 9 wpisy `harmonogram` są przekształcane na `dokument` w prod, używając `ht_kod` jako `do_numer`/`do_tytul` (sama tabela `harmonogram_typ` nie jest kopiowana do prod).
+
+<ul class="param-list">
+  <li>
+    <span class="param-name pk required">ht_id</span>
+    <span class="param-type">INT</span>
+    <span class="param-desc">Identyfikator typu harmonogramu (PK)</span>
+  </li>
+  <li>
+    <span class="param-name required">ht_kod</span>
+    <span class="param-type">VARCHAR(20)</span>
+    <span class="param-desc">Krótki kod typu (unikalny)</span>
+  </li>
+  <li>
+    <span class="param-name">ht_nazwa</span>
+    <span class="param-type">VARCHAR(100)</span>
+    <span class="param-desc">Czytelna nazwa typu harmonogramu</span>
+  </li>
+  <li>
+    <span class="param-name deprecated">ht_uuid</span>
+    <span class="param-type">UNIQUEIDENTIFIER</span>
+    <span class="param-desc">Kolumna techniczna — DEFAULT NEWID() przy insertcie; nie wypełniać (słownik staging-only, brak prod MERGE)</span>
+  </li>
+  <li>
+    <span class="param-name deprecated">mod_date</span>
+    <span class="param-type">DATETIME</span>
+    <span class="param-desc">Kolumna techniczna — DEFAULT GETDATE() przy insertcie; nie wypełniać</span>
+  </li>
+</ul>
+
+</details>
+
 ### dbo.atrybut_typ
 
 <details markdown="1">

@@ -53,6 +53,12 @@ erDiagram
         int     dot_id    PK
     }
 
+    operacja_rejestr_typ {
+        int     or_id     PK
+        varchar or_kod
+        varchar or_strona  "WN / MA"
+    }
+
     ksiegowanie {
         int      ks_id                       PK
         date     ks_data_ksiegowania
@@ -87,7 +93,7 @@ erDiagram
         bigint   oper_id                          PK
         bigint   oper_wi_id                       FK
         varchar  oper_waluta                           "kod SWIFT"
-        varchar  oper_rejestr_kod                      "Wn vs Ma"
+        int      oper_rejestr_kod                 FK   "Wn vs Ma via or_strona"
         varchar  oper_typ_dekretu
         varchar  oper_opis_dekretu
         int      oper_dokument_typ_prod_id        FK   "→ dokument_typ"
@@ -131,6 +137,7 @@ erDiagram
     ksiegowanie_dekret  }o--o|  waluta                     : "ksd_wa_id"
     ksiegowanie_dekret  }o--o|  waluta                     : "ksd_wa_id_wyceny"
     operacja            }o--o|  wierzytelnosc              : "oper_wi_id"
+    operacja            }o--||  operacja_rejestr_typ       : "oper_rejestr_kod"
     operacja            }o--o|  dokument_typ               : "oper_dokument_typ_prod_id"
     operacja            }o--o|  dokument                   : "oper_dokument_prod_id"
     operacja            }o--o|  dokument                   : "oper_do_id"
@@ -318,7 +325,7 @@ Dekret księgowania — pozycja szczegółowa nagłówka, przypisana do dokument
   <span>Multi-row: tak (1 operacja → 1 nagłówek + 1–5 dekretów)</span>
 </div>
 
-Operacja finansowa z systemu źródłowego — wpłaty, umorzenia, korekty, koszty i alokacje. Staging `operacja` nie odpowiada pojedynczej tabeli prod — jej kwoty są rozbijane na pozycje rodzajowe (kapitał, odsetki karne, odsetki umowne, opłaty, prowizje) w momencie ładowania i zasilają jednocześnie nagłówek `ksiegowanie` oraz od jednego do pięciu dekretów `ksiegowanie_dekret`. Strona dekretu (Winien/Ma) wynika z `oper_rejestr_kod` — `wplata` i `umorzenie` trafiają na stronę Winien, pozostałe (korekta, koszt, nadpłata, alokacja) na stronę Ma.
+Operacja finansowa z systemu źródłowego — wpłaty, umorzenia, korekty, koszty i alokacje. Staging `operacja` nie odpowiada pojedynczej tabeli prod — jej kwoty są rozbijane na pozycje rodzajowe (kapitał, odsetki karne, odsetki umowne, opłaty, prowizje) w momencie ładowania i zasilają jednocześnie nagłówek `ksiegowanie` oraz od jednego do pięciu dekretów `ksiegowanie_dekret`. Strona dekretu (Winien/Ma) wynika z powiązanego rekordu w `dbo.operacja_rejestr_typ` poprzez kolumnę `or_strona` — wartości `WN` (np. wpłata, umorzenie) trafiają na stronę Winien, wartości `MA` (np. korekta, koszt, alokacja, nadpłata) na stronę Ma.
 
 <ul class="param-list">
   <li>
@@ -337,9 +344,9 @@ Operacja finansowa z systemu źródłowego — wpłaty, umorzenia, korekty, kosz
     <span class="param-desc">Kod waluty operacji (SWIFT).</span>
   </li>
   <li>
-    <span class="param-name required">oper_rejestr_kod</span>
-    <span class="param-type">VARCHAR</span>
-    <span class="param-desc">Kod rejestru finansowego — determinuje stronę dekretu: wplata/umorzenie → Winien, pozostałe → Ma.</span>
+    <span class="param-name fk">oper_rejestr_kod</span>
+    <span class="param-type">INT</span>
+    <span class="param-desc">FK do słownika typów rejestru (<code>dbo.operacja_rejestr_typ.or_id</code>) — typ rejestru determinuje stronę dekretu (<code>or_strona</code> = WN/MA). Opcjonalny; jeśli NULL, wiersz operacji nie wygeneruje dekretów w iter8 (header ksiegowanie zostaje, dekrety pomijane). Wymagany jeśli chcesz pełnego rozksiegowania w prod.</span>
   </li>
   <li>
     <span class="param-name">oper_typ_dekretu</span>
@@ -389,7 +396,7 @@ Operacja finansowa z systemu źródłowego — wpłaty, umorzenia, korekty, kosz
   <li>
     <span class="param-name">oper_strona</span>
     <span class="param-type">VARCHAR</span>
-    <span class="param-desc">Strona dekretu w systemie źródłowym (wartość poglądowa — strona prod wyznaczana z oper_rejestr_kod).</span>
+    <span class="param-desc">Strona dekretu w systemie źródłowym (wartość poglądowa — strona prod wyznaczana z <code>operacja_rejestr_typ.or_strona</code>).</span>
   </li>
   <li>
     <span class="param-name">oper_kwota</span>
@@ -518,7 +525,7 @@ Operacja finansowa z systemu źródłowego — wpłaty, umorzenia, korekty, kosz
 - Dokumenty (iteracja 7): [Role wierzytelności i dokumenty § dbo.dokument](role-wierzytelnosci-i-dokumenty.md#dbodokument)
 - Walidacje referencyjne (ksiegowanie_dekret): [REF_20 (dekret → księgowanie)](../przygotowanie-danych/walidacje.md), [REF_21 (ksk_id → ksiegowanie_konto)](../przygotowanie-danych/walidacje.md), [REF_22 (ksd_do_id → dokument)](../przygotowanie-danych/walidacje.md), [REF_35 (ksd_ksksub_id → ksiegowanie_konto_subkonto)](../przygotowanie-danych/walidacje.md)
 - Walidacje referencyjne (ksiegowanie): [REF_29 (ks_kst_id → ksiegowanie_typ)](../przygotowanie-danych/walidacje.md)
-- Walidacje referencyjne (operacja): [REF_23 (oper_do_id → dokument)](../przygotowanie-danych/walidacje.md), [REF_27 (oper_waluta → waluta)](../przygotowanie-danych/walidacje.md)
+- Walidacje referencyjne (operacja): [REF_23 (oper_do_id → dokument)](../przygotowanie-danych/walidacje.md), [REF_27 (oper_waluta → waluta)](../przygotowanie-danych/walidacje.md), [REF_37 (oper_rejestr_kod → operacja_rejestr_typ)](../przygotowanie-danych/walidacje.md)
 - Walidacje techniczne: [TECH_09 (ksd_ks_id wymagane, BLOKUJĄCE)](../przygotowanie-danych/walidacje.md), [TECH_10 (oper_waluta dla kwoty &gt; 0, OSTRZEŻENIE)](../przygotowanie-danych/walidacje.md)
 - Walidacje integralności strukturalnej: [STR_04 (księgowanie bez dekretu, BLOKUJĄCE)](../przygotowanie-danych/walidacje.md#str_04), [STR_05 (suma dekretów ≠ 0, BLOKUJĄCE)](../przygotowanie-danych/walidacje.md#str_05)
 - Walidacje biznesowe: [BIZ_17 (ks_data_ksiegowania z przyszłości, INFORMACJA)](../przygotowanie-danych/walidacje.md#biz_17), [BIZ_18 (ks_data_operacji z przyszłości, INFORMACJA)](../przygotowanie-danych/walidacje.md#biz_18)

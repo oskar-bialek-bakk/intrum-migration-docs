@@ -365,6 +365,30 @@ Wszystkie błędy **blokujące** muszą zostać poprawione przed migracją.
 <p class="walidacja-desc">Subkonto konta księgowego musi istnieć w <code>ksiegowanie_konto_subkonto</code> (<code>ksd_ksksub_id → ksiegowanie_konto_subkonto</code>). Tabela: <code>ksiegowanie_dekret</code></p>
 </div>
 
+<div class="walidacja-card walidacja-ref">
+<div class="walidacja-header">
+  <span class="walidacja-code">REF_36</span>
+  <span class="walidacja-sev sev-block">Blokujące</span>
+</div>
+<p class="walidacja-desc">Kraj adresu musi istnieć w słowniku krajów (<code>ad_panstwo → kraj.kraj_id</code>) — wartość opcjonalna; sprawdzane tylko gdy uzupełnione. Tabela: <code>adres</code></p>
+</div>
+
+<div class="walidacja-card walidacja-ref">
+<div class="walidacja-header">
+  <span class="walidacja-code">REF_37</span>
+  <span class="walidacja-sev sev-block">Blokujące</span>
+</div>
+<p class="walidacja-desc">Typ rejestru musi istnieć w słowniku <code>operacja_rejestr_typ</code> (<code>oper_rejestr_kod → operacja_rejestr_typ.or_id</code>) — wartość opcjonalna; sprawdzane tylko gdy uzupełnione. Tabela: <code>operacja</code></p>
+</div>
+
+<div class="walidacja-card walidacja-ref">
+<div class="walidacja-header">
+  <span class="walidacja-code">REF_38</span>
+  <span class="walidacja-sev sev-block">Blokujące</span>
+</div>
+<p class="walidacja-desc">Typ harmonogramu musi istnieć w słowniku <code>harmonogram_typ</code> (<code>hr_typ → harmonogram_typ.ht_id</code>). Tabela: <code>harmonogram</code></p>
+</div>
+
 </div>
 
 ---

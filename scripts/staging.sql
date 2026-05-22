@@ -2,11 +2,11 @@
 -- Database
 -- ============================================================
 
-IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = 'dm_staging')
-    CREATE DATABASE dm_staging COLLATE Polish_CI_AI;
+IF NOT EXISTS (SELECT name FROM sys.databases WHERE name = '__STAGING_DB__')
+    CREATE DATABASE __STAGING_DB__ COLLATE Polish_CI_AI;
 GO
 
-USE dm_staging;
+USE __STAGING_DB__;
 GO
 
 -- ============================================================
@@ -94,6 +94,8 @@ DROP TABLE IF EXISTS dbo.dluznik_typ;
 DROP TABLE IF EXISTS dbo.adres_typ;
 DROP TABLE IF EXISTS dbo.rezultat_typ;
 DROP TABLE IF EXISTS dbo.akcja_typ;
+DROP TABLE IF EXISTS dbo.operacja_rejestr_typ;
+DROP TABLE IF EXISTS dbo.harmonogram_typ;
 
 -- logowanie and configuration schema cleanup
 DROP TABLE IF EXISTS log.prod_snapshot;
@@ -105,6 +107,14 @@ DROP TABLE IF EXISTS log.migration_error;
 DROP TABLE IF EXISTS log.migration_table_summary;
 DROP TABLE IF EXISTS log.migration_run;
 DROP TABLE IF EXISTS configuration.threshold_config;
+DROP TABLE IF EXISTS configuration.profile_meta;
+DROP TABLE IF EXISTS configuration.defaults;
+DROP TABLE IF EXISTS configuration.mappings_plec;
+DROP TABLE IF EXISTS configuration.operacja_kwota_mapping;
+DROP TABLE IF EXISTS configuration.dluznik_required_fields;
+DROP TABLE IF EXISTS configuration.feature_flags;
+DROP TABLE IF EXISTS configuration.iter_hooks;
+DROP TABLE IF EXISTS configuration.custom_iterations;
 GO
 
 -- ============================================================
@@ -200,6 +210,34 @@ CREATE TABLE dbo.dokument_typ (
     mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
     dot_uuid    UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     CONSTRAINT PK_dokument_typ PRIMARY KEY (dot_id)
+);
+
+-- Dictionary: rejestr finansowy (drives Wn/Ma side in iter8 operacja processing).
+-- or_kod replaces previous hardcoded VARCHAR oper_rejestr_kod values
+-- ('wplata', 'umorzenie', 'korekta', 'koszt', 'alokacja', 'nadplata').
+-- or_strona: 'WN' for entries crediting (wplata, umorzenie); 'MA' for the rest.
+CREATE TABLE dbo.operacja_rejestr_typ (
+    or_id       INT              NOT NULL,
+    or_kod      VARCHAR(20)      NOT NULL,
+    or_nazwa    VARCHAR(100)     NULL,
+    or_strona   VARCHAR(2)       NOT NULL,  -- 'WN' or 'MA'
+    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    or_uuid     UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
+    CONSTRAINT PK_operacja_rejestr_typ PRIMARY KEY (or_id),
+    CONSTRAINT CK_operacja_rejestr_typ_strona CHECK (or_strona IN ('WN', 'MA')),
+    CONSTRAINT UX_operacja_rejestr_typ_kod UNIQUE (or_kod)
+);
+
+-- Dictionary: harmonogram type. ht_kod replaces previous hardcoded VARCHAR hr_typ
+-- values (e.g. 'M' for monthly, 'umowny', 'sadowy').
+CREATE TABLE dbo.harmonogram_typ (
+    ht_id       INT              NOT NULL,
+    ht_kod      VARCHAR(20)      NOT NULL,
+    ht_nazwa    VARCHAR(100)     NULL,
+    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    ht_uuid     UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
+    CONSTRAINT PK_harmonogram_typ PRIMARY KEY (ht_id),
+    CONSTRAINT UX_harmonogram_typ_kod UNIQUE (ht_kod)
 );
 
 CREATE TABLE dbo.ksiegowanie_konto (
@@ -490,15 +528,16 @@ CREATE TABLE dbo.adres (
     ad_kod          VARCHAR(10)   NULL,
     ad_miejscowosc  VARCHAR(200)  NULL,
     ad_poczta       VARCHAR(100)  NULL,
-    ad_panstwo      VARCHAR(100)  NULL,
+    ad_panstwo      INT           NULL,
     ad_at_id        INT           NOT NULL,
     ad_uwagi        VARCHAR(4000) NULL,
     ad_data_od      DATETIME      NULL,
     ad_data_do      DATETIME      NULL,
     mod_date        DATETIME      NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_adres PRIMARY KEY (ad_id),
-    CONSTRAINT FK_adres_dluznik   FOREIGN KEY (ad_dl_id) REFERENCES dbo.dluznik   (dl_id),
-    CONSTRAINT FK_adres_adres_typ FOREIGN KEY (ad_at_id) REFERENCES dbo.adres_typ (at_id)
+    CONSTRAINT FK_adres_dluznik   FOREIGN KEY (ad_dl_id)   REFERENCES dbo.dluznik   (dl_id),
+    CONSTRAINT FK_adres_adres_typ FOREIGN KEY (ad_at_id)   REFERENCES dbo.adres_typ (at_id),
+    CONSTRAINT FK_adres_kraj      FOREIGN KEY (ad_panstwo) REFERENCES dbo.kraj      (kraj_id)
 );
 
 CREATE TABLE dbo.akcja (
@@ -572,7 +611,7 @@ CREATE TABLE dbo.dokument_odsetki_przerwy (
 CREATE TABLE dbo.harmonogram (
     hr_id               BIGINT          NOT NULL,
     hr_wi_id            BIGINT          NOT NULL,
-    hr_typ              VARCHAR(50)     NOT NULL,
+    hr_typ              INT             NOT NULL,
     hr_data_raty        DATE            NOT NULL,
     hr_numer_raty       INT             NOT NULL,
     hr_kwota_raty       DECIMAL(18,2)   NOT NULL,
@@ -580,7 +619,8 @@ CREATE TABLE dbo.harmonogram (
     hr_kwota_odsetek    DECIMAL(18,2)   NOT NULL,
     mod_date            DATETIME        NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_harmonogram PRIMARY KEY (hr_id),
-    CONSTRAINT FK_harmonogram_wierzytelnosc FOREIGN KEY (hr_wi_id) REFERENCES dbo.wierzytelnosc (wi_id)
+    CONSTRAINT FK_harmonogram_wierzytelnosc FOREIGN KEY (hr_wi_id) REFERENCES dbo.wierzytelnosc (wi_id),
+    CONSTRAINT FK_harmonogram_typ           FOREIGN KEY (hr_typ)   REFERENCES dbo.harmonogram_typ (ht_id)
 );
 
 CREATE TABLE dbo.ksiegowanie_dekret (
@@ -627,7 +667,7 @@ CREATE TABLE dbo.operacja (
     oper_id                          BIGINT        NOT NULL,
     oper_wi_id                       BIGINT        NULL,
     oper_waluta                      VARCHAR(3)    NULL,
-    oper_rejestr_kod                 VARCHAR(20)   NULL,
+    oper_rejestr_kod                 INT           NULL,
     oper_typ_dekretu                 VARCHAR(20)   NULL,
     oper_opis_dekretu                VARCHAR(500)  NULL,
     oper_dokument_typ_prod_id        INT           NULL,
@@ -665,7 +705,8 @@ CREATE TABLE dbo.operacja (
     CONSTRAINT FK_operacja_wierzytelnosc    FOREIGN KEY (oper_wi_id)                REFERENCES dbo.wierzytelnosc (wi_id),
     CONSTRAINT FK_operacja_dokument_typ     FOREIGN KEY (oper_dokument_typ_prod_id) REFERENCES dbo.dokument_typ  (dot_id),
     CONSTRAINT FK_operacja_dokument         FOREIGN KEY (oper_dokument_prod_id)     REFERENCES dbo.dokument      (do_id),
-    CONSTRAINT FK_operacja_dokument_do      FOREIGN KEY (oper_do_id)                REFERENCES dbo.dokument      (do_id)
+    CONSTRAINT FK_operacja_dokument_do      FOREIGN KEY (oper_do_id)                REFERENCES dbo.dokument      (do_id),
+    CONSTRAINT FK_operacja_rejestr_typ      FOREIGN KEY (oper_rejestr_kod)          REFERENCES dbo.operacja_rejestr_typ (or_id)
 );
 
 CREATE TABLE dbo.sprawa_rola (
@@ -810,6 +851,7 @@ CREATE TABLE log.migration_run (
     toggle_config_hash       CHAR(64)    NULL,   -- SHA-256 of the JSON body actually loaded
     toggle_config_fetched_at DATETIME    NULL,   -- when run_load_toggles.js fetched it (UTC)
     toggle_config_source     VARCHAR(20) NULL,   -- 'remote' | 'file' | 'env' | 'cache'
+    profile_hash             CHAR(64)    NULL,   -- SHA-256 of merged profile.yaml (NULL = pre-Phase-3 run)
     CONSTRAINT PK_migration_run PRIMARY KEY (run_id)
 );
 
@@ -880,6 +922,14 @@ CREATE TABLE log.configuration (
 -- Value must exist in prod GE_USER table (FK enforced on wlasciwosc).
 -- Update this value to match the actual system admin user ID in prod before running migration.
 INSERT INTO log.configuration (setting_name, setting_value) VALUES ('system_admin_user_id', '5');
+
+-- use_staging_mod_date: per-client toggle (multi-client config — Phase 1+).
+-- '0' (default, Intrum) — ignore staging mod_date; aud_data on prod inserts uses
+--                        GETUTCDATE() captured at iter start (@aud_now).
+-- '1'                  — trust staging mod_date; aud_data = stg.mod_date directly.
+--                        Client is responsible for filling mod_date during staging load.
+--                        NULL mod_date will fail prod NOT NULL constraint.
+INSERT INTO log.configuration (setting_name, setting_value) VALUES ('use_staging_mod_date', '0');
 
 -- ============================================================
 -- Validation/KPI toggle configuration
@@ -996,6 +1046,9 @@ INSERT INTO log.check_toggle (short_id, check_name, check_kind, severity) VALUES
     ('REF_33', 'REF_33_rezultat_akcja', 'VALIDATION', 'BLOCKING'),
     ('REF_34', 'REF_34_rezultat_rezultat_typ', 'VALIDATION', 'BLOCKING'),
     ('REF_35', 'REF_35_ksiegowanie_dekret_konto_subkonto', 'VALIDATION', 'BLOCKING'),
+    ('REF_36', 'REF_36_adres_kraj', 'VALIDATION', 'BLOCKING'),
+    ('REF_37', 'REF_37_operacja_rejestr_typ', 'VALIDATION', 'BLOCKING'),
+    ('REF_38', 'REF_38_harmonogram_typ', 'VALIDATION', 'BLOCKING'),
     ('STR_01', 'STR_01_sprawa_no_rola', 'VALIDATION', 'BLOCKING'),
     ('STR_02', 'STR_02_sprawa_no_wierzytelnosc', 'VALIDATION', 'INFO'),
     ('STR_03', 'STR_03_sprawa_no_wierzytelnosc_but_has_related', 'VALIDATION', 'BLOCKING'),
@@ -1028,12 +1081,27 @@ GO
 
 -- Resolves the active migration run and returns common variables.
 -- Called at the top of each iter script to replace the duplicated header block.
+-- Phase 4: new OUTPUT params surface scalar defaults from configuration.defaults
+-- and stamp log.migration_run.profile_hash from configuration.profile_meta.
+-- New params have `= NULL` default so callers that only want pre-Phase-4 vars
+-- continue to work; iter scripts that need a profile-driven default request it
+-- explicitly and THROW on NULL.
 CREATE OR ALTER PROCEDURE log.usp_resolve_run
     @p_stage                INT,
     @p_run_id               INT OUTPUT,
     @p_system_admin_user_id INT OUTPUT,
     @p_aud_now              DATETIME OUTPUT,
-    @p_aud_login            VARCHAR(200) OUTPUT
+    @p_aud_login            VARCHAR(200) OUTPUT,
+    @p_use_staging_mod_date BIT OUTPUT,
+    -- Phase 4: scalar defaults from configuration.defaults (all optional)
+    @p_zrodlo_pochodzenia_informacji_id INT       = NULL OUTPUT,
+    @p_mail_typ_id                      INT       = NULL OUTPUT,
+    @p_operator_typ_id                  INT       = NULL OUTPUT,
+    @p_wierzytelnosc_typ_id             INT       = NULL OUTPUT,
+    @p_wierzytelnosc_rola_typ_id        INT       = NULL OUTPUT,
+    @p_harmonogram_dokument_typ_id      INT       = NULL OUTPUT,
+    @p_default_country_id               INT       = NULL OUTPUT,
+    @p_ksd_batch_size                   INT       = NULL OUTPUT
 AS
 SET NOCOUNT ON;
     SET @p_aud_now = GETUTCDATE();
@@ -1055,6 +1123,74 @@ SET NOCOUNT ON;
 
     IF @p_system_admin_user_id IS NULL
         THROW 50011, 'system_admin_user_id not found in log.configuration.', 1;
+
+    -- Per-client toggle: 0 = use @aud_now for aud_data (Intrum default), 1 = trust stg.mod_date
+    SELECT @p_use_staging_mod_date = CAST(setting_value AS BIT)
+    FROM log.configuration WITH (NOLOCK)
+    WHERE setting_name = 'use_staging_mod_date';
+
+    SET @p_use_staging_mod_date = ISNULL(@p_use_staging_mod_date, 0);
+
+    -- Phase 4: resolve scalar defaults from configuration.defaults (if loaded).
+    -- Tolerates absence of configuration schema (pre-Phase-3 staging restored
+    -- from older bacpac) — callers requesting NULL params THROW themselves.
+    --
+    -- Scalar-subquery assignment (`SET @x = (SELECT ...)`) instead of
+    -- `SELECT @x = ... WHERE` so a missing row yields NULL rather than leaving
+    -- whatever value the caller passed in. The caller's NULL guard relies on
+    -- this — using SELECT-assign would silently leak the caller's prior value.
+    IF OBJECT_ID('configuration.defaults', 'U') IS NOT NULL
+    BEGIN
+        SET @p_zrodlo_pochodzenia_informacji_id = (
+            SELECT CAST(config_value AS INT) FROM configuration.defaults WITH (NOLOCK)
+            WHERE section = 'defaults' AND config_key = 'zrodlo_pochodzenia_informacji_id');
+
+        SET @p_mail_typ_id = (
+            SELECT CAST(config_value AS INT) FROM configuration.defaults WITH (NOLOCK)
+            WHERE section = 'defaults' AND config_key = 'mail_typ_id');
+
+        SET @p_operator_typ_id = (
+            SELECT CAST(config_value AS INT) FROM configuration.defaults WITH (NOLOCK)
+            WHERE section = 'defaults' AND config_key = 'operator_typ_id');
+
+        SET @p_wierzytelnosc_typ_id = (
+            SELECT CAST(config_value AS INT) FROM configuration.defaults WITH (NOLOCK)
+            WHERE section = 'defaults' AND config_key = 'wierzytelnosc_typ_id');
+
+        SET @p_wierzytelnosc_rola_typ_id = (
+            SELECT CAST(config_value AS INT) FROM configuration.defaults WITH (NOLOCK)
+            WHERE section = 'defaults' AND config_key = 'wierzytelnosc_rola_typ_id');
+
+        SET @p_default_country_id = (
+            SELECT CAST(config_value AS INT) FROM configuration.defaults WITH (NOLOCK)
+            WHERE section = 'defaults' AND config_key = 'default_country_id');
+
+        SET @p_harmonogram_dokument_typ_id = (
+            SELECT CAST(config_value AS INT) FROM configuration.defaults WITH (NOLOCK)
+            WHERE section = 'features.harmonogram' AND config_key = 'dokument_typ_id');
+
+        SET @p_ksd_batch_size = (
+            SELECT CAST(config_value AS INT) FROM configuration.defaults WITH (NOLOCK)
+            WHERE section = 'tuning' AND config_key = 'ksd_batch_size');
+    END
+
+    -- Phase 4: stamp log.migration_run.profile_hash from configuration.profile_meta.
+    -- Authoritative source — supersedes the best-effort UPDATE that the generator
+    -- emits in 00_load_config.sql (which runs before pre_check opens the run).
+    -- Idempotent: each iter calls this proc, but the UPDATE is gated by
+    -- `profile_hash IS NULL` so it actually writes only on the first call per run.
+    IF OBJECT_ID('configuration.profile_meta', 'U') IS NOT NULL
+    BEGIN
+        DECLARE @v_profile_hash CHAR(64);
+        SELECT TOP 1 @v_profile_hash = profile_hash
+        FROM configuration.profile_meta WITH (NOLOCK);
+
+        IF @v_profile_hash IS NOT NULL
+            UPDATE log.migration_run
+            SET    profile_hash = @v_profile_hash
+            WHERE  run_id = @p_run_id
+              AND  profile_hash IS NULL;
+    END
 GO
 
 -- Logs a successful table migration section.
@@ -1114,6 +1250,107 @@ INSERT INTO configuration.threshold_config (cfg_key, cfg_value, cfg_note) VALUES
     ('max_akcje_per_sprawa',            '200', 'Flag sprawa records with more than N akcja entries'),
     ('max_dokumenty_per_wierzytelnosc', '20',  'Flag wierzytelnosc records with more than N dokument entries'),
     ('phone_min_digits',                '9',   'Minimum digit count for a valid phone number after stripping spaces/dashes/plus');
+
+-- ============================================================
+-- Profile runtime cache (Phase 3+)
+--
+-- Populated by `00_load_config.sql` (emitted by migration/lib/generate.js
+-- from clients/<client>/profile.yaml) at the start of every pipeline run.
+-- Strategy: TRUNCATE + INSERT (same pattern as `mapowanie.*`). SQL scripts
+-- starting from Phase 4 read from these tables via JOIN instead of
+-- hardcoded literals. Phase 3 only populates — no readers yet.
+-- ============================================================
+
+-- Singleton — 1 row identifying which client/profile is currently loaded.
+-- TRUNCATE+INSERT pattern (Phase 3 generator) keeps it at exactly 1 row.
+-- `loaded_at` is GETUTCDATE() to match toggle_config_fetched_at and other
+-- audit timestamps that need timezone-stable comparison across runs.
+CREATE TABLE configuration.profile_meta (
+    client_name    VARCHAR(100)  NOT NULL,
+    profile_hash   CHAR(64)      NOT NULL,
+    schema_version VARCHAR(20)   NOT NULL,
+    loaded_at      DATETIME      NOT NULL DEFAULT GETUTCDATE(),
+    CONSTRAINT PK_profile_meta PRIMARY KEY (client_name)
+);
+
+-- Scalar defaults — IDs from core DM dictionaries used as constants in iter scripts.
+-- (system_admin_user_id, default_country_id, mail_typ_id, operator_typ_id, ...)
+-- `section` identifies the YAML path the value came from; `config_key` is the
+-- leaf name; `config_value` is stored as a string with explicit type tag for
+-- safe casting on read.
+CREATE TABLE configuration.defaults (
+    -- Sections currently emitted by the generator: 'defaults', 'tuning',
+    -- 'features' (scalar feature flags), 'features.harmonogram' (nested
+    -- scalars). New sections may be added by future phases.
+    section       VARCHAR(50)   NOT NULL,
+    config_key    VARCHAR(100)  NOT NULL,
+    config_value  NVARCHAR(MAX) NOT NULL,
+    value_type    VARCHAR(20)   NOT NULL,   -- 'int' | 'varchar' | 'date' | 'decimal' | 'bool'
+    CONSTRAINT PK_configuration_defaults PRIMARY KEY (section, config_key),
+    CONSTRAINT CK_configuration_defaults_type CHECK (value_type IN ('int','varchar','date','decimal','bool'))
+);
+
+-- mapowanie.plec equivalent stored as profile-driven config (K1.3).
+-- staging code (K/M/B) → prod plec.pl_id mapping.
+CREATE TABLE configuration.mappings_plec (
+    staging_code  VARCHAR(10)   NOT NULL,
+    pl_id         INT           NOT NULL,
+    CONSTRAINT PK_configuration_mappings_plec PRIMARY KEY (staging_code)
+);
+
+-- K8.1 — staging.operacja column → ksiegowanie_dekret target mapping.
+-- iter8 (Phase 4+) joins this table to derive ksk_id/strona/ksksub_id
+-- instead of hardcoded CROSS APPLY VALUES.
+CREATE TABLE configuration.operacja_kwota_mapping (
+    staging_field VARCHAR(100)  NOT NULL,
+    ksk_id        INT           NOT NULL,   -- ksiegowanie_konto.ksk_id
+    strona        CHAR(2)       NOT NULL,   -- 'WN' (debit) | 'MA' (credit)
+    ksksub_id     INT           NULL,       -- optional ksiegowanie_konto_subkonto
+    CONSTRAINT PK_configuration_operacja_kwota_mapping PRIMARY KEY (staging_field),
+    CONSTRAINT CK_configuration_oper_kwota_strona CHECK (strona IN ('WN','MA'))
+);
+
+-- K2.2 — required staging columns per dluznik typ (dt_id).
+CREATE TABLE configuration.dluznik_required_fields (
+    dt_id         INT           NOT NULL,
+    column_name   VARCHAR(100)  NOT NULL,
+    CONSTRAINT PK_configuration_dluznik_required_fields PRIMARY KEY (dt_id, column_name)
+);
+
+-- Kategoria F — feature toggles + parameters per feature.
+-- params_json holds nested config (e.g. dluznik_teczka.sp_spt_id,
+-- harmonogram.dokument_typ_id, etc.) as JSON string.
+CREATE TABLE configuration.feature_flags (
+    name          VARCHAR(100)  NOT NULL,
+    enabled       BIT           NOT NULL,
+    params_json   NVARCHAR(MAX) NULL,
+    CONSTRAINT PK_configuration_feature_flags PRIMARY KEY (name)
+);
+
+-- Kategoria D — client-specific SQL hooks per iteration phase.
+-- Phase 6 will execute these from the orchestrator.
+CREATE TABLE configuration.iter_hooks (
+    iter_no       INT           NOT NULL,
+    phase         VARCHAR(10)   NOT NULL,   -- 'pre' | 'post'
+    order_no      INT           NOT NULL,
+    script_path   VARCHAR(500)  NOT NULL,
+    CONSTRAINT PK_configuration_iter_hooks PRIMARY KEY (iter_no, phase, order_no),
+    CONSTRAINT CK_configuration_iter_hooks_phase CHECK (phase IN ('pre','post'))
+);
+
+-- Kategoria I — client-specific custom iterations (iter10+).
+-- Phase 7 will resolve depends_on via topological sort and execute scripts.
+-- `depends_on_json` is a JSON array of iter_no integers; consistent with
+-- scripts_json / validations_json (NVARCHAR(MAX), parsed via OPENJSON).
+CREATE TABLE configuration.custom_iterations (
+    iter_no          INT           NOT NULL,
+    name             VARCHAR(200)  NOT NULL,
+    depends_on_json  NVARCHAR(MAX) NULL,
+    scripts_json     NVARCHAR(MAX) NOT NULL,
+    validations_json NVARCHAR(MAX) NULL,
+    CONSTRAINT PK_configuration_custom_iterations PRIMARY KEY (iter_no),
+    CONSTRAINT CK_configuration_custom_iterations_iter_no CHECK (iter_no >= 10)
+);
 
 -- ============================================================
 -- Migration infrastructure: ext_id columns on staging tables

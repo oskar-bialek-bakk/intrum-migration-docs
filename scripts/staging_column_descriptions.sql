@@ -1,4 +1,4 @@
-USE dm_staging;
+USE __STAGING_DB__;
 GO
 
 -- ============================================================
@@ -276,7 +276,7 @@ EXEC sp_addextendedproperty 'MS_Description', 'Numer lokalu', 'SCHEMA', 'dbo', '
 EXEC sp_addextendedproperty 'MS_Description', 'Kod pocztowy', 'SCHEMA', 'dbo', 'TABLE', 'adres', 'COLUMN', 'ad_kod';
 EXEC sp_addextendedproperty 'MS_Description', 'Miejscowość', 'SCHEMA', 'dbo', 'TABLE', 'adres', 'COLUMN', 'ad_miejscowosc';
 EXEC sp_addextendedproperty 'MS_Description', 'Poczta', 'SCHEMA', 'dbo', 'TABLE', 'adres', 'COLUMN', 'ad_poczta';
-EXEC sp_addextendedproperty 'MS_Description', 'Kraj', 'SCHEMA', 'dbo', 'TABLE', 'adres', 'COLUMN', 'ad_panstwo';
+EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika krajów', 'SCHEMA', 'dbo', 'TABLE', 'adres', 'COLUMN', 'ad_panstwo';
 EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika typów adresów', 'SCHEMA', 'dbo', 'TABLE', 'adres', 'COLUMN', 'ad_at_id';
 EXEC sp_addextendedproperty 'MS_Description', 'Uwagi dotyczące adresu', 'SCHEMA', 'dbo', 'TABLE', 'adres', 'COLUMN', 'ad_uwagi';
 EXEC sp_addextendedproperty 'MS_Description', 'Data początku obowiązywania adresu', 'SCHEMA', 'dbo', 'TABLE', 'adres', 'COLUMN', 'ad_data_od';
@@ -377,7 +377,7 @@ EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - obsługiwana
 EXEC sp_addextendedproperty 'MS_Description', 'Harmonogram spłat rat powiązany z wierzytelnościami', 'SCHEMA', 'dbo', 'TABLE', 'harmonogram';
 EXEC sp_addextendedproperty 'MS_Description', 'Klucz główny raty harmonogramu', 'SCHEMA', 'dbo', 'TABLE', 'harmonogram', 'COLUMN', 'hr_id';
 EXEC sp_addextendedproperty 'MS_Description', 'FK do wierzytelności', 'SCHEMA', 'dbo', 'TABLE', 'harmonogram', 'COLUMN', 'hr_wi_id';
-EXEC sp_addextendedproperty 'MS_Description', 'Typ harmonogramu', 'SCHEMA', 'dbo', 'TABLE', 'harmonogram', 'COLUMN', 'hr_typ';
+EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika typów harmonogramu', 'SCHEMA', 'dbo', 'TABLE', 'harmonogram', 'COLUMN', 'hr_typ';
 EXEC sp_addextendedproperty 'MS_Description', 'Data płatności raty', 'SCHEMA', 'dbo', 'TABLE', 'harmonogram', 'COLUMN', 'hr_data_raty';
 EXEC sp_addextendedproperty 'MS_Description', 'Numer kolejny raty', 'SCHEMA', 'dbo', 'TABLE', 'harmonogram', 'COLUMN', 'hr_numer_raty';
 EXEC sp_addextendedproperty 'MS_Description', 'Łączna kwota raty', 'SCHEMA', 'dbo', 'TABLE', 'harmonogram', 'COLUMN', 'hr_kwota_raty';
@@ -427,7 +427,7 @@ EXEC sp_addextendedproperty 'MS_Description', 'Operacje finansowe z systemu źr�
 EXEC sp_addextendedproperty 'MS_Description', 'Klucz główny operacji finansowej', 'SCHEMA', 'dbo', 'TABLE', 'operacja', 'COLUMN', 'oper_id';
 EXEC sp_addextendedproperty 'MS_Description', 'FK do wierzytelności', 'SCHEMA', 'dbo', 'TABLE', 'operacja', 'COLUMN', 'oper_wi_id';
 EXEC sp_addextendedproperty 'MS_Description', 'Kod waluty operacji', 'SCHEMA', 'dbo', 'TABLE', 'operacja', 'COLUMN', 'oper_waluta';
-EXEC sp_addextendedproperty 'MS_Description', 'Kod rejestru finansowego', 'SCHEMA', 'dbo', 'TABLE', 'operacja', 'COLUMN', 'oper_rejestr_kod';
+EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika typów rejestru', 'SCHEMA', 'dbo', 'TABLE', 'operacja', 'COLUMN', 'oper_rejestr_kod';
 EXEC sp_addextendedproperty 'MS_Description', 'Typ dekretu operacji', 'SCHEMA', 'dbo', 'TABLE', 'operacja', 'COLUMN', 'oper_typ_dekretu';
 EXEC sp_addextendedproperty 'MS_Description', 'Opis dekretu operacji', 'SCHEMA', 'dbo', 'TABLE', 'operacja', 'COLUMN', 'oper_opis_dekretu';
 EXEC sp_addextendedproperty 'MS_Description', 'Identyfikator typu dokumentu w systemie źródłowym', 'SCHEMA', 'dbo', 'TABLE', 'operacja', 'COLUMN', 'oper_dokument_typ_prod_id';
@@ -599,3 +599,24 @@ EXEC sp_addextendedproperty 'MS_Description', 'Klucz główny wiersza łączące
 EXEC sp_addextendedproperty 'MS_Description', 'FK do wlasciwosc (wl_id) - konkretna właściwość przypisana numerowi telefonu', 'SCHEMA', 'dbo', 'TABLE', 'wlasciwosc_telefon', 'COLUMN', 'wt_wl_id';
 EXEC sp_addextendedproperty 'MS_Description', 'FK do telefon (tn_id) - numer telefonu, któremu przypisano właściwość', 'SCHEMA', 'dbo', 'TABLE', 'wlasciwosc_telefon', 'COLUMN', 'wt_tn_id';
 EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - obsługiwana triggerami insert; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'wlasciwosc_telefon', 'COLUMN', 'mod_date';
+
+-- ------------------------------------------------------------
+-- dbo.operacja_rejestr_typ
+-- ------------------------------------------------------------
+EXEC sp_addextendedproperty 'MS_Description', 'Słownik typów rejestrów finansowych (steruje stroną WN/MA w iter8 operacja)', 'SCHEMA', 'dbo', 'TABLE', 'operacja_rejestr_typ';
+EXEC sp_addextendedproperty 'MS_Description', 'Identyfikator typu rejestru (PK)', 'SCHEMA', 'dbo', 'TABLE', 'operacja_rejestr_typ', 'COLUMN', 'or_id';
+EXEC sp_addextendedproperty 'MS_Description', 'Kod rejestru (np. wplata, korekta)', 'SCHEMA', 'dbo', 'TABLE', 'operacja_rejestr_typ', 'COLUMN', 'or_kod';
+EXEC sp_addextendedproperty 'MS_Description', 'Nazwa typu rejestru', 'SCHEMA', 'dbo', 'TABLE', 'operacja_rejestr_typ', 'COLUMN', 'or_nazwa';
+EXEC sp_addextendedproperty 'MS_Description', 'Strona dekretu (WN lub MA)', 'SCHEMA', 'dbo', 'TABLE', 'operacja_rejestr_typ', 'COLUMN', 'or_strona';
+EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - DEFAULT GETDATE() przy insertcie; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'operacja_rejestr_typ', 'COLUMN', 'mod_date';
+EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - DEFAULT NEWID() przy insertcie; nie wypełniać (słownik staging-only, brak prod MERGE)', 'SCHEMA', 'dbo', 'TABLE', 'operacja_rejestr_typ', 'COLUMN', 'or_uuid';
+
+-- ------------------------------------------------------------
+-- dbo.harmonogram_typ
+-- ------------------------------------------------------------
+EXEC sp_addextendedproperty 'MS_Description', 'Słownik typów harmonogramów (np. miesięczny, umowny, sądowy)', 'SCHEMA', 'dbo', 'TABLE', 'harmonogram_typ';
+EXEC sp_addextendedproperty 'MS_Description', 'Identyfikator typu harmonogramu (PK)', 'SCHEMA', 'dbo', 'TABLE', 'harmonogram_typ', 'COLUMN', 'ht_id';
+EXEC sp_addextendedproperty 'MS_Description', 'Kod typu harmonogramu', 'SCHEMA', 'dbo', 'TABLE', 'harmonogram_typ', 'COLUMN', 'ht_kod';
+EXEC sp_addextendedproperty 'MS_Description', 'Nazwa typu harmonogramu', 'SCHEMA', 'dbo', 'TABLE', 'harmonogram_typ', 'COLUMN', 'ht_nazwa';
+EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - DEFAULT GETDATE() przy insertcie; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'harmonogram_typ', 'COLUMN', 'mod_date';
+EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - DEFAULT NEWID() przy insertcie; nie wypełniać (słownik staging-only, brak prod MERGE)', 'SCHEMA', 'dbo', 'TABLE', 'harmonogram_typ', 'COLUMN', 'ht_uuid';

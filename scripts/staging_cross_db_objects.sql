@@ -2,12 +2,12 @@
 -- staging_cross_db_objects.sql
 --
 -- Cross-database stored procedures extracted from staging.sql.
--- These procs reference dm_data_web_pipeline.dbo.* in static T-SQL
+-- These procs reference __PROD_DB__.dbo.* in static T-SQL
 -- (procs 1 and 3) or via dynamic SQL (proc 2). They CANNOT be created
--- on an Azure SQL Database instance that does not host dm_data_web_pipeline.
+-- on an Azure SQL Database instance that does not host __PROD_DB__.
 --
 -- Run order:
---   1. staging.sql                       (creates dm_staging structure)
+--   1. staging.sql                       (creates __STAGING_DB__ structure)
 --   2. create_staging_indexes.sql
 --   3. staging_column_descriptions.sql
 --   4. staging_cross_db_objects.sql      <-- THIS FILE, deferred until
@@ -21,7 +21,7 @@
 --   - dbo.usp_manage_prod_ncis           (static cross-DB refs)
 -- ============================================================
 
-USE dm_staging;
+USE __STAGING_DB__;
 GO
 
 -- ============================================================
@@ -31,12 +31,15 @@ GO
 -- Caller MUST create #atw_mapping (staging_at_id BIGINT, prod_atw_id INT) before calling.
 -- ============================================================
 GO
+-- Caller must pass @use_staging_mod_date (read once from log.configuration in iter scripts).
+-- No default — avoids silent Intrum fallback on misuse.
 CREATE OR ALTER PROCEDURE dbo.usp_migrate_atrybut_wartosc
-    @att_atd_id     INT,
-    @aud_now        DATETIME2,
-    @aud_login      VARCHAR(50),
-    @attempted      INT OUTPUT,
-    @inserted       INT OUTPUT
+    @att_atd_id           INT,
+    @aud_now              DATETIME,        -- consistent with caller iter scripts and other procs
+    @aud_login            VARCHAR(50),
+    @attempted            INT OUTPUT,
+    @inserted             INT OUTPUT,
+    @use_staging_mod_date BIT
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -51,12 +54,12 @@ BEGIN
 
     -- Snapshot existing ext_ids
     SELECT atw_ext_id INTO #existing_atw
-    FROM dm_data_web_pipeline.dbo.atrybut_wartosc WITH (NOLOCK)
+    FROM __PROD_DB__.dbo.atrybut_wartosc WITH (NOLOCK)
     WHERE atw_ext_id IS NOT NULL;
     CREATE UNIQUE INDEX UX_existing_atw ON #existing_atw (atw_ext_id);
 
     -- INSERT new rows (OUTPUT into caller's #atw_mapping)
-    INSERT INTO dm_data_web_pipeline.dbo.atrybut_wartosc WITH (TABLOCK) (
+    INSERT INTO __PROD_DB__.dbo.atrybut_wartosc WITH (TABLOCK) (
         atw_att_id, atw_wartosc, atw_ext_id, aud_data, aud_login
     )
     OUTPUT CAST(inserted.atw_ext_id AS BIGINT), inserted.atw_id
@@ -65,11 +68,11 @@ BEGIN
         att.att_id,
         stg.at_wartosc,
         CAST(stg.at_id AS VARCHAR(100)),
-        @aud_now,
+        CASE WHEN @use_staging_mod_date = 1 THEN stg.mod_date ELSE @aud_now END,
         @aud_login
     FROM dbo.atrybut stg WITH (NOLOCK)
     JOIN dbo.atrybut_typ stg_att WITH (NOLOCK) ON stg_att.att_id = stg.at_att_id
-    JOIN dm_data_web_pipeline.dbo.atrybut_typ att WITH (NOLOCK) ON att.att_id = stg_att.att_ext_id
+    JOIN __PROD_DB__.dbo.atrybut_typ att WITH (NOLOCK) ON att.att_id = stg_att.att_ext_id
     LEFT JOIN #existing_atw ex ON ex.atw_ext_id = CAST(stg.at_id AS VARCHAR(100))
     WHERE stg_att.att_atd_id = @att_atd_id
       AND ex.atw_ext_id IS NULL;
@@ -79,7 +82,7 @@ BEGIN
     -- Backfill mapping for prior-run rows
     INSERT INTO #atw_mapping (staging_at_id, prod_atw_id)
     SELECT CAST(atw.atw_ext_id AS BIGINT), atw.atw_id
-    FROM dm_data_web_pipeline.dbo.atrybut_wartosc atw WITH (NOLOCK)
+    FROM __PROD_DB__.dbo.atrybut_wartosc atw WITH (NOLOCK)
     JOIN dbo.atrybut stg WITH (NOLOCK) ON atw.atw_ext_id = CAST(stg.at_id AS VARCHAR(100))
     JOIN dbo.atrybut_typ stg_att WITH (NOLOCK) ON stg_att.att_id = stg.at_att_id
     LEFT JOIN #atw_mapping am ON am.staging_at_id = CAST(atw.atw_ext_id AS BIGINT)
@@ -167,8 +170,8 @@ BEGIN
     SET @sql = N'
         INSERT INTO #wl_exist (entity_id, wtpd_id)
         SELECT jt.' + QUOTENAME(@p_prod_join_entity_fk) + N', wl.wl_wtpd_id
-        FROM dm_data_web_pipeline.dbo.' + QUOTENAME(@p_stg_join_table) + N' jt WITH (NOLOCK)
-        JOIN dm_data_web_pipeline.dbo.wlasciwosc wl WITH (NOLOCK)
+        FROM __PROD_DB__.dbo.' + QUOTENAME(@p_stg_join_table) + N' jt WITH (NOLOCK)
+        JOIN __PROD_DB__.dbo.wlasciwosc wl WITH (NOLOCK)
             ON wl.wl_id = jt.' + QUOTENAME(@p_prod_join_wl_fk) + N';';
 
     EXEC sp_executesql @sql;
@@ -182,8 +185,25 @@ BEGIN
 
     IF @p_fk_mode = 'MAPPING'
     BEGIN
+        -- @p_mapping_table is "schema.table" (e.g. "mapowanie.dodani_dluznicy").
+        -- Quote both parts so a malicious or typo'd value can't break out of
+        -- the dynamic SQL (defense in depth — all real callers pass safe literals).
+        --
+        -- Reject 3- or 4-part names (db.schema.table or srv.db.schema.table) —
+        -- PARSENAME would silently drop the database/server prefix and we'd
+        -- end up joining a different object than the caller intended.
+        IF PARSENAME(@p_mapping_table, 1) IS NULL
+           OR PARSENAME(@p_mapping_table, 2) IS NULL
+           OR PARSENAME(@p_mapping_table, 3) IS NOT NULL
+           OR PARSENAME(@p_mapping_table, 4) IS NOT NULL
+            THROW 50301, 'usp_migrate_wlasciwosc_domain: @p_mapping_table must be exactly schema.table (no db/server prefix).', 1;
+
+        DECLARE @mapping_table_quoted NVARCHAR(300) =
+            QUOTENAME(PARSENAME(@p_mapping_table, 2))
+            + N'.' + QUOTENAME(PARSENAME(@p_mapping_table, 1));
+
         SET @fk_join = N'
-        JOIN ' + @p_mapping_table + N' fk WITH (NOLOCK)
+        JOIN ' + @mapping_table_quoted + N' fk WITH (NOLOCK)
             ON fk.' + QUOTENAME(@p_mapping_staging_col) + N' = stg_j.' + QUOTENAME(@p_stg_join_entity_fk);
         SET @fk_filter = N'
         LEFT JOIN #wl_exist ex ON ex.entity_id = fk.' + QUOTENAME(@p_mapping_prod_col)
@@ -193,7 +213,7 @@ BEGIN
     ELSE
     BEGIN
         SET @fk_join = N'
-        JOIN dm_data_web_pipeline.dbo.' + QUOTENAME(@p_prod_entity_table) + N' fk WITH (NOLOCK)
+        JOIN __PROD_DB__.dbo.' + QUOTENAME(@p_prod_entity_table) + N' fk WITH (NOLOCK)
             ON fk.' + QUOTENAME(@p_prod_entity_ext_id_col) + N' = stg_j.' + QUOTENAME(@p_stg_join_entity_fk);
         SET @fk_filter = N'
         LEFT JOIN #wl_exist ex ON ex.entity_id = fk.' + QUOTENAME(@p_prod_entity_id_col)
@@ -202,7 +222,7 @@ BEGIN
     END;
 
     SET @sql = N'
-    MERGE dm_data_web_pipeline.dbo.wlasciwosc WITH (TABLOCK) AS tgt
+    MERGE __PROD_DB__.dbo.wlasciwosc WITH (TABLOCK) AS tgt
     USING (
         SELECT
             stg_wl.wl_id              AS staging_wl_id,
@@ -251,7 +271,7 @@ BEGIN
     IF @p_fk_mode = 'MAPPING'
     BEGIN
         SET @sql = N'
-        INSERT INTO dm_data_web_pipeline.dbo.' + QUOTENAME(@p_stg_join_table) + N' WITH (TABLOCK)
+        INSERT INTO __PROD_DB__.dbo.' + QUOTENAME(@p_stg_join_table) + N' WITH (TABLOCK)
             (' + QUOTENAME(@p_prod_join_wl_fk) + N', ' + QUOTENAME(@p_prod_join_entity_fk) + N', aud_data, aud_login)
         SELECT
             m.prod_wl_id,
@@ -266,7 +286,7 @@ BEGIN
     ELSE
     BEGIN
         SET @sql = N'
-        INSERT INTO dm_data_web_pipeline.dbo.' + QUOTENAME(@p_stg_join_table) + N' WITH (TABLOCK)
+        INSERT INTO __PROD_DB__.dbo.' + QUOTENAME(@p_stg_join_table) + N' WITH (TABLOCK)
             (' + QUOTENAME(@p_prod_join_wl_fk) + N', ' + QUOTENAME(@p_prod_join_entity_fk) + N', aud_data, aud_login)
         SELECT
             m.prod_wl_id,
@@ -275,7 +295,7 @@ BEGIN
             @alogin
         FROM dbo.' + QUOTENAME(@p_stg_join_table) + N' stg_j WITH (NOLOCK)
         JOIN #wl_map m ON m.staging_wl_id = stg_j.' + QUOTENAME(@p_stg_join_wl_fk) + N'
-        JOIN dm_data_web_pipeline.dbo.' + QUOTENAME(@p_prod_entity_table) + N' fk WITH (NOLOCK)
+        JOIN __PROD_DB__.dbo.' + QUOTENAME(@p_prod_entity_table) + N' fk WITH (NOLOCK)
             ON fk.' + QUOTENAME(@p_prod_entity_ext_id_col) + N' = stg_j.' + QUOTENAME(@p_stg_join_entity_fk) + N';';
     END;
 
@@ -312,11 +332,11 @@ BEGIN
     DECLARE @is_disabled BIT = CASE WHEN @action = 'REBUILD' THEN 1 ELSE 0 END;
 
     SELECT @sql = @sql + N'ALTER INDEX ' + QUOTENAME(i.name)
-        + N' ON dm_data_web_pipeline.' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
+        + N' ON __PROD_DB__.' + QUOTENAME(s.name) + N'.' + QUOTENAME(t.name)
         + N' ' + @action + N'; '
-    FROM dm_data_web_pipeline.sys.indexes i
-    JOIN dm_data_web_pipeline.sys.tables t ON i.object_id = t.object_id
-    JOIN dm_data_web_pipeline.sys.schemas s ON t.schema_id = s.schema_id
+    FROM __PROD_DB__.sys.indexes i
+    JOIN __PROD_DB__.sys.tables t ON i.object_id = t.object_id
+    JOIN __PROD_DB__.sys.schemas s ON t.schema_id = s.schema_id
     JOIN STRING_SPLIT(@table_csv, ',') ss ON LTRIM(RTRIM(ss.value)) = t.name
     WHERE s.name = 'dbo'
       AND i.type = 2              -- non-clustered
@@ -328,7 +348,7 @@ BEGIN
 
     IF LEN(@sql) > 0
     BEGIN
-        EXEC dm_data_web_pipeline.dbo.sp_executesql @sql;
+        EXEC sp_executesql @sql;
         PRINT '   >> ' + @action + ' NCIs on ' + @table_csv;
     END
 END;

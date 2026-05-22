@@ -52,10 +52,13 @@ Skopiowanie istniejących danych produkcyjnych do tabel słownikowych w stagingu
 | `dbo.kontrahent` | Wierzyciele i kontrahenci |
 | `dbo.umowa_kontrahent` | Umowy z kontrahentami — załadować po `kontrahent` |
 | `dbo.adres_typ` | Słownik typów adresów |
+| `dbo.kraj` | Słownik krajów (kopia referencyjna z prod). Identyfikatory `kraj_id` w stagingu są zgodne z produkcją. |
 | `dbo.dluznik_typ` | Słownik typów dłużników |
 | `dbo.dokument_typ` | Słownik typów dokumentów |
 | `dbo.ksiegowanie_konto` | Słownik kont księgowych |
 | `dbo.ksiegowanie_typ` | Słownik typów księgowań |
+| `dbo.operacja_rejestr_typ` | Słownik typów rejestru operacji finansowych (tylko staging — konfiguracja). Kolumna `or_strona` (WN/MA) determinuje stronę dekretu generowanego z `operacja` w iteracji 8. Nie kopiowany do prod. |
+| `dbo.harmonogram_typ` | Słownik typów harmonogramu spłat (np. umowny, sądowy) — tylko staging — konfiguracja. Używany w iteracji 9 do wyznaczenia `do_numer`/`do_tytul` w prod `dokument`. Nie kopiowany do prod. |
 | `dbo.sprawa_rola_typ` | Słownik ról w sprawie |
 | `dbo.sprawa_typ` | Słownik typów spraw |
 | `dbo.telefon_typ` | Słownik typów telefonów |
@@ -89,7 +92,7 @@ Skopiowanie istniejących danych produkcyjnych do tabel słownikowych w stagingu
 
 | Tabela | Zależności FK | Uwagi |
 |---|---|---|
-| `dbo.adres` | `ad_dl_id → dluznik`, `ad_at_id → adres_typ` | Dozwolonych wiele adresów na dłużnika. Maksymalna liczba jednocześnie aktywnych adresów danego typu (`ad_at_id`) jest konfigurowana w prod: `adres_typ_podmiot_konfiguracja.atpk_il` (dla `atp_id=2` — dłużnik). Aktywny = `ad_data_do IS NULL` lub `ad_data_do > GETDATE()`. Przekroczenie limitu jest **blokujące** (BIZ_20). |
+| `dbo.adres` | `ad_dl_id → dluznik`, `ad_at_id → adres_typ`, `ad_panstwo → kraj` *(opcjonalne)* | Dozwolonych wiele adresów na dłużnika. Maksymalna liczba jednocześnie aktywnych adresów danego typu (`ad_at_id`) jest konfigurowana w prod: `adres_typ_podmiot_konfiguracja.atpk_il` (dla `atp_id=2` — dłużnik). Aktywny = `ad_data_do IS NULL` lub `ad_data_do > GETDATE()`. Przekroczenie limitu jest **blokujące** (BIZ_20). |
 | `dbo.mail` | `ma_dl_id → dluznik` | |
 | `dbo.telefon` | `tn_dl_id → dluznik`, `tn_tt_id → telefon_typ` | Dozwolonych wiele numerów telefonu na dłużnika, jednak dla każdego typu telefonu (`tn_tt_id`) tylko jeden rekord może być jednocześnie aktywny (brak daty zakończenia lub `tn_data_do > GETDATE()`). |
 | `dbo.wlasciwosc` *(dziedzina=1,2,3)* | `wl_wtpd_id → wlasciwosc_typ_podtyp_dziedzina` | Wiersze właściwości powiązane z adresami (dziedzina=2), e-mailami (dziedzina=3) i telefonami (dziedzina=1). Załadować razem z `wlasciwosc_adres`, `wlasciwosc_email`, `wlasciwosc_telefon`. |
@@ -142,7 +145,7 @@ Skopiowanie istniejących danych produkcyjnych do tabel słownikowych w stagingu
 | Tabela | Zależności FK | Uwagi |
 |---|---|---|
 | `dbo.ksiegowanie` | `ks_kst_id → ksiegowanie_typ` | Nagłówki księgowań |
-| `dbo.operacja` | `oper_wi_id → wierzytelnosc` | Surowe operacje finansowe z systemu źródłowego |
+| `dbo.operacja` | `oper_wi_id → wierzytelnosc`, `oper_rejestr_kod → operacja_rejestr_typ` | Surowe operacje finansowe z systemu źródłowego. Kolumna `oper_rejestr_kod` (INT) wskazuje typ rejestru ze słownika `operacja_rejestr_typ`, którego `or_strona` (WN/MA) determinuje stronę dekretu generowanego w prod. |
 | `dbo.ksiegowanie_dekret` | `ksd_ks_id → ksiegowanie`, `ksd_do_id → dokument`, `ksd_ksk_id → ksiegowanie_konto`, `ksd_sp_id → sprawa`, `ksd_wa_id → waluta` | Załadować po `ksiegowanie`. Kolumny wielowalutowe (`ksd_kurs_bazowy`, `ksd_kwota_wn/ma_*`) są opcjonalne — wypełnić jeśli system źródłowy dostarcza dane wyceny. |
 
 ---
@@ -151,7 +154,7 @@ Skopiowanie istniejących danych produkcyjnych do tabel słownikowych w stagingu
 
 | Tabela | Zależności FK | Uwagi |
 |---|---|---|
-| `dbo.harmonogram` | `hr_wi_id → wierzytelnosc` | Harmonogram spłat |
+| `dbo.harmonogram` | `hr_wi_id → wierzytelnosc`, `hr_typ → harmonogram_typ` | Harmonogram spłat |
 | `dbo.zabezpieczenie` | `zab_wi_id → wierzytelnosc`, `zab_dl_id → dluznik` | **Tylko od etapu 2 migracji** — nie jest wymagane dla etapu 1. |
 
 ---
@@ -160,8 +163,9 @@ Skopiowanie istniejących danych produkcyjnych do tabel słownikowych w stagingu
 
 ```
 Iteracja 1  → waluta, kurs_walut, kontrahent, umowa_kontrahent,
-               adres_typ, dluznik_typ, dokument_typ, ksiegowanie_konto,
-               ksiegowanie_typ, sprawa_rola_typ, sprawa_typ, telefon_typ,
+               adres_typ, kraj, dluznik_typ, dokument_typ, ksiegowanie_konto,
+               ksiegowanie_typ, operacja_rejestr_typ, harmonogram_typ,
+               sprawa_rola_typ, sprawa_typ, telefon_typ,
                atrybut_dziedzina, atrybut_rodzaj, akcja_typ, rezultat_typ,
                atrybut_typ*, sprawa_etap*, zrodlo_pochodzenia_informacji,
                wlasciwosc_typ_walidacji, wlasciwosc_dziedzina, wlasciwosc_podtyp,
@@ -250,6 +254,9 @@ Sprawdzają czy wartości w kolumnach FK wskazują na istniejące rekordy.
 | REF_33 | `rezultat` | Każdy rezultat musi być powiązany z istniejącą akcją (`re_ak_id → akcja`) |
 | REF_34 | `rezultat` | Typ rezultatu musi istnieć w `rezultat_typ` (`re_ret_id → rezultat_typ`) |
 | REF_35 | `ksiegowanie_dekret` | Subkonto konta księgowego musi istnieć w `ksiegowanie_konto_subkonto` (`ksd_ksksub_id → ksiegowanie_konto_subkonto`) |
+| REF_36 | `adres` | Jeśli `ad_panstwo` jest wypełnione, musi istnieć w `kraj` (`ad_panstwo → kraj.kraj_id`) |
+| REF_37 | `operacja` | Typ rejestru musi istnieć w `operacja_rejestr_typ` (`oper_rejestr_kod → operacja_rejestr_typ.or_id`) |
+| REF_38 | `harmonogram` | Typ harmonogramu musi istnieć w `harmonogram_typ` (`hr_typ → harmonogram_typ.ht_id`) |
 
 ---
 

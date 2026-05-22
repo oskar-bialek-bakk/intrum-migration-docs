@@ -1,13 +1,15 @@
 -- ============================================================
 -- create_staging_indexes.sql
--- Creates all non-clustered indexes on dm_staging entity tables.
+-- Creates all non-clustered indexes on __STAGING_DB__ entity tables.
 --
 -- Run AFTER staging.sql + infrastructure + column descriptions.
 -- For stress tests: disable_staging_indexes.sql runs next,
 -- then seed, then rebuild_staging_indexes.sql.
 -- ============================================================
 SET NOCOUNT ON;
-USE dm_staging;
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
+USE __STAGING_DB__;
 GO
 
 -- sprawa_rola: REF_01, REF_02, STR_01
@@ -27,6 +29,7 @@ CREATE INDEX IX_dokument_dot_id ON dbo.dokument (do_dot_id);
 
 -- adres: REF_09
 CREATE INDEX IX_adres_dl_id ON dbo.adres (ad_dl_id);
+CREATE INDEX IX_adres_ad_panstwo ON dbo.adres (ad_panstwo) WHERE ad_panstwo IS NOT NULL;
 
 -- telefon: REF_11
 CREATE INDEX IX_telefon_dl_id ON dbo.telefon (tn_dl_id);
@@ -59,9 +62,13 @@ CREATE INDEX IX_ksd_ksksub_id ON dbo.ksiegowanie_dekret (ksd_ksksub_id);
 CREATE INDEX IX_operacja_wi_id  ON dbo.operacja (oper_wi_id);
 CREATE INDEX IX_operacja_do_id  ON dbo.operacja (oper_do_id);
 CREATE INDEX IX_operacja_waluta ON dbo.operacja (oper_waluta);
+CREATE INDEX IX_operacja_oper_rejestr_kod ON dbo.operacja (oper_rejestr_kod) WHERE oper_rejestr_kod IS NOT NULL;
 
 -- harmonogram: migration iter9 JOIN on hr_wi_id
 CREATE INDEX IX_harmonogram_wi_id ON dbo.harmonogram (hr_wi_id);
+
+-- harmonogram: FK joins
+CREATE INDEX IX_harmonogram_hr_typ ON dbo.harmonogram (hr_typ);
 
 -- waluta: REF_27 lookup by ISO currency code (wa_nazwa_skrocona is not PK)
 CREATE INDEX IX_waluta_nazwa_skrocona ON dbo.waluta (wa_nazwa_skrocona);
@@ -85,4 +92,4 @@ CREATE INDEX IX_wlasciwosc_email_ma ON dbo.wlasciwosc_email (we_ma_id);
 CREATE INDEX IX_wlasciwosc_telefon_wl ON dbo.wlasciwosc_telefon (wt_wl_id);
 CREATE INDEX IX_wlasciwosc_telefon_tn ON dbo.wlasciwosc_telefon (wt_tn_id);
 
-PRINT '>> All 37 staging indexes created.';
+PRINT '>> All staging indexes created.';

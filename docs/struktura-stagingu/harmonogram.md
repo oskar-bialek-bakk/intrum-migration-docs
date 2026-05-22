@@ -37,10 +37,16 @@ erDiagram
         bigint  ksd_id    PK
     }
 
+    harmonogram_typ {
+        int      ht_id              PK
+        varchar  ht_kod
+        varchar  ht_nazwa
+    }
+
     harmonogram {
         bigint   hr_id              PK
         bigint   hr_wi_id           FK
-        varchar  hr_typ                    "umowny / sądowy"
+        int      hr_typ             FK   "umowny / sądowy"
         date     hr_data_raty
         int      hr_numer_raty
         decimal  hr_kwota_raty             "kapitał + odsetki"
@@ -49,6 +55,7 @@ erDiagram
     }
 
     harmonogram }o--||  wierzytelnosc       : "hr_wi_id"
+    harmonogram }o--||  harmonogram_typ     : "hr_typ"
     harmonogram ||--||  dokument            : "generuje (iter9)"
     harmonogram ||--||  ksiegowanie         : "generuje (iter9)"
     harmonogram ||--o{  ksiegowanie_dekret  : "generuje 1–3 (iter9)"
@@ -82,9 +89,9 @@ Rata harmonogramu spłat powiązana z wierzytelnością — data płatności, nu
     <span class="param-desc">FK do wierzytelności (iteracja 6).</span>
   </li>
   <li>
-    <span class="param-name required">hr_typ</span>
-    <span class="param-type">VARCHAR(50)</span>
-    <span class="param-desc">Typ harmonogramu (np. umowny, sądowy).</span>
+    <span class="param-name fk required">hr_typ</span>
+    <span class="param-type">INT</span>
+    <span class="param-desc">FK do słownika typów harmonogramu (<code>dbo.harmonogram_typ.ht_id</code>).</span>
   </li>
   <li>
     <span class="param-name required">hr_data_raty</span>
@@ -124,6 +131,7 @@ Rata harmonogramu spłat powiązana z wierzytelnością — data płatności, nu
 
 - Poprzednia iteracja: [Dane finansowe](finanse.md)
 - Źródłowe wierzytelności: [Wierzytelności](wierzytelnosci.md)
-- Słowniki bazowe iteracja 1: [dokument_typ](slowniki.md#dbodokument_typ), [ksiegowanie_typ](slowniki.md#dboksiegowanie_typ), [ksiegowanie_konto](slowniki.md#dboksiegowanie_konto)
+- Słowniki bazowe iteracja 1: [dokument_typ](slowniki.md#dbodokument_typ), [ksiegowanie_typ](slowniki.md#dboksiegowanie_typ), [ksiegowanie_konto](slowniki.md#dboksiegowanie_konto), [harmonogram_typ](slowniki.md#dboharmonogram_typ)
+- Walidacje referencyjne (harmonogram): [REF_38 (hr_typ → harmonogram_typ)](../przygotowanie-danych/walidacje.md)
 - Walidacje integralności strukturalnej: [STR_07 (harmonogram bez wierzytelności, OSTRZEŻENIE)](../przygotowanie-danych/walidacje.md#str_07)
 - Koniec migracji etap 1 — [Kolejność ładowania](../przygotowanie-danych/kolejnosc-zasilania-tabel.md)

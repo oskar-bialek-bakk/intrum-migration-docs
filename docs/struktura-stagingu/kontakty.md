@@ -38,6 +38,10 @@ erDiagram
         varchar tt_nazwa
     }
 
+    kraj {
+        int     kraj_id  PK
+    }
+
     adres {
         bigint   ad_id          PK
         bigint   ad_dl_id       FK
@@ -48,7 +52,7 @@ erDiagram
         varchar  ad_kod
         varchar  ad_miejscowosc
         varchar  ad_poczta
-        varchar  ad_panstwo
+        int      ad_panstwo  FK
         varchar  ad_uwagi
         datetime ad_data_od
         datetime ad_data_do            "NULL = aktywny"
@@ -73,6 +77,7 @@ erDiagram
 
     adres       }o--||  dluznik     : "ad_dl_id"
     adres       }o--||  adres_typ   : "ad_at_id"
+    adres       }o--o|  kraj        : "ad_panstwo"
     mail        }o--||  dluznik     : "ma_dl_id"
     telefon     }o--||  dluznik     : "tn_dl_id"
     telefon     }o--||  telefon_typ : "tn_tt_id"
@@ -141,9 +146,9 @@ Adresy przypisane do dłużnika, z typem określonym przez `ad_at_id` (FK do sł
     <span class="param-desc">Poczta</span>
   </li>
   <li>
-    <span class="param-name">ad_panstwo</span>
-    <span class="param-type">VARCHAR</span>
-    <span class="param-desc">Kraj</span>
+    <span class="param-name fk">ad_panstwo</span>
+    <span class="param-type">INT</span>
+    <span class="param-desc">FK do słownika krajów (<code>dbo.kraj.kraj_id</code>) — opcjonalny.</span>
   </li>
   <li>
     <span class="param-name">ad_uwagi</span>
@@ -282,7 +287,7 @@ Numery telefonów przypisane do dłużnika, z typem określonym przez `tn_tt_id`
 
 - Poprzednia iteracja: [Dłużnicy i atrybuty dłużników](dluznicy.md)
 - Następna iteracja: [Sprawy i role](sprawy.md)
-- Walidacje referencyjne (adres): [REF_09, REF_10](../przygotowanie-danych/walidacje.md)
+- Walidacje referencyjne (adres): [REF_09, REF_10](../przygotowanie-danych/walidacje.md), [REF_36 (ad_panstwo → kraj)](../przygotowanie-danych/walidacje.md)
 - Walidacje referencyjne (mail): [REF_13](../przygotowanie-danych/walidacje.md)
 - Walidacje referencyjne (telefon): [REF_11, REF_12](../przygotowanie-danych/walidacje.md)
 - Walidacje formatu: [FMT_04 (kod pocztowy), FMT_05 (e-mail), FMT_06, FMT_07 (telefon)](../przygotowanie-danych/walidacje.md)
