@@ -232,6 +232,68 @@
   padding-left: 0;
 }
 
+.param-prod {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--md-typeset-a-color);
+  margin-left: 8px;
+  opacity: 0.9;
+}
+
+.param-prod::before {
+  content: "→ ";
+  opacity: 0.6;
+  margin-right: 2px;
+}
+
+.prod-badge {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  padding: 0.1em 0.5em;
+  margin-left: 6px;
+  border-radius: 3px;
+  background: var(--md-code-bg-color);
+  color: var(--md-default-fg-color--light);
+  vertical-align: middle;
+}
+
+.prod-badge.polymorph {
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+}
+
+.prod-badge.derived {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+}
+
+.prod-badge.via-dict {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+/* ─── Multi-target prod col (Fix 3) ─── */
+.param-prod.multi {
+  display: inline-block;
+  vertical-align: top;
+}
+.param-prod.multi::before {
+  /* suppress default single-arrow before; arrows come from .multi-target::before */
+  content: none;
+}
+.param-prod.multi .multi-target {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--md-typeset-a-color);
+  opacity: 0.9;
+}
+.param-prod.multi .multi-target::before {
+  content: "→ ";
+  opacity: 0.6;
+}
+
 /* ─── Status enum values ─── */
 .status-values {
   margin: 8px 0 0 0;
@@ -1170,6 +1232,22 @@
 }
 [data-md-color-scheme="default"] .report-table tbody tr.row-warn {
   background: rgba(217, 119, 6, 0.06);
+}
+
+/* Compact variant — for small lookup tables (3-4 cols, few rows).
+   Not full-width, centered cell content, auto-sized to content. */
+.report-table.compact {
+  width: auto;
+  max-width: 100%;
+  margin: 12px 0;
+}
+.report-table.compact th,
+.report-table.compact td {
+  text-align: center;
+  padding: 7px 14px;
+}
+.report-table.compact td code {
+  font-size: 12px;
 }
 
 /* Column sizing */

@@ -83,12 +83,21 @@ erDiagram
 
 Atrybut jest wiersza-na-obiekt — jedna tabela `dbo.atrybut` ładuje dane atrybutowe dla wielu domen. Rozróżnienie domeny następuje pośrednio: `at_att_id` → `atrybut_typ.att_atd_id` → `atrybut_dziedzina`. Poniższa tabela pokazuje, jak dobierać `at_att_id` zależnie od obiektu, który opisujesz:
 
-| `at_att_id` → `atrybut_typ.att_atd_id` | Dziedzina | Iteracja ładowania |
-|---|---|---|
-| att_atd_id = 1 | dokument | Iter 7 — [role-wierzytelnosci-i-dokumenty](role-wierzytelnosci-i-dokumenty.md) |
-| att_atd_id = 2 | wierzytelność | Iter 6 — [wierzytelnosci](wierzytelnosci.md) |
-| att_atd_id = 3 | dłużnik | Iter 2 — [dluznicy](dluznicy.md) |
-| att_atd_id = 4 | sprawa | Iter 4 — [sprawy](sprawy.md) |
+<table class="report-table compact">
+  <thead>
+    <tr>
+      <th><code>att_atd_id</code></th>
+      <th>Dziedzina</th>
+      <th>Iteracja ładowania</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><code>1</code></td><td>dokument</td><td>Iter 7 — <a href="role-wierzytelnosci-i-dokumenty.md">role-wierzytelnosci-i-dokumenty</a></td></tr>
+    <tr><td><code>2</code></td><td>wierzytelność</td><td>Iter 6 — <a href="wierzytelnosci.md">wierzytelnosci</a></td></tr>
+    <tr><td><code>3</code></td><td>dłużnik</td><td>Iter 2 — <a href="dluznicy.md">dluznicy</a></td></tr>
+    <tr><td><code>4</code></td><td>sprawa</td><td>Iter 4 — <a href="sprawy.md">sprawy</a></td></tr>
+  </tbody>
+</table>
 
 <ul class="param-list">
   <li>
@@ -129,12 +138,22 @@ Atrybut jest wiersza-na-obiekt — jedna tabela `dbo.atrybut` ładuje dane atryb
 
 Właściwość działa w układzie par `wlasciwosc` + tabela łącznikowa specyficzna dla domeny (`wlasciwosc_dluznik`, `wlasciwosc_adres`, `wlasciwosc_email`, `wlasciwosc_telefon`). Każda para korzysta z własnego `wdzi_id` z tabeli `wlasciwosc_dziedzina`:
 
-| `wdzi_id` | Dziedzina / tabela łącznikowa | Iteracja ładowania |
-|---|---|---|
-| 1 | telefon / `wlasciwosc_telefon` | Iter 3 — [kontakty](kontakty.md) |
-| 2 | adres / `wlasciwosc_adres` | Iter 3 — [kontakty](kontakty.md) |
-| 3 | email / `wlasciwosc_email` | Iter 3 — [kontakty](kontakty.md) |
-| 4 | dłużnik / `wlasciwosc_dluznik` | Iter 2 — [dluznicy](dluznicy.md) |
+<table class="report-table compact">
+  <thead>
+    <tr>
+      <th><code>wdzi_id</code></th>
+      <th>Dziedzina</th>
+      <th>Tabela łącznikowa</th>
+      <th>Iteracja ładowania</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><code>1</code></td><td>telefon</td><td><code>wlasciwosc_telefon</code></td><td>Iter 3 — <a href="kontakty.md">kontakty</a></td></tr>
+    <tr><td><code>2</code></td><td>adres</td><td><code>wlasciwosc_adres</code></td><td>Iter 3 — <a href="kontakty.md">kontakty</a></td></tr>
+    <tr><td><code>3</code></td><td>email</td><td><code>wlasciwosc_email</code></td><td>Iter 3 — <a href="kontakty.md">kontakty</a></td></tr>
+    <tr><td><code>4</code></td><td>dłużnik</td><td><code>wlasciwosc_dluznik</code></td><td>Iter 2 — <a href="dluznicy.md">dluznicy</a></td></tr>
+  </tbody>
+</table>
 
 <ul class="param-list">
   <li>

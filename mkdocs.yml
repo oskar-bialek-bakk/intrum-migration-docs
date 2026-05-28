@@ -41,6 +41,9 @@ plugins:
       lang: pl
   - drawio
 
+hooks:
+  - docs-build/inject_mapping.py
+
 markdown_extensions:
   - admonition
   - pymdownx.details

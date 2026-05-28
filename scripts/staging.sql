@@ -85,6 +85,17 @@ DROP TABLE IF EXISTS dbo.dokument_odsetki_przerwy_typ;
 DROP TABLE IF EXISTS dbo.dokument_typ;
 DROP TABLE IF EXISTS dbo.kurs_walut;
 DROP TABLE IF EXISTS dbo.waluta;
+DROP TABLE IF EXISTS mapowanie.dodane_dokumenty_z_harmonogramu;
+DROP TABLE IF EXISTS mapowanie.dodane_ksiegowania_z_harmonogramu;
+DROP TABLE IF EXISTS mapowanie.dodane_ksiegowania_z_operacji;
+DROP TABLE IF EXISTS mapowanie.akcja_typ_id_map;
+DROP TABLE IF EXISTS mapowanie.rezultat_typ_id_map;
+DROP TABLE IF EXISTS mapowanie.dodane_akcje;
+DROP TABLE IF EXISTS mapowanie.dodane_telefony;
+DROP TABLE IF EXISTS mapowanie.dodane_maile;
+DROP TABLE IF EXISTS mapowanie.dodane_adresy;
+DROP TABLE IF EXISTS mapowanie.dodane_rachunki_bankowe;
+DROP TABLE IF EXISTS mapowanie.dodane_wartosci_atrybutow;
 DROP TABLE IF EXISTS mapowanie.dodane_dokumenty;
 DROP TABLE IF EXISTS mapowanie.dodane_wierzytelnosci;
 DROP TABLE IF EXISTS mapowanie.dodani_dluznicy;
@@ -175,6 +186,86 @@ CREATE TABLE mapowanie.dodane_dokumenty (
     staging_do_id BIGINT NOT NULL,
     prod_do_id    INT NOT NULL,
     CONSTRAINT PK_dodane_dokumenty PRIMARY KEY (staging_do_id)
+);
+
+-- Additional mapping tables for iter2/3/4/5/8/9 (previously session-scoped temp tables)
+
+-- iter2/iter4/iter6/iter7: staging at_id → prod atw_id (accumulates across iters; truncated only at iter2 start)
+CREATE TABLE mapowanie.dodane_wartosci_atrybutow (
+    staging_at_id BIGINT NOT NULL,
+    prod_atw_id   INT    NOT NULL,
+    CONSTRAINT PK_dodane_wartosci_atrybutow PRIMARY KEY (staging_at_id)
+);
+
+-- iter4: rb_nr → prod rb_id (non-standard shape: keyed on rb_nr, not staging PK)
+CREATE TABLE mapowanie.dodane_rachunki_bankowe (
+    prod_rb_id  INT         NOT NULL,
+    rb_nr       VARCHAR(50) COLLATE Polish_CI_AI NOT NULL,
+    CONSTRAINT PK_dodane_rachunki_bankowe PRIMARY KEY (rb_nr)
+);
+
+-- iter3/section adres: staging ad_id → prod ad_id
+CREATE TABLE mapowanie.dodane_adresy (
+    staging_ad_id BIGINT NOT NULL,
+    prod_ad_id    INT    NOT NULL,
+    CONSTRAINT PK_dodane_adresy PRIMARY KEY (staging_ad_id)
+);
+
+-- iter3/section mail: staging ma_id → prod ma_id
+CREATE TABLE mapowanie.dodane_maile (
+    staging_ma_id BIGINT NOT NULL,
+    prod_ma_id    INT    NOT NULL,
+    CONSTRAINT PK_dodane_maile PRIMARY KEY (staging_ma_id)
+);
+
+-- iter3/section telefon: staging tn_id → prod tn_id
+CREATE TABLE mapowanie.dodane_telefony (
+    staging_tn_id BIGINT NOT NULL,
+    prod_tn_id    INT    NOT NULL,
+    CONSTRAINT PK_dodane_telefony PRIMARY KEY (staging_tn_id)
+);
+
+-- iter5/section akcja: staging ak_id → prod ak_id
+CREATE TABLE mapowanie.dodane_akcje (
+    staging_ak_id INT NOT NULL,
+    prod_ak_id    INT NOT NULL,
+    CONSTRAINT PK_dodane_akcje PRIMARY KEY (staging_ak_id)
+);
+
+-- iter5: pre-built akcja_typ UUID cache (staging akt_id → prod akt_id)
+CREATE TABLE mapowanie.akcja_typ_id_map (
+    staging_akt_id INT NOT NULL,
+    prod_akt_id    INT NOT NULL,
+    CONSTRAINT PK_akcja_typ_id_map PRIMARY KEY (staging_akt_id)
+);
+
+-- iter5: pre-built rezultat_typ UUID cache (staging ret_id → prod ret_id)
+CREATE TABLE mapowanie.rezultat_typ_id_map (
+    staging_ret_id INT NOT NULL,
+    prod_ret_id    INT NOT NULL,
+    CONSTRAINT PK_rezultat_typ_id_map PRIMARY KEY (staging_ret_id)
+);
+
+-- iter8/step 3A: staging oper_id → prod ks_id (one ksiegowanie per operacja)
+CREATE TABLE mapowanie.dodane_ksiegowania_z_operacji (
+    staging_oper_id BIGINT NOT NULL,
+    prod_ks_id      INT    NOT NULL,
+    CONSTRAINT PK_dodane_ksiegowania_z_operacji PRIMARY KEY (staging_oper_id)
+);
+
+-- iter9/section 1: staging hr_id → prod do_id + hr_data_raty
+CREATE TABLE mapowanie.dodane_dokumenty_z_harmonogramu (
+    staging_hr_id BIGINT   NOT NULL,
+    prod_do_id    INT      NOT NULL,
+    hr_data_raty  DATETIME NOT NULL,
+    CONSTRAINT PK_dodane_dokumenty_z_harmonogramu PRIMARY KEY (staging_hr_id)
+);
+
+-- iter9/section 2: staging hr_id → prod ks_id
+CREATE TABLE mapowanie.dodane_ksiegowania_z_harmonogramu (
+    staging_hr_id BIGINT NOT NULL,
+    prod_ks_id    INT    NOT NULL,
+    CONSTRAINT PK_dodane_ksiegowania_z_harmonogramu PRIMARY KEY (staging_hr_id)
 );
 
 CREATE TABLE dbo.adres_typ (
