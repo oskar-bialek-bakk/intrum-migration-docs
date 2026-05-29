@@ -98,7 +98,7 @@ jobs:
       - name: Wyślij e-mail z podsumowaniem
         if: steps.changes.outputs.has_changes == 'true'
         env:
-          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
           SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
           RECIPIENTS: ${{ inputs.test_email || secrets.EMAIL_RECIPIENTS }}
           COMMIT_COUNT: ${{ steps.changes.outputs.commit_count }}
@@ -109,8 +109,8 @@ jobs:
           COMMITS_HTML: ${{ steps.summary.outputs.commits_html }}
           FILES_HTML: ${{ steps.summary.outputs.files_html }}
         run: |
-          if [ -z "$SENDGRID_API_KEY" ]; then
-            echo "::error::Brak sekretu SENDGRID_API_KEY"
+          if [ -z "$BREVO_API_KEY" ]; then
+            echo "::error::Brak sekretu BREVO_API_KEY"
             exit 1
           fi
           if [ -z "$SENDER_EMAIL" ]; then
@@ -168,16 +168,16 @@ jobs:
             --arg subject "Dokumentacja migracji - raport zmian ${TODAY}" \
             --arg html "$HTML_BODY" \
             '{
-              personalizations: [{to: $to}],
-              from: {email: $from_email, name: $from_name},
+              sender: {name: $from_name, email: $from_email},
+              to: $to,
               subject: $subject,
-              content: [{type: "text/html", value: $html}]
+              htmlContent: $html
             }')
 
           RESPONSE=$(curl -s -w "\n%{http_code}" \
             --retry 3 --retry-delay 5 \
-            -X POST "https://api.sendgrid.com/v3/mail/send" \
-            -H "Authorization: Bearer $SENDGRID_API_KEY" \
+            -X POST "https://api.brevo.com/v3/smtp/email" \
+            -H "api-key: $BREVO_API_KEY" \
             -H "Content-Type: application/json" \
             -d "$PAYLOAD")
 
@@ -185,9 +185,9 @@ jobs:
           BODY=$(echo "$RESPONSE" | sed '$d')
 
           if [ -n "$BODY" ]; then
-            echo "SendGrid response (HTTP ${HTTP_CODE}): ${BODY}"
+            echo "Brevo response (HTTP ${HTTP_CODE}): ${BODY}"
           else
-            echo "SendGrid response: HTTP ${HTTP_CODE}"
+            echo "Brevo response: HTTP ${HTTP_CODE}"
           fi
 
           if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
