@@ -309,13 +309,6 @@ Wszystkie błędy **blokujące** muszą zostać poprawione przed migracją.
 <p class="walidacja-desc">Dziedzina atrybutu musi istnieć w <code>atrybut_dziedzina</code>. Tabela: <code>atrybut</code></p>
 </div>
 
-<div class="walidacja-card walidacja-ref">
-<div class="walidacja-header">
-  <span class="walidacja-code">REF_29</span>
-  <span class="walidacja-sev sev-block">Blokujące</span>
-</div>
-<p class="walidacja-desc">Typ księgowania musi istnieć w <code>ksiegowanie_typ</code>. Tabela: <code>ksiegowanie</code></p>
-</div>
 
 <div class="walidacja-card walidacja-ref">
 <div class="walidacja-header">
@@ -533,14 +526,6 @@ Zakres i progi poszczególnych sprawdzeń mogą zostać dostosowane do specyficz
   <span class="walidacja-sev sev-info">Informacja</span>
 </div>
 <p class="walidacja-desc">Numer telefonu nie zaczyna się od <code>+</code> — brak kodu kraju. Tabela: <code>telefon</code></p>
-</div>
-
-<div class="walidacja-card walidacja-fmt">
-<div class="walidacja-header">
-  <span class="walidacja-code">FMT_08</span>
-  <span class="walidacja-sev sev-warn">Ostrzeżenie</span>
-</div>
-<p class="walidacja-desc">Data wymagalności dokumentu (<code>do_data_wymagalnosci</code>) nie może być wcześniejsza niż data wystawienia (<code>do_data_wystawienia</code>). Tabela: <code>dokument</code></p>
 </div>
 
 <div class="walidacja-card walidacja-fmt">

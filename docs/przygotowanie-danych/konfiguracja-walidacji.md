@@ -44,7 +44,6 @@ Plik to obiekt JSON, w którym kluczami są krótkie identyfikatory walidacji/KP
 ```json
 {
   "FMT_07": { "enabled": false, "reason": "Migracja_Walidacje_Formatow_Stage1_20260429.xlsx" },
-  "FMT_08": { "enabled": false, "reason": "Migracja_Walidacje_Formatow_Stage1_20260429.xlsx" },
   "FMT_11": { "enabled": false, "reason": "Migracja_Walidacje_Formatow_Stage1_20260429.xlsx" },
   "KPI_SUM_02": { "enabled": false, "reason": "Akceptowane zaokrąglenia kursowe FX powyżej tolerancji 0,001%" }
 }

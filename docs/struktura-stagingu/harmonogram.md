@@ -17,7 +17,7 @@ Iteracja 9 obejmuje harmonogramy spłat — raty powiązane z wierzytelnościami
 
 ## Diagram ER
 
-Diagram pokazuje źródłową tabelę staging `harmonogram` ze wszystkimi kolumnami oraz minimalne stuby `wierzytelnosc` (iteracja 6) jako punkt zaczepienia FK i tabel docelowych prod (`dokument`, `ksiegowanie`, `ksiegowanie_dekret`), które każda rata harmonogramu generuje w iteracji 9. Pełna struktura tabel docelowych — [Role wierzytelności i dokumenty § dbo.dokument](role-wierzytelnosci-i-dokumenty.md#dbodokument), [Dane finansowe § dbo.ksiegowanie](finanse.md#dboksiegowanie), [Dane finansowe § dbo.ksiegowanie_dekret](finanse.md#dboksiegowanie_dekret); wierzytelność — [Wierzytelności § dbo.wierzytelnosc](wierzytelnosci.md#dbowierzytelnosc).
+Diagram pokazuje źródłową tabelę staging `harmonogram` ze wszystkimi kolumnami oraz minimalne stuby `wierzytelnosc` (iteracja 6) jako punkt zaczepienia FK i tabel docelowych prod (`dokument`, `ksiegowanie`, `ksiegowanie_dekret`), które każda rata harmonogramu generuje w iteracji 9. Pełna struktura tabel docelowych — [Dokumenty § dbo.dokument](role-wierzytelnosci-i-dokumenty.md#dbodokument), [Dane finansowe § dbo.ksiegowanie](finanse.md#dboksiegowanie), [Dane finansowe § dbo.ksiegowanie_dekret](finanse.md#dboksiegowanie_dekret); wierzytelność — [Wierzytelności § dbo.wierzytelnosc](wierzytelnosci.md#dbowierzytelnosc).
 
 ```mermaid
 erDiagram

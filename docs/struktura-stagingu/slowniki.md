@@ -1255,4 +1255,4 @@ Tabela konfiguracyjna łącząca typ właściwości z jej dziedziną i podtypem 
 
 - Następna iteracja: [Dłużnicy i atrybuty dłużników](dluznicy.md)
 - Walidacje referencyjne ogólne (dotyczą wszystkich typów słownikowych):
-  [REF_03, REF_08, REF_10, REF_12, REF_15, REF_21, REF_26, REF_29, REF_30, REF_32, REF_34](../przygotowanie-danych/walidacje.md)
+  [REF_03, REF_08, REF_10, REF_12, REF_15, REF_21, REF_26, REF_30, REF_32, REF_34](../przygotowanie-danych/walidacje.md)

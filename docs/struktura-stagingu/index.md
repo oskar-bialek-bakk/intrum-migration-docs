@@ -60,13 +60,13 @@ typu `INT`.
 <a class="feature-card" href="wierzytelnosci/">
   <span class="card-icon">€</span>
   <span class="card-title">Iteracja 6 — Wierzytelności</span>
-  <p class="card-desc">Wierzytelności i ich atrybuty. Po sprawach.</p>
+  <p class="card-desc">Wierzytelności, role wierzytelności i ich atrybuty. Po sprawach.</p>
 </a>
 
 <a class="feature-card" href="role-wierzytelnosci-i-dokumenty/">
   <span class="card-icon">§</span>
-  <span class="card-title">Iteracja 7 — Role wierzytelności i dokumenty</span>
-  <p class="card-desc">Role wierzytelności oraz dokumenty. Po wierzytelnościach.</p>
+  <span class="card-title">Iteracja 7 — Dokumenty</span>
+  <p class="card-desc">Dokumenty finansowe i ich atrybuty. Po wierzytelnościach.</p>
 </a>
 
 <a class="feature-card" href="finanse/">

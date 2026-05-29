@@ -44,18 +44,30 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
+    DECLARE @max_at_ext BIGINT = ISNULL((
+        SELECT MAX(TRY_CAST(atw.atw_ext_id AS BIGINT))
+        FROM __PROD_DB__.dbo.atrybut_wartosc atw WITH (NOLOCK)
+        JOIN __PROD_DB__.dbo.atrybut_typ att WITH (NOLOCK) ON att.att_id = atw.atw_att_id
+        WHERE att.att_atd_id = @att_atd_id
+          AND atw.atw_ext_id IS NOT NULL
+          AND atw.atw_ext_id NOT LIKE '%[^0-9-]%'), -9223372036854775808);
+
     -- Count attempted
     SET @attempted = (
         SELECT COUNT(*)
         FROM dbo.atrybut stg WITH (NOLOCK)
         JOIN dbo.atrybut_typ stg_att WITH (NOLOCK) ON stg_att.att_id = stg.at_att_id
         WHERE stg_att.att_atd_id = @att_atd_id
+          AND stg.at_id > @max_at_ext
     );
 
     -- Snapshot existing ext_ids
-    SELECT atw_ext_id INTO #existing_atw
-    FROM __PROD_DB__.dbo.atrybut_wartosc WITH (NOLOCK)
-    WHERE atw_ext_id IS NOT NULL;
+    SELECT atw.atw_ext_id INTO #existing_atw
+    FROM __PROD_DB__.dbo.atrybut_wartosc atw WITH (NOLOCK)
+    JOIN __PROD_DB__.dbo.atrybut_typ att WITH (NOLOCK) ON att.att_id = atw.atw_att_id
+    WHERE atw.atw_ext_id IS NOT NULL
+      AND att.att_atd_id = @att_atd_id
+      AND atw.atw_ext_id NOT LIKE '%[^0-9-]%';
     CREATE UNIQUE INDEX UX_existing_atw ON #existing_atw (atw_ext_id);
 
     -- INSERT new rows (OUTPUT into caller's #atw_mapping)
@@ -75,18 +87,20 @@ BEGIN
     JOIN __PROD_DB__.dbo.atrybut_typ att WITH (NOLOCK) ON att.att_id = stg_att.att_ext_id
     LEFT JOIN #existing_atw ex ON ex.atw_ext_id = CAST(stg.at_id AS VARCHAR(100))
     WHERE stg_att.att_atd_id = @att_atd_id
+      AND stg.at_id > @max_at_ext
       AND ex.atw_ext_id IS NULL;
 
     SET @inserted = @@ROWCOUNT;
 
     -- Backfill mapping for prior-run rows
     INSERT INTO #atw_mapping (staging_at_id, prod_atw_id)
-    SELECT CAST(atw.atw_ext_id AS BIGINT), atw.atw_id
+    SELECT TRY_CAST(atw.atw_ext_id AS BIGINT), atw.atw_id
     FROM __PROD_DB__.dbo.atrybut_wartosc atw WITH (NOLOCK)
     JOIN dbo.atrybut stg WITH (NOLOCK) ON atw.atw_ext_id = CAST(stg.at_id AS VARCHAR(100))
     JOIN dbo.atrybut_typ stg_att WITH (NOLOCK) ON stg_att.att_id = stg.at_att_id
-    LEFT JOIN #atw_mapping am ON am.staging_at_id = CAST(atw.atw_ext_id AS BIGINT)
+    LEFT JOIN #atw_mapping am ON am.staging_at_id = TRY_CAST(atw.atw_ext_id AS BIGINT)
     WHERE stg_att.att_atd_id = @att_atd_id
+      AND atw.atw_ext_id NOT LIKE '%[^0-9-]%'
       AND am.staging_at_id IS NULL;
 
     DROP TABLE IF EXISTS #existing_atw;
@@ -172,7 +186,8 @@ BEGIN
         SELECT jt.' + QUOTENAME(@p_prod_join_entity_fk) + N', wl.wl_wtpd_id
         FROM __PROD_DB__.dbo.' + QUOTENAME(@p_stg_join_table) + N' jt WITH (NOLOCK)
         JOIN __PROD_DB__.dbo.wlasciwosc wl WITH (NOLOCK)
-            ON wl.wl_id = jt.' + QUOTENAME(@p_prod_join_wl_fk) + N';';
+            ON wl.wl_id = jt.' + QUOTENAME(@p_prod_join_wl_fk)
+        + N' WHERE wl.wl_wtpd_id = ' + CAST(@p_dziedzina_id AS NVARCHAR(10)) + N';';
 
     EXEC sp_executesql @sql;
 

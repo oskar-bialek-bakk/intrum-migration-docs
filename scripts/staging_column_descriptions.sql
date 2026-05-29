@@ -345,7 +345,6 @@ EXEC sp_addextendedproperty 'MS_Description', 'Powiązania wierzytelności ze sp
 EXEC sp_addextendedproperty 'MS_Description', 'Klucz główny powiązania wierzytelności ze sprawą', 'SCHEMA', 'dbo', 'TABLE', 'wierzytelnosc_rola', 'COLUMN', 'wir_id';
 EXEC sp_addextendedproperty 'MS_Description', 'FK do sprawy', 'SCHEMA', 'dbo', 'TABLE', 'wierzytelnosc_rola', 'COLUMN', 'wir_sp_id';
 EXEC sp_addextendedproperty 'MS_Description', 'FK do wierzytelności', 'SCHEMA', 'dbo', 'TABLE', 'wierzytelnosc_rola', 'COLUMN', 'wir_wi_id';
-EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika ról wierzytelności', 'SCHEMA', 'dbo', 'TABLE', 'wierzytelnosc_rola', 'COLUMN', 'wir_rl_id';
 EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - obsługiwana triggerami insert; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'wierzytelnosc_rola', 'COLUMN', 'mod_date';
 
 -- ------------------------------------------------------------
@@ -367,7 +366,6 @@ EXEC sp_addextendedproperty 'MS_Description', 'FK do wierzytelności', 'SCHEMA',
 EXEC sp_addextendedproperty 'MS_Description', 'Numer dokumentu nadany w systemie źródłowym', 'SCHEMA', 'dbo', 'TABLE', 'dokument', 'COLUMN', 'do_numer_dokumentu';
 EXEC sp_addextendedproperty 'MS_Description', 'Data wystawienia dokumentu', 'SCHEMA', 'dbo', 'TABLE', 'dokument', 'COLUMN', 'do_data_wystawienia';
 EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika typów dokumentów', 'SCHEMA', 'dbo', 'TABLE', 'dokument', 'COLUMN', 'do_dot_id';
-EXEC sp_addextendedproperty 'MS_Description', 'Data wymagalności dokumentu', 'SCHEMA', 'dbo', 'TABLE', 'dokument', 'COLUMN', 'do_data_wymagalnosci';
 EXEC sp_addextendedproperty 'MS_Description', 'Tytuł dokumentu', 'SCHEMA', 'dbo', 'TABLE', 'dokument', 'COLUMN', 'do_tytul_dokumentu';
 EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - obsługiwana triggerami insert; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'dokument', 'COLUMN', 'mod_date';
 
@@ -393,7 +391,7 @@ EXEC sp_addextendedproperty 'MS_Description', 'Klucz główny księgowania', 'SC
 EXEC sp_addextendedproperty 'MS_Description', 'Data zaksięgowania operacji', 'SCHEMA', 'dbo', 'TABLE', 'ksiegowanie', 'COLUMN', 'ks_data_ksiegowania';
 EXEC sp_addextendedproperty 'MS_Description', 'Data operacji finansowej', 'SCHEMA', 'dbo', 'TABLE', 'ksiegowanie', 'COLUMN', 'ks_data_operacji';
 EXEC sp_addextendedproperty 'MS_Description', 'Uwagi dotyczące księgowania', 'SCHEMA', 'dbo', 'TABLE', 'ksiegowanie', 'COLUMN', 'ks_uwagi';
-EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika typów księgowań', 'SCHEMA', 'dbo', 'TABLE', 'ksiegowanie', 'COLUMN', 'ks_kst_id';
+EXEC sp_addextendedproperty 'MS_Description', 'FK do dokumentu (księgowanie powiązane z dokumentem)', 'SCHEMA', 'dbo', 'TABLE', 'ksiegowanie', 'COLUMN', 'ks_do_id';
 EXEC sp_addextendedproperty 'MS_Description', 'Flaga: księgowanie pierwotne (1) vs. korygujące (0)', 'SCHEMA', 'dbo', 'TABLE', 'ksiegowanie', 'COLUMN', 'ks_pierwotne';
 EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - obsługiwana triggerami insert; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'ksiegowanie', 'COLUMN', 'mod_date';
 
@@ -407,7 +405,6 @@ EXEC sp_addextendedproperty 'MS_Description', 'FK do dokumentu', 'SCHEMA', 'dbo'
 EXEC sp_addextendedproperty 'MS_Description', 'Kwota dekretu w walucie dokumentu', 'SCHEMA', 'dbo', 'TABLE', 'ksiegowanie_dekret', 'COLUMN', 'ksd_kwota';
 EXEC sp_addextendedproperty 'MS_Description', 'Data od której naliczane są odsetki dla dekretu', 'SCHEMA', 'dbo', 'TABLE', 'ksiegowanie_dekret', 'COLUMN', 'ksd_data_naliczania_odsetek';
 EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika kont księgowych', 'SCHEMA', 'dbo', 'TABLE', 'ksiegowanie_dekret', 'COLUMN', 'ksd_ksk_id';
-EXEC sp_addextendedproperty 'MS_Description', 'Uwagi dotyczące dekretu', 'SCHEMA', 'dbo', 'TABLE', 'ksiegowanie_dekret', 'COLUMN', 'ksd_uwagi';
 EXEC sp_addextendedproperty 'MS_Description', 'FK do sprawy', 'SCHEMA', 'dbo', 'TABLE', 'ksiegowanie_dekret', 'COLUMN', 'ksd_sp_id';
 EXEC sp_addextendedproperty 'MS_Description', 'Kurs wymiany do waluty bazowej', 'SCHEMA', 'dbo', 'TABLE', 'ksiegowanie_dekret', 'COLUMN', 'ksd_kurs_bazowy';
 EXEC sp_addextendedproperty 'MS_Description', 'Kwota Winien w walucie wyceny', 'SCHEMA', 'dbo', 'TABLE', 'ksiegowanie_dekret', 'COLUMN', 'ksd_kwota_wn_wyceny';

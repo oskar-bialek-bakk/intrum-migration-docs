@@ -1160,114 +1160,38 @@
   },
   "iter6": {
     "dbo.wierzytelnosc": {
-      "prod_table": null,
-      "split_targets": [
-        "dbo.wierzytelnosc",
-        "dbo.wierzytelnosc_rola"
-      ],
+      "prod_table": "dbo.wierzytelnosc",
+      "split_targets": [],
       "columns": {
         "wi_numer": {
-          "prod_table": "dbo.wierzytelnosc",
           "prod_col": "wi_numer",
-          "kind": "split"
+          "kind": "1:1"
         },
         "wi_tytul": {
-          "prod_table": "dbo.wierzytelnosc",
           "prod_col": "wi_tytul",
-          "kind": "split"
+          "kind": "1:1"
         },
         "wi_data_umowy": {
-          "prod_table": "dbo.wierzytelnosc",
           "prod_col": "wi_data_umowy",
-          "kind": "split"
+          "kind": "1:1"
         },
         "$wi_wt_id": {
           "prod_col": "wi_wt_id",
           "kind": "constant",
-          "value": "@WI_DEFAULT_WT_ID",
-          "prod_table": "dbo.wierzytelnosc"
+          "value": "@WI_DEFAULT_WT_ID"
         },
         "@wi_uko_id": {
           "prod_col": "wi_uko_id",
           "kind": "derived",
-          "raw_expr": "prod_uko.uko_id",
-          "prod_table": "dbo.wierzytelnosc"
+          "raw_expr": "prod_uko.uko_id"
         },
-        "wi_id": {
-          "kind": "multi_target",
-          "targets": [
-            {
-              "prod_table": "dbo.wierzytelnosc",
-              "prod_col": "wi_ext_id",
-              "kind": "1:1"
-            },
-            {
-              "prod_table": "dbo.wierzytelnosc_rola",
-              "prod_col": "wir_wi_id",
-              "kind": "via_dict",
-              "dict": "mapowanie.dodane_wierzytelnosci"
-            }
-          ]
-        },
-        "wi_sp_id": {
-          "prod_col": "wir_sp_id",
-          "kind": "via_dict",
-          "dict": "mapowanie.dodane_sprawy",
-          "prod_table": "dbo.wierzytelnosc_rola"
-        },
-        "$wir_wirt_id": {
-          "prod_col": "wir_wirt_id",
-          "kind": "constant",
-          "value": "@WIR_DEFAULT_WIRT_ID",
-          "prod_table": "dbo.wierzytelnosc_rola"
-        },
-        "$wir_kwota_poreczenia_do": {
-          "prod_col": "wir_kwota_poreczenia_do",
-          "kind": "constant",
-          "value": "0",
-          "prod_table": "dbo.wierzytelnosc_rola"
-        },
-        "mod_date": {
-          "prod_table": "dbo.wierzytelnosc_rola",
-          "prod_col": "wir_data_od",
-          "kind": "split"
-        },
-        "$wir_data_do": {
-          "prod_col": "wir_data_do",
-          "kind": "constant",
-          "value": "@SENTINEL_DATE",
-          "prod_table": "dbo.wierzytelnosc_rola"
+        "@wi_ext_id": {
+          "prod_col": "wi_ext_id",
+          "kind": "derived",
+          "raw_expr": "CAST(src.wi_id AS VARCHAR)"
         }
       }
     },
-    "dbo.atrybut": {
-      "prod_table": "dbo.atrybut_wierzytelnosc",
-      "split_targets": [],
-      "columns": {
-        "at_id": {
-          "prod_col": "atwi_atw_id",
-          "kind": "via_dict",
-          "dict": "mapowanie.dodane_wartosci_atrybutow"
-        },
-        "at_ob_id": {
-          "prod_col": "atwi_wi_id",
-          "kind": "via_dict",
-          "dict": "mapowanie.dodane_wierzytelnosci"
-        },
-        "at_att_id": {
-          "prod_table": "dbo.atrybut_wartosc",
-          "prod_col": "atw_att_id",
-          "kind": "1:1"
-        },
-        "at_wartosc": {
-          "prod_table": "dbo.atrybut_wartosc",
-          "prod_col": "atw_wartosc",
-          "kind": "1:1"
-        }
-      }
-    }
-  },
-  "iter7": {
     "dbo.wierzytelnosc_rola": {
       "prod_table": "dbo.wierzytelnosc_rola",
       "split_targets": [],
@@ -1303,6 +1227,34 @@
         }
       }
     },
+    "dbo.atrybut": {
+      "prod_table": "dbo.atrybut_wierzytelnosc",
+      "split_targets": [],
+      "columns": {
+        "at_id": {
+          "prod_col": "atwi_atw_id",
+          "kind": "via_dict",
+          "dict": "mapowanie.dodane_wartosci_atrybutow"
+        },
+        "at_ob_id": {
+          "prod_col": "atwi_wi_id",
+          "kind": "via_dict",
+          "dict": "mapowanie.dodane_wierzytelnosci"
+        },
+        "at_att_id": {
+          "prod_table": "dbo.atrybut_wartosc",
+          "prod_col": "atw_att_id",
+          "kind": "1:1"
+        },
+        "at_wartosc": {
+          "prod_table": "dbo.atrybut_wartosc",
+          "prod_col": "atw_wartosc",
+          "kind": "1:1"
+        }
+      }
+    }
+  },
+  "iter7": {
     "dbo.dokument": {
       "prod_table": "dbo.dokument",
       "split_targets": [],
@@ -1378,9 +1330,10 @@
       "prod_table": "dbo.ksiegowanie",
       "split_targets": [],
       "columns": {
-        "ks_id": {
-          "prod_col": "ks_id",
-          "kind": "1:1"
+        "@ks_ext_id": {
+          "prod_col": "ks_ext_id",
+          "kind": "derived",
+          "raw_expr": "CAST(src.ks_id AS VARCHAR(255))"
         },
         "ks_data_ksiegowania": {
           "prod_col": "ks_data_ksiegowania",
@@ -1394,9 +1347,10 @@
           "prod_col": "ks_uwagi",
           "kind": "1:1"
         },
-        "ks_kst_id": {
+        "$ks_kst_id": {
           "prod_col": "ks_kst_id",
-          "kind": "1:1"
+          "kind": "constant",
+          "value": "1"
         },
         "$ks_zamkniete": {
           "prod_col": "ks_zamkniete",
@@ -1417,6 +1371,73 @@
           "prod_col": "ks_od_komornika",
           "kind": "constant",
           "value": "0"
+        },
+        "ks_do_id": {
+          "prod_col": "ks_do_id",
+          "kind": "1:1"
+        }
+      }
+    },
+    "dbo.ksiegowanie_dekret": {
+      "prod_table": "dbo.ksiegowanie_dekret",
+      "split_targets": [],
+      "columns": {
+        "ksd_id": {
+          "prod_col": "ksd_ext_id",
+          "kind": "1:1"
+        },
+        "ksd_ks_id": {
+          "prod_col": "ksd_ks_id",
+          "kind": "via_dict",
+          "dict": "mapowanie.dodane_ksiegowania"
+        },
+        "ksd_ksk_id": {
+          "prod_col": "ksd_ksk_id",
+          "kind": "1:1"
+        },
+        "ksd_do_id": {
+          "prod_col": "ksd_do_id",
+          "kind": "via_dict",
+          "dict": "mapowanie.dodane_dokumenty"
+        },
+        "ksd_data_naliczania_odsetek": {
+          "prod_col": "ksd_data_naliczania_odsetek",
+          "kind": "1:1"
+        },
+        "$ksd_rb_id": {
+          "prod_col": "ksd_rb_id",
+          "kind": "constant",
+          "value": "NULL"
+        },
+        "@ksd_kwota_wn": {
+          "prod_col": "ksd_kwota_wn",
+          "kind": "derived",
+          "raw_expr": "CASE WHEN stg.ksd_kwota > 0 THEN stg.ksd_kwota ELSE 0 END"
+        },
+        "@ksd_kwota_ma": {
+          "prod_col": "ksd_kwota_ma",
+          "kind": "derived",
+          "raw_expr": "CASE WHEN stg.ksd_kwota < 0 THEN ABS(stg.ksd_kwota) ELSE 0 END"
+        },
+        "ksd_data_wymagalnosci": {
+          "prod_col": "ksd_data_wymagalnosci",
+          "kind": "1:1"
+        },
+        "ksd_kwota_wn_bazowa": {
+          "prod_col": "ksd_kwota_wn_bazowa",
+          "kind": "1:1"
+        },
+        "ksd_kwota_ma_bazowa": {
+          "prod_col": "ksd_kwota_ma_bazowa",
+          "kind": "1:1"
+        },
+        "ksd_wa_id": {
+          "prod_col": "ksd_wa_id",
+          "kind": "1:1"
+        },
+        "ksd_kurs_bazowy": {
+          "prod_col": "ksd_kurs_bazowy",
+          "kind": "1:1"
         }
       }
     },
@@ -1519,69 +1540,6 @@
           "prod_col": "ksd_kurs_bazowy",
           "kind": "constant",
           "value": "1.0"
-        }
-      }
-    },
-    "dbo.ksiegowanie_dekret": {
-      "prod_table": "dbo.ksiegowanie_dekret",
-      "split_targets": [],
-      "columns": {
-        "ksd_id": {
-          "prod_col": "ksd_ext_id",
-          "kind": "1:1"
-        },
-        "ksd_ks_id": {
-          "prod_col": "ksd_ks_id",
-          "kind": "1:1"
-        },
-        "ksd_ksk_id": {
-          "prod_col": "ksd_ksk_id",
-          "kind": "1:1"
-        },
-        "ksd_do_id": {
-          "prod_col": "ksd_do_id",
-          "kind": "via_dict",
-          "dict": "mapowanie.dodane_dokumenty"
-        },
-        "ksd_data_naliczania_odsetek": {
-          "prod_col": "ksd_data_naliczania_odsetek",
-          "kind": "1:1"
-        },
-        "ksd_sp_id": {
-          "prod_col": "ksd_rb_id",
-          "kind": "via_dict",
-          "dict": "#ksd_rb_lookup"
-        },
-        "@ksd_kwota_wn": {
-          "prod_col": "ksd_kwota_wn",
-          "kind": "derived",
-          "raw_expr": "CASE WHEN stg.ksd_kwota > 0 THEN stg.ksd_kwota ELSE 0 END"
-        },
-        "@ksd_kwota_ma": {
-          "prod_col": "ksd_kwota_ma",
-          "kind": "derived",
-          "raw_expr": "CASE WHEN stg.ksd_kwota < 0 THEN ABS(stg.ksd_kwota) ELSE 0 END"
-        },
-        "$ksd_data_wymagalnosci": {
-          "prod_col": "ksd_data_wymagalnosci",
-          "kind": "constant",
-          "value": "@SENTINEL_DATE"
-        },
-        "ksd_kwota_wn_bazowa": {
-          "prod_col": "ksd_kwota_wn_bazowa",
-          "kind": "1:1"
-        },
-        "ksd_kwota_ma_bazowa": {
-          "prod_col": "ksd_kwota_ma_bazowa",
-          "kind": "1:1"
-        },
-        "ksd_wa_id": {
-          "prod_col": "ksd_wa_id",
-          "kind": "1:1"
-        },
-        "ksd_kurs_bazowy": {
-          "prod_col": "ksd_kurs_bazowy",
-          "kind": "1:1"
         }
       }
     }

@@ -83,26 +83,28 @@ _INTENTIONALLY_UNMAPPED: dict[str, set[str]] = {
     # docs is corrected to match staging schema, ignore the abstract col here.
     "dbo.wlasciwosc": {"w_wartosc"},
     # dbo.ksiegowanie_dekret — staging cols documented but not consumed by iter8 INSERT:
-    #   ksd_uwagi, ksd_kwota_wn_wyceny, ksd_kwota_ma_wyceny, ksd_wa_id_wyceny — wycena fields
-    #     reserved for valuation flow, not part of current migration
+    #   ksd_uwagi removed from staging schema (no longer migrated).
+    #   ksd_kwota_wn_wyceny, ksd_kwota_ma_wyceny, ksd_wa_id_wyceny — wycena fields
+    #     reserved for valuation flow, not part of current migration.
     #   ksd_ksksub_id — staging FK to ksiegowanie_konto_sub, no corresponding prod col in
-    #     current schema (prod uses different sub-account model)
+    #     current schema (prod uses different sub-account model).
     #   ksd_kwota — split into ksd_kwota_wn/ksd_kwota_ma via CASE WHEN (derived); the original
     #     staging col is not directly mapped — value flows through the derived expressions.
+    #   ksd_sp_id — referenced in staging but set to NULL in iter8 INSERT (no longer resolved
+    #     from prod sprawa after the #ksd_staging removal refactor).
     "dbo.ksiegowanie_dekret": {
         "ksd_uwagi", "ksd_kwota_wn_wyceny", "ksd_kwota_ma_wyceny", "ksd_wa_id_wyceny",
-        "ksd_ksksub_id", "ksd_kwota"
+        "ksd_ksksub_id", "ksd_kwota", "ksd_sp_id"
     },
-    # dbo.dokument — do_data_wymagalnosci is a staging col that does NOT exist as a column
-    # in prod dbo.dokument; it is stored in #hr_do_mapping for ksd_data_wymagalnosci in iter9.
-    "dbo.dokument": {"do_data_wymagalnosci"},
     # dbo.harmonogram — hr_numer_raty and hr_kwota_raty exist in the staging table but are
     # not referenced in any migration SQL (hr_kwota_raty = hr_kwota_kapitalu + hr_kwota_odsetek,
     # which are migrated individually; hr_numer_raty has no prod equivalent in this migration).
     "dbo.harmonogram": {"hr_numer_raty", "hr_kwota_raty"},
-    # dbo.ksiegowanie — ks_korekta is a staging col that has no corresponding mapping in any
-    # INSERT statement; it is complementary to ks_pierwotne but not migrated.
-    "dbo.ksiegowanie": {"ks_korekta"},
+    # dbo.ksiegowanie — ks_id is the staging PK stored in mapowanie.dodane_ksiegowania;
+    # prod uses its own IDENTITY PK (never inserted as ks_id — captured via MERGE OUTPUT).
+    # ks_korekta is a staging col that has no corresponding mapping in any INSERT statement;
+    # it is complementary to ks_pierwotne but not migrated.
+    "dbo.ksiegowanie": {"ks_id", "ks_korekta"},
     # dbo.rezultat — re_id is the IDENTITY PK in staging; prod generates its own re_id via
     # IDENTITY — staging re_id is not inserted as prod re_id (no re_ext_id column on prod).
     "dbo.rezultat": {"re_id"},
@@ -111,14 +113,18 @@ _INTENTIONALLY_UNMAPPED: dict[str, set[str]] = {
     "dbo.sprawa": {"sp_spe_id"},
     # dbo.sprawa_rola — spr_id is the IDENTITY PK in staging; prod generates its own PK.
     "dbo.sprawa_rola": {"spr_id"},
-    # dbo.wierzytelnosc — wi_uko_id is resolved via a 3-hop CROSS APPLY chain
-    # (stg.wi_uko_id → stg_uko → CROSS APPLY uko_resolve → prod_uko.uko_id); the extractor
-    # cannot auto-resolve CROSS APPLY aliases without RDBMS schema introspection.
-    "dbo.wierzytelnosc": {"wi_uko_id"},
+    # dbo.wierzytelnosc —
+    #   wi_id: staging PK; prod generates its own IDENTITY wi_id — staging value stored
+    #     in wi_ext_id (VARCHAR) via MERGE ON 1=0 OUTPUT.
+    #   wi_sp_id: staging FK to sprawa; used as JOIN key when inserting wierzytelnosc_rola
+    #     but not inserted into any prod wierzytelnosc column (prod w-t doesn't carry sp_id).
+    #   wi_uko_id: resolved via a 3-hop CROSS APPLY chain
+    #     (stg.wi_uko_id → stg_uko → CROSS APPLY uko_resolve → prod_uko.uko_id); the extractor
+    #     cannot auto-resolve CROSS APPLY aliases without RDBMS schema introspection.
+    "dbo.wierzytelnosc": {"wi_id", "wi_sp_id", "wi_uko_id"},
     # dbo.wierzytelnosc_rola — wir_id is the IDENTITY PK in staging; prod generates its own
-    # PK. wir_rl_id is a staging FK column that is not referenced in the iter7 INSERT for
-    # wierzytelnosc_rola (the migration uses a fixed default wir_wirt_id instead).
-    "dbo.wierzytelnosc_rola": {"wir_id", "wir_rl_id"},
+    # PK. The iter6 INSERT uses a fixed default wir_wirt_id for the role type.
+    "dbo.wierzytelnosc_rola": {"wir_id"},
     # --- iter1 lookup tables (newly parsed by parseMergeValuesBlock) ---
     #
     # Staging PKs included in the USING SELECT only for the OUTPUT clause;

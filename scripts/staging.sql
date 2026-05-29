@@ -88,6 +88,7 @@ DROP TABLE IF EXISTS dbo.waluta;
 DROP TABLE IF EXISTS mapowanie.dodane_dokumenty_z_harmonogramu;
 DROP TABLE IF EXISTS mapowanie.dodane_ksiegowania_z_harmonogramu;
 DROP TABLE IF EXISTS mapowanie.dodane_ksiegowania_z_operacji;
+DROP TABLE IF EXISTS mapowanie.dodane_ksiegowania;
 DROP TABLE IF EXISTS mapowanie.akcja_typ_id_map;
 DROP TABLE IF EXISTS mapowanie.rezultat_typ_id_map;
 DROP TABLE IF EXISTS mapowanie.dodane_akcje;
@@ -194,6 +195,7 @@ CREATE TABLE mapowanie.dodane_dokumenty (
 CREATE TABLE mapowanie.dodane_wartosci_atrybutow (
     staging_at_id BIGINT NOT NULL,
     prod_atw_id   INT    NOT NULL,
+    att_atd_id    INT    NOT NULL,  -- domain discriminator; required for filtered joins in iter2/4/6/7
     CONSTRAINT PK_dodane_wartosci_atrybutow PRIMARY KEY (staging_at_id)
 );
 
@@ -266,6 +268,13 @@ CREATE TABLE mapowanie.dodane_ksiegowania_z_harmonogramu (
     staging_hr_id BIGINT NOT NULL,
     prod_ks_id    INT    NOT NULL,
     CONSTRAINT PK_dodane_ksiegowania_z_harmonogramu PRIMARY KEY (staging_hr_id)
+);
+
+-- staging ks_id → prod ks_id (direct ksiegowanie migration)
+CREATE TABLE mapowanie.dodane_ksiegowania (
+    staging_ks_id INT NOT NULL,
+    prod_ks_id    INT NOT NULL,
+    CONSTRAINT PK_dodane_ksiegowania PRIMARY KEY (staging_ks_id)
 );
 
 CREATE TABLE dbo.adres_typ (
@@ -598,12 +607,11 @@ CREATE TABLE dbo.ksiegowanie (
     ks_data_ksiegowania     DATE         NOT NULL,
     ks_data_operacji        DATE         NOT NULL,
     ks_uwagi                VARCHAR(200) NULL,
-    ks_kst_id               INT          NOT NULL,
+    ks_do_id                INT          NULL,
     ks_pierwotne            BIT          NULL,
     ks_korekta              BIT          NULL,
     mod_date                DATETIME     NOT NULL DEFAULT GETDATE(),
-    CONSTRAINT PK_ksiegowanie PRIMARY KEY (ks_id),
-    CONSTRAINT FK_ksiegowanie_ksiegowanie_typ FOREIGN KEY (ks_kst_id) REFERENCES dbo.ksiegowanie_typ (kst_id)
+    CONSTRAINT PK_ksiegowanie PRIMARY KEY (ks_id)
 );
 
 -- ============================================================
@@ -669,7 +677,6 @@ CREATE TABLE dbo.dokument (
     do_numer_dokumentu      VARCHAR(200) NULL,
     do_data_wystawienia     DATE         NULL,
     do_dot_id               INT          NOT NULL,
-    do_data_wymagalnosci    DATE         NULL,
     do_tytul_dokumentu      VARCHAR(200) NULL,
     mod_date                DATETIME     NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_dokument PRIMARY KEY (do_id),
@@ -722,7 +729,6 @@ CREATE TABLE dbo.ksiegowanie_dekret (
     ksd_data_naliczania_odsetek DATE          NULL,
     ksd_data_wymagalnosci       DATE          NULL,
     ksd_ksk_id                  INT           NOT NULL,
-    ksd_uwagi                   VARCHAR(500)  NULL,
     ksd_sp_id                   BIGINT        NULL,
     -- multi-currency columns (already on prod; added to staging for migration)
     ksd_kurs_bazowy             DECIMAL(18,4) NULL,
@@ -886,7 +892,6 @@ CREATE TABLE dbo.wierzytelnosc_rola (
     wir_id      BIGINT   NOT NULL IDENTITY(1,1),
     wir_sp_id   BIGINT   NOT NULL,
     wir_wi_id   BIGINT   NOT NULL,
-    wir_rl_id   INT      NOT NULL,
     mod_date    DATETIME NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_wierzytelnosc_rola PRIMARY KEY (wir_id),
     CONSTRAINT FK_wierzytelnosc_rola_sprawa        FOREIGN KEY (wir_sp_id) REFERENCES dbo.sprawa        (sp_id),
@@ -1056,7 +1061,6 @@ INSERT INTO log.check_toggle (short_id, check_name, check_kind, severity) VALUES
     ('FMT_05', 'FMT_05_mail_adres_format', 'VALIDATION', 'WARNING'),
     ('FMT_06', 'FMT_06_telefon_numer_min_digits', 'VALIDATION', 'WARNING'),
     ('FMT_07', 'FMT_07_telefon_brak_numeru_kierunkowego', 'VALIDATION', 'INFO'),
-    ('FMT_08', 'FMT_08_dokument_data_wymagalnosci_przed_wystawieniem', 'VALIDATION', 'WARNING'),
     ('FMT_11', 'FMT_11_akcja_data_zakonczenia_w_przyszlosci', 'VALIDATION', 'WARNING'),
     ('FMT_12', 'FMT_12_wierzytelnosc_data_umowy_w_przyszlosci', 'VALIDATION', 'WARNING'),
     ('KPI_ANO_01', 'KPI_ANO_01_wi_bez_dokumentu', 'KPI', 'INFO'),
@@ -1130,7 +1134,6 @@ INSERT INTO log.check_toggle (short_id, check_name, check_kind, severity) VALUES
     ('REF_26', 'REF_26_dluznik_dluznik_typ', 'VALIDATION', 'BLOCKING'),
     ('REF_27', 'REF_27_operacja_waluta', 'VALIDATION', 'BLOCKING'),
     ('REF_28', 'REF_28_operacja_dokument', 'VALIDATION', 'BLOCKING'),
-    ('REF_29', 'REF_29_ksiegowanie_ksiegowanie_typ', 'VALIDATION', 'BLOCKING'),
     ('REF_30', 'REF_30_dluznik_plec', 'VALIDATION', 'BLOCKING'),
     ('REF_31', 'REF_31_sprawa_sprawa_etap', 'VALIDATION', 'BLOCKING'),
     ('REF_32', 'REF_32_akcja_akcja_typ', 'VALIDATION', 'BLOCKING'),
@@ -1178,7 +1181,7 @@ GO
 -- continue to work; iter scripts that need a profile-driven default request it
 -- explicitly and THROW on NULL.
 CREATE OR ALTER PROCEDURE log.usp_resolve_run
-    @p_stage                INT,
+    @p_stage                INT = NULL OUTPUT,
     @p_run_id               INT OUTPUT,
     @p_system_admin_user_id INT OUTPUT,
     @p_aud_now              DATETIME OUTPUT,
@@ -1197,6 +1200,17 @@ AS
 SET NOCOUNT ON;
     SET @p_aud_now = GETUTCDATE();
     SET @p_aud_login = 'admin';
+
+    -- @stage source of truth: configuration.defaults.migration_stage (single config point).
+    -- Callers pass NULL to request resolution; fallback 1 if config not loaded.
+    IF @p_stage IS NULL
+    BEGIN
+        IF OBJECT_ID('configuration.defaults', 'U') IS NOT NULL
+            SET @p_stage = (
+                SELECT CAST(config_value AS INT) FROM configuration.defaults WITH (NOLOCK)
+                WHERE section = 'defaults' AND config_key = 'migration_stage');
+        SET @p_stage = ISNULL(@p_stage, 1);
+    END;
 
     SELECT TOP 1 @p_run_id = run_id
     FROM log.migration_run WITH (NOLOCK)

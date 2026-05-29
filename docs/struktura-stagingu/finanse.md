@@ -17,14 +17,10 @@ Iteracja 8 obejmuje księgowania i dekrety — kwoty obciążające/uznanie wier
 
 ## Diagram ER
 
-Diagram pokazuje trzy encje finansowe iteracji 8 (`ksiegowanie`, `ksiegowanie_dekret`, `operacja`) oraz minimalne stuby `ksiegowanie_typ`, `ksiegowanie_konto`, `ksiegowanie_konto_subkonto`, `waluta` (iteracja 1), `dokument` i `wierzytelnosc` (iteracje 6–7) jako punkty zaczepienia FK. Słownik typów księgowań — [Słowniki § dbo.ksiegowanie_typ](slowniki.md#dboksiegowanie_typ); słownik kont księgowych — [Słowniki § dbo.ksiegowanie_konto](slowniki.md#dboksiegowanie_konto); słownik walut — [Słowniki § dbo.waluta](slowniki.md); dokumenty — [Role wierzytelności i dokumenty § dbo.dokument](role-wierzytelnosci-i-dokumenty.md#dbodokument). Staging `dbo.operacja` nie ma bezpośredniego odpowiednika 1:1 w modelu prod — jego kwoty są rozbijane na pozycje rodzajowe (kapitał, odsetki, opłaty, prowizje) i zasilają równocześnie `ksiegowanie` oraz `ksiegowanie_dekret`.
+Diagram pokazuje trzy encje finansowe iteracji 8 (`ksiegowanie`, `ksiegowanie_dekret`, `operacja`) oraz minimalne stuby `ksiegowanie_typ`, `ksiegowanie_konto`, `ksiegowanie_konto_subkonto`, `waluta` (iteracja 1), `dokument` i `wierzytelnosc` (iteracje 6–7) jako punkty zaczepienia FK. Słownik typów księgowań — [Słowniki § dbo.ksiegowanie_typ](slowniki.md#dboksiegowanie_typ); słownik kont księgowych — [Słowniki § dbo.ksiegowanie_konto](slowniki.md#dboksiegowanie_konto); słownik walut — [Słowniki § dbo.waluta](slowniki.md); dokumenty — [Dokumenty § dbo.dokument](role-wierzytelnosci-i-dokumenty.md#dbodokument). Staging `dbo.operacja` nie ma bezpośredniego odpowiednika 1:1 w modelu prod — jego kwoty są rozbijane na pozycje rodzajowe (kapitał, odsetki, opłaty, prowizje) i zasilają równocześnie `ksiegowanie` oraz `ksiegowanie_dekret`.
 
 ```mermaid
 erDiagram
-    ksiegowanie_typ {
-        int     kst_id    PK
-    }
-
     ksiegowanie_konto {
         int     ksk_id    PK
     }
@@ -64,7 +60,7 @@ erDiagram
         date     ks_data_ksiegowania
         date     ks_data_operacji
         varchar  ks_uwagi
-        int      ks_kst_id                   FK
+        int      ks_do_id                    FK   "opcjonalny"
         bit      ks_pierwotne
         bit      ks_korekta
     }
@@ -77,7 +73,6 @@ erDiagram
         date     ksd_data_naliczania_odsetek
         date     ksd_data_wymagalnosci
         int      ksd_ksk_id                   FK
-        varchar  ksd_uwagi
         bigint   ksd_sp_id                    FK   "repertorium"
         decimal  ksd_kurs_bazowy
         decimal  ksd_kwota_wn_wyceny               "rezerwa"
@@ -128,7 +123,7 @@ erDiagram
         bigint   oper_do_id                       FK
     }
 
-    ksiegowanie         }o--||  ksiegowanie_typ            : "ks_kst_id"
+    ksiegowanie         }o--o|  dokument                   : "ks_do_id"
     ksiegowanie_dekret  }o--||  ksiegowanie                : "ksd_ks_id"
     ksiegowanie_dekret  }o--||  ksiegowanie_konto          : "ksd_ksk_id"
     ksiegowanie_dekret  }o--o|  ksiegowanie_konto_subkonto : "ksd_ksksub_id"
@@ -181,9 +176,9 @@ Nagłówek księgowania finansowego — data operacji, data zaksięgowania, typ 
     <span class="param-desc">Uwagi księgowego dotyczące księgowania.</span>
   </li>
   <li>
-    <span class="param-name fk required">ks_kst_id</span>
+    <span class="param-name fk">ks_do_id</span>
     <span class="param-type">INT</span>
-    <span class="param-desc">FK do słownika typów księgowań.</span>
+    <span class="param-desc">FK do dokumentu powiązanego z księgowaniem (opcjonalny). Migrowany 1:1 do tabeli produkcyjnej <code>ksiegowanie</code>.</span>
   </li>
   <li>
     <span class="param-name">ks_pierwotne</span>
@@ -250,11 +245,6 @@ Dekret księgowania — pozycja szczegółowa nagłówka, przypisana do dokument
     <span class="param-desc">FK do słownika kont księgowych.</span>
   </li>
   <li>
-    <span class="param-name">ksd_uwagi</span>
-    <span class="param-type">VARCHAR</span>
-    <span class="param-desc">Opcjonalne pole opisowe dekretu.</span>
-  </li>
-  <li>
     <span class="param-name fk">ksd_sp_id</span>
     <span class="param-type">BIGINT</span>
     <span class="param-desc">FK do sprawy (pomocnicze — służy do wyznaczenia repertorium dekretu).</span>
@@ -297,7 +287,7 @@ Dekret księgowania — pozycja szczegółowa nagłówka, przypisana do dokument
   <li>
     <span class="param-name">ksd_data_wymagalnosci</span>
     <span class="param-type">DATE</span>
-    <span class="param-desc">Data wymagalności dekretu (dziedziczona z powiązanego dokumentu).</span>
+    <span class="param-desc">Data wymagalności dekretu.</span>
   </li>
   <li>
     <span class="param-name fk">ksd_ksksub_id</span>
@@ -519,12 +509,11 @@ Operacja finansowa z systemu źródłowego — wpłaty, umorzenia, korekty, kosz
 
 ## Powiązania {#powiazania}
 
-- Poprzednia iteracja: [Role wierzytelności i dokumenty](role-wierzytelnosci-i-dokumenty.md)
+- Poprzednia iteracja: [Dokumenty](role-wierzytelnosci-i-dokumenty.md)
 - Następna iteracja: [Harmonogram spłat](harmonogram.md)
 - Słowniki bazowe iteracja 1: [ksiegowanie_typ](slowniki.md#dboksiegowanie_typ), [ksiegowanie_konto](slowniki.md#dboksiegowanie_konto), [waluta](slowniki.md)
-- Dokumenty (iteracja 7): [Role wierzytelności i dokumenty § dbo.dokument](role-wierzytelnosci-i-dokumenty.md#dbodokument)
+- Dokumenty (iteracja 7): [Dokumenty § dbo.dokument](role-wierzytelnosci-i-dokumenty.md#dbodokument)
 - Walidacje referencyjne (ksiegowanie_dekret): [REF_20 (dekret → księgowanie)](../przygotowanie-danych/walidacje.md), [REF_21 (ksk_id → ksiegowanie_konto)](../przygotowanie-danych/walidacje.md), [REF_22 (ksd_do_id → dokument)](../przygotowanie-danych/walidacje.md), [REF_35 (ksd_ksksub_id → ksiegowanie_konto_subkonto)](../przygotowanie-danych/walidacje.md)
-- Walidacje referencyjne (ksiegowanie): [REF_29 (ks_kst_id → ksiegowanie_typ)](../przygotowanie-danych/walidacje.md)
 - Walidacje referencyjne (operacja): [REF_23 (oper_do_id → dokument)](../przygotowanie-danych/walidacje.md), [REF_27 (oper_waluta → waluta)](../przygotowanie-danych/walidacje.md), [REF_37 (oper_rejestr_kod → operacja_rejestr_typ)](../przygotowanie-danych/walidacje.md)
 - Walidacje techniczne: [TECH_09 (ksd_ks_id wymagane, BLOKUJĄCE)](../przygotowanie-danych/walidacje.md), [TECH_10 (oper_waluta dla kwoty &gt; 0, OSTRZEŻENIE)](../przygotowanie-danych/walidacje.md)
 - Walidacje integralności strukturalnej: [STR_04 (księgowanie bez dekretu, BLOKUJĄCE)](../przygotowanie-danych/walidacje.md#str_04), [STR_05 (suma dekretów ≠ 0, BLOKUJĄCE)](../przygotowanie-danych/walidacje.md#str_05)
