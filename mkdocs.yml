@@ -91,5 +91,6 @@ nav:
   - Przebieg migracji:
     - przebieg-migracji/index.md
     - Uruchomienie: przebieg-migracji/uruchomienie.md
+    - Tabele produkcyjne: przebieg-migracji/tabele-produkcyjne.md
     - Raport pomigracyjny: przebieg-migracji/raport-pomigracyjny.md
   - Odbiór: odbior/odbior-danych.md

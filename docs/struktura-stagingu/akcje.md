@@ -11,7 +11,7 @@ Iteracja 5 obejmuje akcje prowadzone w ramach spraw oraz ich rezultaty — konta
 <div class="iter-meta">
   <span>Iteracja: 5</span>
   <span>Zależności: Iteracja 4</span>
-  <span>Walidacje: <a href="../przygotowanie-danych/walidacje.md#str_06">STR_06</a></span>
+  <span>Walidacje: <a href="../../przygotowanie-danych/walidacje/#str_06">STR_06</a></span>
   <span>Zakres: akcje prowadzone w sprawach oraz ich rezultaty</span>
 </div>
 

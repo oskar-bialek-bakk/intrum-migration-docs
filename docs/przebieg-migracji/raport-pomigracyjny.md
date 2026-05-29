@@ -630,7 +630,7 @@ Sprawdzenia jakości danych po migracji bezpośrednio na bazie produkcyjnej. Nie
   <span class="kpi-card-code">KPI_ANO_06</span>
   <span class="kpi-typ-badge kpi-typ-anomaly">ANOMALY</span>
 </div>
-<p class="kpi-card-desc">Dłużnik na prod bez żadnego identyfikatora (PESEL, NIP, numer dowodu, numer paszportu) — porównanie z poziomem bazowym ze stagingu (<a href="../przygotowanie-danych/walidacje.md#biz_13">BIZ_13</a>).</p>
+<p class="kpi-card-desc">Dłużnik na prod bez żadnego identyfikatora (PESEL, NIP, numer dowodu, numer paszportu) — porównanie z poziomem bazowym ze stagingu (<a href="../../przygotowanie-danych/walidacje/#biz_13">BIZ_13</a>).</p>
 </div>
 
 <div class="kpi-card kpi-card-anomaly">
@@ -670,7 +670,7 @@ Sprawdzenia jakości danych po migracji bezpośrednio na bazie produkcyjnej. Nie
   <span class="kpi-card-code">KPI_ANO_11</span>
   <span class="kpi-typ-badge kpi-typ-anomaly">ANOMALY</span>
 </div>
-<p class="kpi-card-desc">Dłużnik z formalnie poprawnym 11-cyfrowym PESEL (przeszedł <a href="../przygotowanie-danych/walidacje.md#kat-fmt">FMT_01</a>), ale z pustym <code>dl_data_urodzenia</code> — wskazuje na nietypowe kodowanie wieku/miesiąca lub niepoprawną datę kalendarzową (np. 1900-02-29).</p>
+<p class="kpi-card-desc">Dłużnik z formalnie poprawnym 11-cyfrowym PESEL (przeszedł <a href="../../przygotowanie-danych/walidacje/#kat-fmt">FMT_01</a>), ale z pustym <code>dl_data_urodzenia</code> — wskazuje na nietypowe kodowanie wieku/miesiąca lub niepoprawną datę kalendarzową (np. 1900-02-29).</p>
 </div>
 
 </div>

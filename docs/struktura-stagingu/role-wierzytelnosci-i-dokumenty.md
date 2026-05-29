@@ -11,7 +11,7 @@ Iteracja 7 obejmuje dokumenty powiązane z wierzytelnościami (faktury, noty, we
 <div class="iter-meta">
   <span>Iteracja: 7</span>
   <span>Zależności: Iteracja 6</span>
-  <span>Walidacje: <a href="../przygotowanie-danych/walidacje.md#str_11">STR_11</a>, <a href="../przygotowanie-danych/walidacje.md#biz_16">BIZ_16</a></span>
+  <span>Walidacje: <a href="../../przygotowanie-danych/walidacje/#str_11">STR_11</a>, <a href="../../przygotowanie-danych/walidacje/#biz_16">BIZ_16</a></span>
   <span>Zakres: dokumenty i ich atrybuty</span>
 </div>
 

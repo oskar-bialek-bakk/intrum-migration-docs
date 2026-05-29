@@ -11,7 +11,7 @@ Iteracja 4 obejmuje sprawy — kontekst zadłużenia klienta, wraz z rolami spra
 <div class="iter-meta">
   <span>Iteracja: 4</span>
   <span>Zależności: Iteracja 2</span>
-  <span>Walidacje: <a href="../przygotowanie-danych/walidacje.md#str_01">STR_01</a>, <a href="../przygotowanie-danych/walidacje.md#str_02">STR_02</a>, <a href="../przygotowanie-danych/walidacje.md#str_03">STR_03</a>, <a href="../przygotowanie-danych/walidacje.md#biz_07">BIZ_07</a>, <a href="../przygotowanie-danych/walidacje.md#str_10">STR_10</a></span>
+  <span>Walidacje: <a href="../../przygotowanie-danych/walidacje/#str_01">STR_01</a>, <a href="../../przygotowanie-danych/walidacje/#str_02">STR_02</a>, <a href="../../przygotowanie-danych/walidacje/#str_03">STR_03</a>, <a href="../../przygotowanie-danych/walidacje/#biz_07">BIZ_07</a>, <a href="../../przygotowanie-danych/walidacje/#str_10">STR_10</a></span>
   <span>Zakres: sprawy, role spraw i atrybuty</span>
 </div>
 

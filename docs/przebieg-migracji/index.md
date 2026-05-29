@@ -14,6 +14,12 @@ Uruchomienie migracji oraz raport pomigracyjny podsumowujący wynik i stanowiąc
   <p class="card-desc">Kroki uruchomienia migracji i kolejność operacji na bazie produkcyjnej.</p>
 </a>
 
+<a class="feature-card" href="tabele-produkcyjne/">
+  <span class="card-icon">▦</span>
+  <span class="card-title">Tabele produkcyjne</span>
+  <p class="card-desc">Wszystkie tabele bazy produkcyjnej zasilane migracją, z linkiem do iteracji ładującej każdą z nich.</p>
+</a>
+
 <a class="feature-card" href="raport-pomigracyjny/">
   <span class="card-icon">📊</span>
   <span class="card-title">Raport pomigracyjny</span>

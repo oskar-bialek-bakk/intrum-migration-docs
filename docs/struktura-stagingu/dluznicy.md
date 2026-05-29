@@ -14,7 +14,7 @@ Iteracja 2 obejmuje dane głównych dłużników — osoby fizyczne i osoby praw
 <div class="iter-meta">
   <span>Iteracja: 2</span>
   <span>Zależności: Iteracja 1</span>
-  <span>Walidacje: <a href="../przygotowanie-danych/walidacje.md#biz_03">BIZ_03</a>, <a href="../przygotowanie-danych/walidacje.md#biz_13">BIZ_13</a></span>
+  <span>Walidacje: <a href="../../przygotowanie-danych/walidacje/#biz_03">BIZ_03</a>, <a href="../../przygotowanie-danych/walidacje/#biz_13">BIZ_13</a></span>
   <span>Zakres: dłużnicy główni i ich atrybuty</span>
 </div>
 

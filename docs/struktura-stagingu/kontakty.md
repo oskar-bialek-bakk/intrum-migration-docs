@@ -14,7 +14,7 @@ Iteracja 3 obejmuje dane kontaktowe dłużników — adresy pocztowe, adresy e-m
 <div class="iter-meta">
   <span>Iteracja: 3</span>
   <span>Zależności: Iteracja 2</span>
-  <span>Walidacje: <a href="../przygotowanie-danych/walidacje.md#str_08">STR_08</a>, <a href="../przygotowanie-danych/walidacje.md#str_09">STR_09</a></span>
+  <span>Walidacje: <a href="../../przygotowanie-danych/walidacje/#str_08">STR_08</a>, <a href="../../przygotowanie-danych/walidacje/#str_09">STR_09</a></span>
   <span>Zakres: dane kontaktowe dłużników</span>
 </div>
 

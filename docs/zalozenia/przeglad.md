@@ -12,7 +12,7 @@ Niniejsza dokumentacja opisuje proces migracji danych historycznych Intrum z baz
 Migracja obejmuje trzy główne etapy:
 
 <ol class="assumption-list">
-  <li><strong>Zasilenie stagingu</strong> — zespół Intrum ładuje dane do bazy <code>dm_staging</code> zgodnie z kolejnością opisaną w sekcji <a href="../przygotowanie-danych/index.md"><em>Przygotowanie danych</em></a>.</li>
+  <li><strong>Zasilenie stagingu</strong> — zespół Intrum ładuje dane do bazy <code>dm_staging</code> zgodnie z kolejnością opisaną w sekcji <a href="../../przygotowanie-danych/"><em>Przygotowanie danych</em></a>.</li>
   <li><strong>Walidacje przed migracją</strong> — zespół BAKK uruchamia zestaw reguł walidacyjnych na stagingu; wynik (błędy blokujące, ostrzeżenia, informacje) jest przekazywany Intrum do korekty.</li>
   <li><strong>Migracja do produkcji</strong> — po usunięciu błędów blokujących dane są przenoszone do <code>dm_data_web</code> i generowany jest raport pomigracyjny stanowiący podstawę formalnego odbioru.</li>
 </ol>

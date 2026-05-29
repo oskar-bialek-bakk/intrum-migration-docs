@@ -11,7 +11,7 @@ Iteracja 9 obejmuje harmonogramy spłat — raty powiązane z wierzytelnościami
 <div class="iter-meta">
   <span>Iteracja: 9</span>
   <span>Zależności: Iteracja 6</span>
-  <span>Walidacje: <a href="../przygotowanie-danych/walidacje.md#str_07">STR_07</a></span>
+  <span>Walidacje: <a href="../../przygotowanie-danych/walidacje/#str_07">STR_07</a></span>
   <span>Zakres: harmonogramy spłat i przypomnienia</span>
 </div>
 

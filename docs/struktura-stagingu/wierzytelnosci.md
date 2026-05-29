@@ -11,7 +11,7 @@ Iteracja 6 obejmuje wierzytelności — umowy/zobowiązania dłużników — ora
 <div class="iter-meta">
   <span>Iteracja: 6</span>
   <span>Zależności: Iteracja 4</span>
-  <span>Walidacje: <a href="../przygotowanie-danych/walidacje.md#biz_04">BIZ_04</a>, <a href="../przygotowanie-danych/walidacje.md#biz_14">BIZ_14</a>, <a href="../przygotowanie-danych/walidacje.md#biz_19">BIZ_19</a></span>
+  <span>Walidacje: <a href="../../przygotowanie-danych/walidacje/#biz_04">BIZ_04</a>, <a href="../../przygotowanie-danych/walidacje/#biz_14">BIZ_14</a>, <a href="../../przygotowanie-danych/walidacje/#biz_19">BIZ_19</a></span>
   <span>Zakres: wierzytelności, role wierzytelności i ich atrybuty</span>
 </div>
 
@@ -80,7 +80,7 @@ Nagłówek wierzytelności — roszczenie finansowe przypisane do sprawy. Jeden 
   <li>
     <span class="param-name fk required">wi_uko_id</span>
     <span class="param-type">INT</span>
-    <span class="param-desc">FK do <code>dbo.umowa_kontrahent</code> — nullable w stagingu, ale wymagane do migracji. Rekordy z <code>wi_uko_id IS NULL</code> są blokowane przez walidację <a href="../przygotowanie-danych/walidacje.md">TECH_04</a> (BLOCKING) i nie przejdą INNER JOIN w skrypcie iteracji 6.</span>
+    <span class="param-desc">FK do <code>dbo.umowa_kontrahent</code> — nullable w stagingu, ale wymagane do migracji. Rekordy z <code>wi_uko_id IS NULL</code> są blokowane przez walidację <a href="../../przygotowanie-danych/walidacje/">TECH_04</a> (BLOCKING) i nie przejdą INNER JOIN w skrypcie iteracji 6.</span>
   </li>
   <li>
     <span class="param-name required">wi_numer</span>

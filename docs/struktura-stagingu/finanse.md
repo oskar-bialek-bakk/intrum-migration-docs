@@ -11,7 +11,7 @@ Iteracja 8 obejmuje księgowania i dekrety — kwoty obciążające/uznanie wier
 <div class="iter-meta">
   <span>Iteracja: 8</span>
   <span>Zależności: Iteracja 7</span>
-  <span>Walidacje: <a href="../przygotowanie-danych/walidacje.md#str_04">STR_04</a>, <a href="../przygotowanie-danych/walidacje.md#str_05">STR_05</a>, <a href="../przygotowanie-danych/walidacje.md#biz_17">BIZ_17</a>, <a href="../przygotowanie-danych/walidacje.md#biz_18">BIZ_18</a></span>
+  <span>Walidacje: <a href="../../przygotowanie-danych/walidacje/#str_04">STR_04</a>, <a href="../../przygotowanie-danych/walidacje/#str_05">STR_05</a>, <a href="../../przygotowanie-danych/walidacje/#biz_17">BIZ_17</a>, <a href="../../przygotowanie-danych/walidacje/#biz_18">BIZ_18</a></span>
   <span>Zakres: księgowania i dekrety</span>
 </div>
 
