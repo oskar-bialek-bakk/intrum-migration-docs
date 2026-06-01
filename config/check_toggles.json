@@ -1,5 +1,10 @@
 {
   "FMT_07": { "enabled": false, "reason": "Migracja_Walidacje_Formatow_Stage1_20260429.xlsx" },
   "FMT_08": { "enabled": false, "reason": "Migracja_Walidacje_Formatow_Stage1_20260429.xlsx" },
-  "FMT_11": { "enabled": false, "reason": "Migracja_Walidacje_Formatow_Stage1_20260429.xlsx" }
+  "FMT_11": { "enabled": false, "reason": "Migracja_Walidacje_Formatow_Stage1_20260429.xlsx" },
+  "BIZ_04": { "enabled": false, "reason": "Migracja_Walidacje_Biznesowe_20260601_Stage1.xlsx" },
+  "BIZ_13": { "enabled": false, "reason": "Migracja_Walidacje_Biznesowe_20260601_Stage1.xlsx" },
+  "BIZ_14": { "enabled": false, "reason": "Migracja_Walidacje_Biznesowe_20260601_Stage1.xlsx" }, 
+  "BIZ_17": { "enabled": false, "reason": "Migracja_Walidacje_Biznesowe_20260601_Stage1.xlsx" },  
+  "BIZ_18": { "enabled": false, "reason": "Migracja_Walidacje_Biznesowe_20260601_Stage1.xlsx" }
 }
