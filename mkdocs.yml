@@ -1,6 +1,6 @@
 site_name: DEBT Manager — migracja danych stagingowych
 site_description: Dokumentacja techniczna migracji danych stagingowych do produkcji w systemie DEBT Manager
-site_url: https://oskar-bialek-bakk.github.io/intrum-migration-docs/
+site_url: https://intrum-documentation.azurewebsites.net/migration/
 
 theme:
   name: material
