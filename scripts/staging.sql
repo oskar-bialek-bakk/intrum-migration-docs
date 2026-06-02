@@ -797,6 +797,8 @@ CREATE TABLE dbo.operacja (
     oper_remitter_nazwa              VARCHAR(500)  NULL,
     oper_konto                       VARCHAR(50)   NULL,
     oper_do_id                       BIGINT        NULL,
+    oper_parent_oper_id              BIGINT        NULL,
+    oper_sp_id                       BIGINT        NULL,
     mod_date                         DATETIME      NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_operacja PRIMARY KEY (oper_id),
     CONSTRAINT FK_operacja_wierzytelnosc    FOREIGN KEY (oper_wi_id)                REFERENCES dbo.wierzytelnosc (wi_id),
@@ -804,6 +806,8 @@ CREATE TABLE dbo.operacja (
     CONSTRAINT FK_operacja_dokument         FOREIGN KEY (oper_dokument_prod_id)     REFERENCES dbo.dokument      (do_id),
     CONSTRAINT FK_operacja_dokument_do      FOREIGN KEY (oper_do_id)                REFERENCES dbo.dokument      (do_id),
     CONSTRAINT FK_operacja_rejestr_typ      FOREIGN KEY (oper_rejestr_kod)          REFERENCES dbo.operacja_rejestr_typ (or_id)
+    ,CONSTRAINT FK_operacja_parent  FOREIGN KEY (oper_parent_oper_id) REFERENCES dbo.operacja (oper_id)
+    ,CONSTRAINT FK_operacja_sprawa  FOREIGN KEY (oper_sp_id)          REFERENCES dbo.sprawa   (sp_id)
 );
 
 CREATE TABLE dbo.sprawa_rola (
@@ -1054,6 +1058,8 @@ INSERT INTO log.check_toggle (short_id, check_name, check_kind, severity) VALUES
     ('BIZ_18', 'BIZ_18_ksiegowanie_future_operation_date', 'VALIDATION', 'INFO'),
     ('BIZ_19', 'BIZ_19_wierzytelnosc_future_liability_date', 'VALIDATION', 'INFO'),
     ('BIZ_20', 'BIZ_20_adres_active_per_type_exceeds_limit', 'VALIDATION', 'BLOCKING'),
+    ('BIZ_21', 'BIZ_21_korekta_multi_amount',               'VALIDATION', 'BLOCKING'),
+    ('BIZ_22', 'BIZ_22_alokacja_no_parent',                 'VALIDATION', 'BLOCKING'),
     ('FMT_01', 'FMT_01_dluznik_pesel_format', 'VALIDATION', 'WARNING'),
     ('FMT_02', 'FMT_02_dluznik_nip_format', 'VALIDATION', 'WARNING'),
     ('FMT_03', 'FMT_03_dluznik_regon_format', 'VALIDATION', 'WARNING'),
@@ -1142,7 +1148,9 @@ INSERT INTO log.check_toggle (short_id, check_name, check_kind, severity) VALUES
     ('REF_35', 'REF_35_ksiegowanie_dekret_konto_subkonto', 'VALIDATION', 'BLOCKING'),
     ('REF_36', 'REF_36_adres_kraj', 'VALIDATION', 'BLOCKING'),
     ('REF_37', 'REF_37_operacja_rejestr_typ', 'VALIDATION', 'BLOCKING'),
-    ('REF_38', 'REF_38_harmonogram_typ', 'VALIDATION', 'BLOCKING'),
+    ('REF_38', 'REF_38_harmonogram_typ',      'VALIDATION', 'BLOCKING'),
+    ('REF_39', 'REF_39_operacja_parent',      'VALIDATION', 'BLOCKING'),
+    ('REF_40', 'REF_40_operacja_sprawa',      'VALIDATION', 'BLOCKING'),
     ('STR_01', 'STR_01_sprawa_no_rola', 'VALIDATION', 'BLOCKING'),
     ('STR_02', 'STR_02_sprawa_no_wierzytelnosc', 'VALIDATION', 'INFO'),
     ('STR_03', 'STR_03_sprawa_no_wierzytelnosc_but_has_related', 'VALIDATION', 'BLOCKING'),
@@ -1542,6 +1550,11 @@ IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.telefo
 -- umowa_kontrahent: IDENTITY mapping column
 IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.umowa_kontrahent') AND name = 'uko_id_migracja')
     ALTER TABLE dbo.umowa_kontrahent ADD uko_id_migracja INT NULL;
+
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.operacja') AND name = 'oper_parent_oper_id')
+    ALTER TABLE dbo.operacja ADD oper_parent_oper_id BIGINT NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.operacja') AND name = 'oper_sp_id')
+    ALTER TABLE dbo.operacja ADD oper_sp_id BIGINT NULL;
 
 PRINT 'staging.sql complete.';
 GO

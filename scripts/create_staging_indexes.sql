@@ -63,6 +63,8 @@ CREATE INDEX IX_operacja_wi_id  ON dbo.operacja (oper_wi_id);
 CREATE INDEX IX_operacja_do_id  ON dbo.operacja (oper_do_id);
 CREATE INDEX IX_operacja_waluta ON dbo.operacja (oper_waluta);
 CREATE INDEX IX_operacja_oper_rejestr_kod ON dbo.operacja (oper_rejestr_kod) WHERE oper_rejestr_kod IS NOT NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.indexes WHERE name = 'IX_operacja_parent' AND object_id = OBJECT_ID('dbo.operacja'))
+    CREATE INDEX IX_operacja_parent ON dbo.operacja (oper_parent_oper_id) WHERE oper_parent_oper_id IS NOT NULL;
 
 -- harmonogram: migration iter9 JOIN on hr_wi_id
 CREATE INDEX IX_harmonogram_wi_id ON dbo.harmonogram (hr_wi_id);

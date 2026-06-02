@@ -1442,46 +1442,245 @@
       }
     },
     "dbo.operacja": {
-      "prod_table": "dbo.ksiegowanie",
-      "split_targets": [],
+      "prod_table": null,
+      "split_targets": [
+        "dbo.korekta",
+        "dbo.ksiegowanie",
+        "dbo.wplata"
+      ],
       "columns": {
-        "oper_data_dekretu": {
-          "prod_col": "ks_data_ksiegowania",
-          "kind": "1:1"
+        "@ks_ext_id": {
+          "prod_col": "ks_ext_id",
+          "kind": "derived",
+          "raw_expr": "'OPER_' + CAST(src.oper_id AS VARCHAR)",
+          "prod_table": "dbo.ksiegowanie"
         },
-        "oper_data_ksiegowania": {
+        "@ks_data_ksiegowania": {
+          "prod_col": "ks_data_ksiegowania",
+          "kind": "derived",
+          "raw_expr": "ISNULL(o.oper_data_dekretu, o.oper_data_ksiegowania)",
+          "prod_table": "dbo.ksiegowanie"
+        },
+        "@ks_data_operacji": {
           "prod_col": "ks_data_operacji",
-          "kind": "1:1"
+          "kind": "derived",
+          "raw_expr": "o.oper_data_ksiegowania",
+          "prod_table": "dbo.ksiegowanie"
         },
         "$ks_uwagi": {
           "prod_col": "ks_uwagi",
           "kind": "constant",
-          "value": "NULL"
+          "value": "NULL",
+          "prod_table": "dbo.ksiegowanie"
         },
-        "$ks_kst_id": {
+        "@ks_kst_id": {
           "prod_col": "ks_kst_id",
-          "kind": "constant",
-          "value": "2"
+          "kind": "derived",
+          "raw_expr": "CASE WHEN src.or_kod IN ('korekta','koszt','nadplata') THEN 1 ELSE 2 END",
+          "prod_table": "dbo.ksiegowanie"
         },
-        "$ks_zamkniete": {
+        "@ks_zamkniete": {
           "prod_col": "ks_zamkniete",
-          "kind": "constant",
-          "value": "1"
+          "kind": "derived",
+          "raw_expr": "src.ks_zamkniete",
+          "prod_table": "dbo.ksiegowanie"
         },
-        "$ks_pierwotne": {
+        "@ks_pierwotne": {
           "prod_col": "ks_pierwotne",
-          "kind": "constant",
-          "value": "0"
+          "kind": "derived",
+          "raw_expr": "CASE WHEN src.or_kod IN ('korekta','koszt','nadplata') THEN 1 ELSE 0 END",
+          "prod_table": "dbo.ksiegowanie"
+        },
+        "@ks_korekta": {
+          "prod_col": "ks_korekta",
+          "kind": "derived",
+          "raw_expr": "CASE WHEN src.or_kod IN ('korekta','koszt','nadplata') THEN 1 ELSE 0 END",
+          "prod_table": "dbo.ksiegowanie"
         },
         "$ks_na_rachunek_kontrahenta": {
           "prod_col": "ks_na_rachunek_kontrahenta",
           "kind": "constant",
-          "value": "0"
+          "value": "0",
+          "prod_table": "dbo.ksiegowanie"
         },
-        "@ks_od_komornika": {
+        "$ks_od_komornika": {
           "prod_col": "ks_od_komornika",
+          "kind": "constant",
+          "value": "0",
+          "prod_table": "dbo.ksiegowanie"
+        },
+        "@ks_do_id": {
+          "prod_col": "ks_do_id",
           "kind": "derived",
-          "raw_expr": "CASE WHEN src.oper_typ_dekretu = 1 THEN 1 ELSE 0 END"
+          "raw_expr": "CASE WHEN src.or_kod = 'wplata' THEN NULL ELSE src.prod_do_id END",
+          "prod_table": "dbo.ksiegowanie"
+        },
+        "oper_sp_id": {
+          "kind": "multi_target",
+          "targets": [
+            {
+              "prod_table": "dbo.wplata",
+              "prod_col": "wpl_sp_id",
+              "kind": "via_dict",
+              "dict": "mapowanie.dodane_sprawy"
+            },
+            {
+              "prod_table": "dbo.wplata",
+              "prod_col": "wpl_rachunek_odbiorcy",
+              "kind": "via_dict",
+              "dict": "dbo.sprawa"
+            }
+          ]
+        },
+        "$wpl_do_id": {
+          "prod_col": "wpl_do_id",
+          "kind": "constant",
+          "value": "NULL",
+          "prod_table": "dbo.wplata"
+        },
+        "oper_id": {
+          "kind": "multi_target",
+          "targets": [
+            {
+              "prod_table": "dbo.wplata",
+              "prod_col": "wpl_ks_id",
+              "kind": "via_dict",
+              "dict": "mapowanie.dodane_ksiegowania_z_operacji"
+            },
+            {
+              "prod_table": "dbo.wplata",
+              "prod_col": "wpl_data_operacji",
+              "kind": "via_dict",
+              "dict": "dbo.ksiegowanie"
+            },
+            {
+              "prod_table": "dbo.wplata",
+              "prod_col": "wpl_uwagi",
+              "kind": "via_dict",
+              "dict": "dbo.ksiegowanie"
+            },
+            {
+              "prod_table": "dbo.wplata",
+              "prod_col": "wpl_data_wprowadzenia",
+              "kind": "via_dict",
+              "dict": "dbo.ksiegowanie"
+            },
+            {
+              "prod_table": "dbo.korekta",
+              "prod_col": "kor_do_id",
+              "kind": "via_dict",
+              "dict": "dbo.ksiegowanie_dekret"
+            },
+            {
+              "prod_table": "dbo.korekta",
+              "prod_col": "kor_ksk_id",
+              "kind": "via_dict",
+              "dict": "dbo.ksiegowanie_dekret"
+            },
+            {
+              "prod_table": "dbo.korekta",
+              "prod_col": "kor_wa_id",
+              "kind": "via_dict",
+              "dict": "dbo.ksiegowanie_dekret"
+            },
+            {
+              "prod_table": "dbo.korekta",
+              "prod_col": "kor_data_operacji",
+              "kind": "via_dict",
+              "dict": "dbo.ksiegowanie"
+            },
+            {
+              "prod_table": "dbo.korekta",
+              "prod_col": "kor_kwota",
+              "kind": "via_dict",
+              "dict": "dbo.ksiegowanie_dekret"
+            },
+            {
+              "prod_table": "dbo.korekta",
+              "prod_col": "kor_uwagi",
+              "kind": "via_dict",
+              "dict": "dbo.ksiegowanie"
+            },
+            {
+              "prod_table": "dbo.korekta",
+              "prod_col": "kor_ks_id",
+              "kind": "via_dict",
+              "dict": "mapowanie.dodane_ksiegowania_z_operacji"
+            },
+            {
+              "prod_table": "dbo.korekta",
+              "prod_col": "kor_data_wprowadzenia",
+              "kind": "via_dict",
+              "dict": "dbo.ksiegowanie"
+            },
+            {
+              "prod_table": "dbo.korekta",
+              "prod_col": "kor_kwota_bazowa",
+              "kind": "via_dict",
+              "dict": "dbo.ksiegowanie_dekret"
+            }
+          ]
+        },
+        "$wpl_ksksub_id": {
+          "prod_col": "wpl_ksksub_id",
+          "kind": "constant",
+          "value": "NULL",
+          "prod_table": "dbo.wplata"
+        },
+        "@wpl_wa_id": {
+          "prod_col": "wpl_wa_id",
+          "kind": "derived",
+          "raw_expr": "ksd.ksd_wa_id",
+          "prod_table": "dbo.wplata"
+        },
+        "@wpl_ext_id": {
+          "prod_col": "wpl_ext_id",
+          "kind": "derived",
+          "raw_expr": "'WPL_OPER_' + CAST(o.oper_id AS VARCHAR)",
+          "prod_table": "dbo.wplata"
+        },
+        "oper_kwota": {
+          "prod_table": "dbo.wplata",
+          "prod_col": "wpl_kwota",
+          "kind": "split"
+        },
+        "oper_opis_dekretu": {
+          "prod_table": "dbo.wplata",
+          "prod_col": "wpl_nazwa_wplacajacego",
+          "kind": "split"
+        },
+        "oper_konto": {
+          "prod_table": "dbo.wplata",
+          "prod_col": "wpl_rachunek_nadawcy",
+          "kind": "split"
+        },
+        "oper_opis_slowny": {
+          "prod_table": "dbo.wplata",
+          "prod_col": "wpl_tytul",
+          "kind": "split"
+        },
+        "oper_opis": {
+          "prod_table": "dbo.wplata",
+          "prod_col": "wpl_adres",
+          "kind": "split"
+        },
+        "$wpl_kurs_bazowy": {
+          "prod_col": "wpl_kurs_bazowy",
+          "kind": "constant",
+          "value": "1.0",
+          "prod_table": "dbo.wplata"
+        },
+        "@wpl_kwota_bazowa": {
+          "prod_col": "wpl_kwota_bazowa",
+          "kind": "derived",
+          "raw_expr": "ksd.ksd_kwota_wn_bazowa",
+          "prod_table": "dbo.wplata"
+        },
+        "$kor_kurs_bazowy": {
+          "prod_col": "kor_kurs_bazowy",
+          "kind": "constant",
+          "value": "1.0",
+          "prod_table": "dbo.korekta"
         }
       }
     },
@@ -1501,10 +1700,17 @@
           "prod_col": "ksd_ksk_id",
           "kind": "1:1"
         },
-        "$ksd_do_id": {
+        "ksksub_id": {
+          "prod_col": "ksd_ksksub_id",
+          "kind": "1:1"
+        },
+        "do_id": {
           "prod_col": "ksd_do_id",
-          "kind": "constant",
-          "value": "NULL"
+          "kind": "1:1"
+        },
+        "rb_id": {
+          "prod_col": "ksd_rb_id",
+          "kind": "1:1"
         },
         "$ksd_data_naliczania_odsetek": {
           "prod_col": "ksd_data_naliczania_odsetek",
@@ -1519,10 +1725,9 @@
           "prod_col": "ksd_kwota_ma",
           "kind": "1:1"
         },
-        "$ksd_data_wymagalnosci": {
+        "data_wymagalnosci": {
           "prod_col": "ksd_data_wymagalnosci",
-          "kind": "constant",
-          "value": "@SENTINEL_DATE"
+          "kind": "1:1"
         },
         "kwota_wn_bazowa": {
           "prod_col": "ksd_kwota_wn_bazowa",

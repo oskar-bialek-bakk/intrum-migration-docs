@@ -178,6 +178,8 @@ _INTENTIONALLY_UNMAPPED: dict[str, set[str]] = {
         "oper_opis_slowny",
         "oper_konto",
         "oper_do_id",
+        "oper_parent_oper_id",
+        "oper_sp_id",
         "oper_kwota",
         "oper_kwota_dekretu",
         "oper_kwota_dekretu_w_pln",
@@ -201,6 +203,11 @@ _INTENTIONALLY_UNMAPPED: dict[str, set[str]] = {
         "oper_remitter_nazwa",
         "oper_data_danych",
         "oper_data_waluty",
+        # Po rozszerzeniu iter8 Step 3C (operacja -> ksiegowanie/dekret/wplata/korekta)
+        # ekstraktor reprezentuje te kolumny jako cele @ks_data_* (ISNULL feed), wiec
+        # zrodlowe nazwy nie wystepuja juz w mapping.json jako klucze.
+        "oper_data_dekretu",
+        "oper_data_ksiegowania",
     },
 }
 

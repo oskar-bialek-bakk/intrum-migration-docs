@@ -121,6 +121,8 @@ erDiagram
         varchar  oper_remitter_nazwa
         varchar  oper_konto
         bigint   oper_do_id                       FK
+        bigint   oper_parent_oper_id              FK   "alokacja → wpłata"
+        bigint   oper_sp_id                       FK   "→ sprawa (rb_id wpłaty)"
     }
 
     ksiegowanie         }o--o|  dokument                   : "ks_do_id"
@@ -136,6 +138,8 @@ erDiagram
     operacja            }o--o|  dokument_typ               : "oper_dokument_typ_prod_id"
     operacja            }o--o|  dokument                   : "oper_dokument_prod_id"
     operacja            }o--o|  dokument                   : "oper_do_id"
+    operacja            }o--o|  operacja                   : "oper_parent_oper_id"
+    operacja            }o--o|  sprawa                     : "oper_sp_id"
 ```
 
 ## Tabele
@@ -315,7 +319,7 @@ Dekret księgowania — pozycja szczegółowa nagłówka, przypisana do dokument
   <span>Multi-row: tak (1 operacja → 1 nagłówek + 1–5 dekretów)</span>
 </div>
 
-Operacja finansowa z systemu źródłowego — wpłaty, umorzenia, korekty, koszty i alokacje. Staging `operacja` nie odpowiada pojedynczej tabeli prod — jej kwoty są rozbijane na pozycje rodzajowe (kapitał, odsetki karne, odsetki umowne, opłaty, prowizje) w momencie ładowania i zasilają jednocześnie nagłówek `ksiegowanie` oraz od jednego do pięciu dekretów `ksiegowanie_dekret`. Strona dekretu (Winien/Ma) wynika z powiązanego rekordu w `dbo.operacja_rejestr_typ` poprzez kolumnę `or_strona` — wartości `WN` (np. wpłata, umorzenie) trafiają na stronę Winien, wartości `MA` (np. korekta, koszt, alokacja, nadpłata) na stronę Ma.
+Operacja finansowa z systemu źródłowego: wpłaty, umorzenia, korekty, koszty i alokacje. Staging `operacja` nie odpowiada pojedynczej tabeli prod, jej kwoty są rozbijane na pozycje rodzajowe (kapitał, odsetki karne, odsetki umowne, opłaty, prowizje) w momencie ładowania i zasilają nagłówek `ksiegowanie` oraz dekrety `ksiegowanie_dekret`. Rozbicie zależy od typu rejestru (`operacja_rejestr_typ.or_kod`): wpłata tworzy nagłówek z dekretem technicznym Winien na koncie wpłat (rachunek bankowy ze sprawy), umorzenie i korekta tworzą nagłówek z dekretem technicznym Winien oraz dekretami rodzajowymi Ma, a alokacja nie tworzy własnego nagłówka i podpina dekrety rodzajowe Ma pod księgowanie powiązanej wpłaty (`oper_parent_oper_id`). Strona Winien/Ma wynika z roli dekretu (techniczny=Winien, rodzajowy=Ma); kolumna `operacja_rejestr_typ.or_strona` jest jedynie informacyjna i nie determinuje strony.
 
 <ul class="param-list">
   <li>
@@ -497,6 +501,16 @@ Operacja finansowa z systemu źródłowego — wpłaty, umorzenia, korekty, kosz
     <span class="param-name fk">oper_do_id</span>
     <span class="param-type">BIGINT</span>
     <span class="param-desc">FK do dokumentu powiązanego z operacją (walidowany przez REF_23; dekrety operacji w prod mają ksd_do_id = NULL).</span>
+  </li>
+  <li>
+    <span class="param-name fk">oper_parent_oper_id</span>
+    <span class="param-type">BIGINT</span>
+    <span class="param-desc">FK do operacji-wpłaty. Wiersz-alokacja wskazuje swoją wpłatę; dekrety rodzajowe alokacji podpinają się pod księgowanie tej wpłaty (alokacja nie tworzy własnego nagłówka).</span>
+  </li>
+  <li>
+    <span class="param-name fk">oper_sp_id</span>
+    <span class="param-type">BIGINT</span>
+    <span class="param-desc">FK do sprawy (opcjonalny). Źródło rachunku bankowego dekretu technicznego wpłaty (ksd_rb_id) oraz przypisania wpłaty do sprawy.</span>
   </li>
   <li>
     <span class="param-name deprecated">mod_date</span>

@@ -457,6 +457,8 @@ EXEC sp_addextendedproperty 'MS_Description', 'Nazwa beneficjenta operacji', 'SC
 EXEC sp_addextendedproperty 'MS_Description', 'Nazwa zleceniodawcy operacji', 'SCHEMA', 'dbo', 'TABLE', 'operacja', 'COLUMN', 'oper_remitter_nazwa';
 EXEC sp_addextendedproperty 'MS_Description', 'Numer konta bankowego operacji', 'SCHEMA', 'dbo', 'TABLE', 'operacja', 'COLUMN', 'oper_konto';
 EXEC sp_addextendedproperty 'MS_Description', 'FK do dokumentu powiązanego z operacją', 'SCHEMA', 'dbo', 'TABLE', 'operacja', 'COLUMN', 'oper_do_id';
+EXEC sp_addextendedproperty 'MS_Description', 'FK do operacji-wpłaty (alokacja wskazuje swoją wpłatę; podpina dekrety pod jej księgowanie)', 'SCHEMA', 'dbo', 'TABLE', 'operacja', 'COLUMN', 'oper_parent_oper_id';
+EXEC sp_addextendedproperty 'MS_Description', 'FK do sprawy (nullable), źródło rachunku bankowego dekretu wpłaty (ksd_rb_id) i przypisania wpłaty do sprawy', 'SCHEMA', 'dbo', 'TABLE', 'operacja', 'COLUMN', 'oper_sp_id';
 EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - obsługiwana triggerami insert; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'operacja', 'COLUMN', 'mod_date';
 
 -- ------------------------------------------------------------
