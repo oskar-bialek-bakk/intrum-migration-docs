@@ -666,6 +666,11 @@
         "dl_regon": {
           "prod_col": "dl_regon",
           "kind": "1:1"
+        },
+        "dl_zpi_id": {
+          "prod_col": "dl_zpi_id",
+          "kind": "via_dict",
+          "dict": "dbo.zrodlo_pochodzenia_informacji"
         }
       }
     },
@@ -752,10 +757,10 @@
           "prod_col": "ad_data_do",
           "kind": "1:1"
         },
-        "$ad_zpi_id": {
+        "@ad_zpi_id": {
           "prod_col": "ad_zpi_id",
-          "kind": "constant",
-          "value": "@ZPI_IMPORT"
+          "kind": "derived",
+          "raw_expr": "CASE WHEN stg.ad_zpi_id IS NULL THEN @ZPI_IMPORT        \n                 ELSE zpi.zpi_ext_id END"
         },
         "$ad_tworzacy_us_id": {
           "prod_col": "ad_tworzacy_us_id",
@@ -794,6 +799,11 @@
           "prod_col": "ma_data_do",
           "kind": "1:1"
         },
+        "ma_zpi_id": {
+          "prod_col": "ma_zpi_id",
+          "kind": "via_dict",
+          "dict": "dbo.zrodlo_pochodzenia_informacji"
+        },
         "$ma_tworzacy_us_id": {
           "prod_col": "ma_tworzacy_us_id",
           "kind": "constant",
@@ -831,10 +841,10 @@
           "prod_col": "tn_data_do",
           "kind": "1:1"
         },
-        "$tn_zpi_id": {
+        "@tn_zpi_id": {
           "prod_col": "tn_zpi_id",
-          "kind": "constant",
-          "value": "@ZPI_IMPORT"
+          "kind": "derived",
+          "raw_expr": "CASE WHEN stg.tn_zpi_id IS NULL THEN @ZPI_IMPORT        \n                 ELSE zpi.zpi_ext_id END"
         },
         "$tn_tworzacy_us_id": {
           "prod_col": "tn_tworzacy_us_id",

@@ -42,6 +42,11 @@ erDiagram
         int     kraj_id  PK
     }
 
+    zrodlo_pochodzenia_informacji {
+        int      zpi_id    PK
+        nvarchar zpi_nazwa
+    }
+
     adres {
         bigint   ad_id          PK
         bigint   ad_dl_id       FK
@@ -56,6 +61,7 @@ erDiagram
         varchar  ad_uwagi
         datetime ad_data_od
         datetime ad_data_do            "NULL = aktywny"
+        int      ad_zpi_id      FK
     }
 
     mail {
@@ -64,6 +70,7 @@ erDiagram
         varchar  ma_adres_mailowy
         datetime ma_data_od
         datetime ma_data_do            "NULL = aktywny"
+        int      ma_zpi_id        FK
     }
 
     telefon {
@@ -73,14 +80,18 @@ erDiagram
         varchar  tn_numer
         datetime tn_data_od
         datetime tn_data_do            "NULL = aktywny"
+        int      tn_zpi_id FK
     }
 
     adres       }o--||  dluznik     : "ad_dl_id"
     adres       }o--||  adres_typ   : "ad_at_id"
     adres       }o--o|  kraj        : "ad_panstwo"
+    adres       }o--o|  zrodlo_pochodzenia_informacji : "ad_zpi_id"
     mail        }o--||  dluznik     : "ma_dl_id"
+    mail        }o--o|  zrodlo_pochodzenia_informacji : "ma_zpi_id"
     telefon     }o--||  dluznik     : "tn_dl_id"
     telefon     }o--||  telefon_typ : "tn_tt_id"
+    telefon     }o--o|  zrodlo_pochodzenia_informacji : "tn_zpi_id"
 ```
 
 ## Tabele
@@ -166,6 +177,11 @@ Adresy przypisane do dłużnika, z typem określonym przez `ad_at_id` (FK do sł
     <span class="param-desc">Data końca obowiązywania adresu - NULL oznacza adres aktywny</span>
   </li>
   <li>
+    <span class="param-name fk">ad_zpi_id</span>
+    <span class="param-type">INT</span>
+    <span class="param-desc">FK do słownika źródeł pochodzenia informacji (zrodlo_pochodzenia_informacji.zpi_id) - opcjonalne; przy braku wartości migracja przypisze domyślne źródło importu</span>
+  </li>
+  <li>
     <span class="param-name deprecated">mod_date</span>
     <span class="param-type">DATETIME</span>
     <span class="param-desc">Kolumna techniczna - obsługiwana triggerami insert; nie wypełniać</span>
@@ -215,6 +231,11 @@ Adresy e-mail przypisane do dłużnika. Okres obowiązywania opisują kolumny `m
     <span class="param-name">ma_data_do</span>
     <span class="param-type">DATETIME</span>
     <span class="param-desc">Data końca obowiązywania adresu e-mail - NULL oznacza adres aktywny</span>
+  </li>
+  <li>
+    <span class="param-name fk">ma_zpi_id</span>
+    <span class="param-type">INT</span>
+    <span class="param-desc">FK do słownika źródeł pochodzenia informacji (zrodlo_pochodzenia_informacji.zpi_id) - opcjonalne; brak wartości pozostaje pusty po stronie produkcyjnej</span>
   </li>
   <li>
     <span class="param-name deprecated">mod_date</span>
@@ -273,6 +294,11 @@ Numery telefonów przypisane do dłużnika, z typem określonym przez `tn_tt_id`
     <span class="param-desc">Data końca obowiązywania numeru telefonu - NULL oznacza numer aktywny</span>
   </li>
   <li>
+    <span class="param-name fk">tn_zpi_id</span>
+    <span class="param-type">INT</span>
+    <span class="param-desc">FK do słownika źródeł pochodzenia informacji (zrodlo_pochodzenia_informacji.zpi_id) - opcjonalne; przy braku wartości migracja przypisze domyślne źródło importu</span>
+  </li>
+  <li>
     <span class="param-name deprecated">mod_date</span>
     <span class="param-type">DATETIME</span>
     <span class="param-desc">Kolumna techniczna - obsługiwana triggerami insert; nie wypełniać</span>
@@ -287,8 +313,9 @@ Numery telefonów przypisane do dłużnika, z typem określonym przez `tn_tt_id`
 
 - Poprzednia iteracja: [Dłużnicy i atrybuty dłużników](dluznicy.md)
 - Następna iteracja: [Sprawy i role](sprawy.md)
-- Walidacje referencyjne (adres): [REF_09, REF_10](../przygotowanie-danych/walidacje.md), [REF_36 (ad_panstwo → kraj)](../przygotowanie-danych/walidacje.md)
-- Walidacje referencyjne (mail): [REF_13](../przygotowanie-danych/walidacje.md)
-- Walidacje referencyjne (telefon): [REF_11, REF_12](../przygotowanie-danych/walidacje.md)
+- Walidacje referencyjne (adres): [REF_09, REF_10](../przygotowanie-danych/walidacje.md), [REF_36 (ad_panstwo → kraj)](../przygotowanie-danych/walidacje.md), [REF_42 (ad_zpi_id → zrodlo_pochodzenia_informacji)](../przygotowanie-danych/walidacje.md)
+- Walidacje referencyjne (mail): [REF_13](../przygotowanie-danych/walidacje.md), [REF_43 (ma_zpi_id → zrodlo_pochodzenia_informacji)](../przygotowanie-danych/walidacje.md)
+- Walidacje referencyjne (telefon): [REF_11, REF_12](../przygotowanie-danych/walidacje.md), [REF_44 (tn_zpi_id → zrodlo_pochodzenia_informacji)](../przygotowanie-danych/walidacje.md)
+- Słownik źródeł pochodzenia informacji (FK `ad_zpi_id`, `ma_zpi_id`, `tn_zpi_id`): [dbo.zrodlo_pochodzenia_informacji](slowniki.md#dbozrodlo_pochodzenia_informacji)
 - Walidacje formatu: [FMT_04 (kod pocztowy), FMT_05 (e-mail), FMT_06, FMT_07 (telefon)](../przygotowanie-danych/walidacje.md)
 - Walidacje integralności strukturalnej: [STR_08 (limit telefonów)](../przygotowanie-danych/walidacje.md#str_08), [STR_09 (limit adresów)](../przygotowanie-danych/walidacje.md#str_09)

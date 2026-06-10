@@ -81,7 +81,7 @@ Skopiowanie istniejących danych produkcyjnych do tabel słownikowych w stagingu
 
 | Tabela | Zależności FK | Uwagi |
 |---|---|---|
-| `dbo.dluznik` | `dl_dt_id → dluznik_typ` | Reguła biznesowa: `dl_dt_id` równe (1,2) → wymagane `dl_imie`, `dl_nazwisko`, `dl_pesel`. `dl_dt_id` równe (3,4) → wymagane `dl_firma`, `dl_nip`. |
+| `dbo.dluznik` | `dl_dt_id → dluznik_typ`, `dl_zpi_id → zrodlo_pochodzenia_informacji` *(opcjonalne)* | Reguła biznesowa: `dl_dt_id` równe (1,2) → wymagane `dl_imie`, `dl_nazwisko`, `dl_pesel`. `dl_dt_id` równe (3,4) → wymagane `dl_firma`, `dl_nip`. |
 | `dbo.atrybut` *(att_atd_id = 3)* | `at_att_id → atrybut_typ` (dziedzina i rodzaj dziedziczone z `atrybut_typ`), `at_ob_id → dluznik.dl_id` | Wyłącznie atrybuty dłużników (`atrybut_typ.att_atd_id = 3`). Załadować po `dluznik`. |
 | `dbo.wlasciwosc` *(dziedzina=4)* | `wl_wtpd_id → wlasciwosc_typ_podtyp_dziedzina` | Główna tabela właściwości — załadować wiersze powiązane z dłużnikami (dziedzina=4). Załadować razem z `wlasciwosc_dluznik`. |
 | `dbo.wlasciwosc_dluznik` | `wd_wl_id → wlasciwosc`, `wd_dl_id → dluznik` | Właściwości dłużników. Załadować po `dluznik`. Wymaga zasilenia tabel słownikowych `wlasciwosc_*` w Iteracji 1. |
@@ -92,9 +92,9 @@ Skopiowanie istniejących danych produkcyjnych do tabel słownikowych w stagingu
 
 | Tabela | Zależności FK | Uwagi |
 |---|---|---|
-| `dbo.adres` | `ad_dl_id → dluznik`, `ad_at_id → adres_typ`, `ad_panstwo → kraj` *(opcjonalne)* | Dozwolonych wiele adresów na dłużnika. Maksymalna liczba jednocześnie aktywnych adresów danego typu (`ad_at_id`) jest konfigurowana w prod: `adres_typ_podmiot_konfiguracja.atpk_il` (dla `atp_id=2` — dłużnik). Aktywny = `ad_data_do IS NULL` lub `ad_data_do > GETDATE()`. Przekroczenie limitu jest **blokujące** (BIZ_20). |
-| `dbo.mail` | `ma_dl_id → dluznik` | |
-| `dbo.telefon` | `tn_dl_id → dluznik`, `tn_tt_id → telefon_typ` | Dozwolonych wiele numerów telefonu na dłużnika, jednak dla każdego typu telefonu (`tn_tt_id`) tylko jeden rekord może być jednocześnie aktywny (brak daty zakończenia lub `tn_data_do > GETDATE()`). |
+| `dbo.adres` | `ad_dl_id → dluznik`, `ad_at_id → adres_typ`, `ad_panstwo → kraj` *(opcjonalne)*, `ad_zpi_id → zrodlo_pochodzenia_informacji` *(opcjonalne)* | Dozwolonych wiele adresów na dłużnika. Maksymalna liczba jednocześnie aktywnych adresów danego typu (`ad_at_id`) jest konfigurowana w prod: `adres_typ_podmiot_konfiguracja.atpk_il` (dla `atp_id=2` — dłużnik). Aktywny = `ad_data_do IS NULL` lub `ad_data_do > GETDATE()`. Przekroczenie limitu jest **blokujące** (BIZ_20). |
+| `dbo.mail` | `ma_dl_id → dluznik`, `ma_zpi_id → zrodlo_pochodzenia_informacji` *(opcjonalne)* | |
+| `dbo.telefon` | `tn_dl_id → dluznik`, `tn_tt_id → telefon_typ`, `tn_zpi_id → zrodlo_pochodzenia_informacji` *(opcjonalne)* | Dozwolonych wiele numerów telefonu na dłużnika, jednak dla każdego typu telefonu (`tn_tt_id`) tylko jeden rekord może być jednocześnie aktywny (brak daty zakończenia lub `tn_data_do > GETDATE()`). |
 | `dbo.wlasciwosc` *(dziedzina=1,2,3)* | `wl_wtpd_id → wlasciwosc_typ_podtyp_dziedzina` | Wiersze właściwości powiązane z adresami (dziedzina=2), e-mailami (dziedzina=3) i telefonami (dziedzina=1). Załadować razem z `wlasciwosc_adres`, `wlasciwosc_email`, `wlasciwosc_telefon`. |
 | `dbo.wlasciwosc_adres` | `wa_wl_id → wlasciwosc`, `wa_ad_id → adres` | Właściwości adresów. Załadować po `adres`. |
 | `dbo.wlasciwosc_email` | `we_wl_id → wlasciwosc`, `we_ma_id → mail` | Właściwości adresów e-mail. Załadować po `mail`. |

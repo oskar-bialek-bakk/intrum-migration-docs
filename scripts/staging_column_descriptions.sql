@@ -226,6 +226,7 @@ EXEC sp_addextendedproperty 'MS_Description', 'Numer KRS (Krajowy Rejestr Sądow
 EXEC sp_addextendedproperty 'MS_Description', 'Identyfikator paczki importu, z której pochodzi rekord', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_import_info';
 EXEC sp_addextendedproperty 'MS_Description', 'Numer NIP dłużnika - wymagany dla wartości dl_dt_id równych (3,4)', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_nip';
 EXEC sp_addextendedproperty 'MS_Description', 'Numer REGON dłużnika', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_regon';
+EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika źródeł pochodzenia informacji (zrodlo_pochodzenia_informacji.zpi_id) - opcjonalne źródło danych dłużnika', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'dl_zpi_id';
 EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - obsługiwana triggerami insert; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'dluznik', 'COLUMN', 'mod_date';
 
 -- ------------------------------------------------------------
@@ -281,6 +282,7 @@ EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika typów adresów',
 EXEC sp_addextendedproperty 'MS_Description', 'Uwagi dotyczące adresu', 'SCHEMA', 'dbo', 'TABLE', 'adres', 'COLUMN', 'ad_uwagi';
 EXEC sp_addextendedproperty 'MS_Description', 'Data początku obowiązywania adresu', 'SCHEMA', 'dbo', 'TABLE', 'adres', 'COLUMN', 'ad_data_od';
 EXEC sp_addextendedproperty 'MS_Description', 'Data końca obowiązywania adresu - NULL oznacza adres aktywny', 'SCHEMA', 'dbo', 'TABLE', 'adres', 'COLUMN', 'ad_data_do';
+EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika źródeł pochodzenia informacji (zrodlo_pochodzenia_informacji.zpi_id) - opcjonalne źródło danych adresu; przy braku wartości migracja użyje domyślnego źródła importu', 'SCHEMA', 'dbo', 'TABLE', 'adres', 'COLUMN', 'ad_zpi_id';
 EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - obsługiwana triggerami insert; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'adres', 'COLUMN', 'mod_date';
 
 -- ------------------------------------------------------------
@@ -312,6 +314,7 @@ EXEC sp_addextendedproperty 'MS_Description', 'FK do dłużnika', 'SCHEMA', 'dbo
 EXEC sp_addextendedproperty 'MS_Description', 'Adres e-mail dłużnika', 'SCHEMA', 'dbo', 'TABLE', 'mail', 'COLUMN', 'ma_adres_mailowy';
 EXEC sp_addextendedproperty 'MS_Description', 'Data początku obowiązywania adresu e-mail', 'SCHEMA', 'dbo', 'TABLE', 'mail', 'COLUMN', 'ma_data_od';
 EXEC sp_addextendedproperty 'MS_Description', 'Data końca obowiązywania adresu e-mail - NULL oznacza adres aktywny', 'SCHEMA', 'dbo', 'TABLE', 'mail', 'COLUMN', 'ma_data_do';
+EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika źródeł pochodzenia informacji (zrodlo_pochodzenia_informacji.zpi_id) - opcjonalne źródło danych adresu e-mail', 'SCHEMA', 'dbo', 'TABLE', 'mail', 'COLUMN', 'ma_zpi_id';
 EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - obsługiwana triggerami insert; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'mail', 'COLUMN', 'mod_date';
 
 -- ------------------------------------------------------------
@@ -324,6 +327,7 @@ EXEC sp_addextendedproperty 'MS_Description', 'Numer telefonu', 'SCHEMA', 'dbo',
 EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika typów telefonów', 'SCHEMA', 'dbo', 'TABLE', 'telefon', 'COLUMN', 'tn_tt_id';
 EXEC sp_addextendedproperty 'MS_Description', 'Data początku obowiązywania numeru telefonu', 'SCHEMA', 'dbo', 'TABLE', 'telefon', 'COLUMN', 'tn_data_od';
 EXEC sp_addextendedproperty 'MS_Description', 'Data końca obowiązywania numeru telefonu - NULL oznacza numer aktywny', 'SCHEMA', 'dbo', 'TABLE', 'telefon', 'COLUMN', 'tn_data_do';
+EXEC sp_addextendedproperty 'MS_Description', 'FK do słownika źródeł pochodzenia informacji (zrodlo_pochodzenia_informacji.zpi_id) - opcjonalne źródło danych numeru telefonu; przy braku wartości migracja użyje domyślnego źródła importu', 'SCHEMA', 'dbo', 'TABLE', 'telefon', 'COLUMN', 'tn_zpi_id';
 EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - obsługiwana triggerami insert; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'telefon', 'COLUMN', 'mod_date';
 
 -- ------------------------------------------------------------

@@ -382,6 +382,54 @@ Wszystkie błędy **blokujące** muszą zostać poprawione przed migracją.
 <p class="walidacja-desc">Typ harmonogramu musi istnieć w słowniku <code>harmonogram_typ</code> (<code>hr_typ → harmonogram_typ.ht_id</code>). Tabela: <code>harmonogram</code></p>
 </div>
 
+<div class="walidacja-card walidacja-ref">
+<div class="walidacja-header">
+  <span class="walidacja-code">REF_39</span>
+  <span class="walidacja-sev sev-block">Blokujące</span>
+</div>
+<p class="walidacja-desc">Operacja nadrzędna musi istnieć (<code>oper_parent_oper_id → operacja.oper_id</code>) — wartość opcjonalna; sprawdzane tylko gdy uzupełnione. Tabela: <code>operacja</code></p>
+</div>
+
+<div class="walidacja-card walidacja-ref">
+<div class="walidacja-header">
+  <span class="walidacja-code">REF_40</span>
+  <span class="walidacja-sev sev-block">Blokujące</span>
+</div>
+<p class="walidacja-desc">Sprawa wskazana w operacji musi istnieć (<code>oper_sp_id → sprawa.sp_id</code>) — wartość opcjonalna; sprawdzane tylko gdy uzupełnione. Tabela: <code>operacja</code></p>
+</div>
+
+<div class="walidacja-card walidacja-ref">
+<div class="walidacja-header">
+  <span class="walidacja-code">REF_41</span>
+  <span class="walidacja-sev sev-block">Blokujące</span>
+</div>
+<p class="walidacja-desc">Źródło pochodzenia informacji dłużnika musi istnieć w słowniku (<code>dl_zpi_id → zrodlo_pochodzenia_informacji.zpi_id</code>) — wartość opcjonalna; sprawdzane tylko gdy uzupełnione. Tabela: <code>dluznik</code></p>
+</div>
+
+<div class="walidacja-card walidacja-ref">
+<div class="walidacja-header">
+  <span class="walidacja-code">REF_42</span>
+  <span class="walidacja-sev sev-block">Blokujące</span>
+</div>
+<p class="walidacja-desc">Źródło pochodzenia informacji adresu musi istnieć w słowniku (<code>ad_zpi_id → zrodlo_pochodzenia_informacji.zpi_id</code>) — wartość opcjonalna; sprawdzane tylko gdy uzupełnione. Tabela: <code>adres</code></p>
+</div>
+
+<div class="walidacja-card walidacja-ref">
+<div class="walidacja-header">
+  <span class="walidacja-code">REF_43</span>
+  <span class="walidacja-sev sev-block">Blokujące</span>
+</div>
+<p class="walidacja-desc">Źródło pochodzenia informacji adresu e-mail musi istnieć w słowniku (<code>ma_zpi_id → zrodlo_pochodzenia_informacji.zpi_id</code>) — wartość opcjonalna; sprawdzane tylko gdy uzupełnione. Tabela: <code>mail</code></p>
+</div>
+
+<div class="walidacja-card walidacja-ref">
+<div class="walidacja-header">
+  <span class="walidacja-code">REF_44</span>
+  <span class="walidacja-sev sev-block">Blokujące</span>
+</div>
+<p class="walidacja-desc">Źródło pochodzenia informacji telefonu musi istnieć w słowniku (<code>tn_zpi_id → zrodlo_pochodzenia_informacji.zpi_id</code>) — wartość opcjonalna; sprawdzane tylko gdy uzupełnione. Tabela: <code>telefon</code></p>
+</div>
+
 </div>
 
 ---

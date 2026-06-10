@@ -566,11 +566,13 @@ CREATE TABLE dbo.dluznik (
     dl_import_info       INT             NULL,
     dl_nip               VARCHAR(20)     NULL,
     dl_regon             VARCHAR(20)     NULL,
+    dl_zpi_id            INT             NULL,
     mod_date             DATETIME        NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_dluznik PRIMARY KEY (dl_id),
     CONSTRAINT FK_dluznik_dluznik_typ  FOREIGN KEY (dl_dt_id)   REFERENCES dbo.dluznik_typ  (dt_id),
     CONSTRAINT FK_dluznik_kraj         FOREIGN KEY (dl_kraj_id) REFERENCES dbo.kraj         (kraj_id),
-    CONSTRAINT FK_dluznik_plec_mapping FOREIGN KEY (dl_plec)    REFERENCES mapowanie.plec   (pm_kod)
+    CONSTRAINT FK_dluznik_plec_mapping FOREIGN KEY (dl_plec)    REFERENCES mapowanie.plec   (pm_kod),
+    CONSTRAINT FK_dluznik_zrodlo_pochodzenia_informacji FOREIGN KEY (dl_zpi_id) REFERENCES dbo.zrodlo_pochodzenia_informacji (zpi_id)
 );
 
 CREATE TABLE dbo.sprawa (
@@ -632,11 +634,13 @@ CREATE TABLE dbo.adres (
     ad_uwagi        VARCHAR(4000) NULL,
     ad_data_od      DATETIME      NULL,
     ad_data_do      DATETIME      NULL,
+    ad_zpi_id       INT           NULL,
     mod_date        DATETIME      NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_adres PRIMARY KEY (ad_id),
     CONSTRAINT FK_adres_dluznik   FOREIGN KEY (ad_dl_id)   REFERENCES dbo.dluznik   (dl_id),
     CONSTRAINT FK_adres_adres_typ FOREIGN KEY (ad_at_id)   REFERENCES dbo.adres_typ (at_id),
-    CONSTRAINT FK_adres_kraj      FOREIGN KEY (ad_panstwo) REFERENCES dbo.kraj      (kraj_id)
+    CONSTRAINT FK_adres_kraj      FOREIGN KEY (ad_panstwo) REFERENCES dbo.kraj      (kraj_id),
+    CONSTRAINT FK_adres_zrodlo_pochodzenia_informacji FOREIGN KEY (ad_zpi_id) REFERENCES dbo.zrodlo_pochodzenia_informacji (zpi_id)
 );
 
 CREATE TABLE dbo.akcja (
@@ -755,9 +759,11 @@ CREATE TABLE dbo.mail (
     ma_adres_mailowy    VARCHAR(50)  NULL,
     ma_data_od          DATETIME     NULL,
     ma_data_do          DATETIME     NULL,
+    ma_zpi_id           INT          NULL,
     mod_date            DATETIME     NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_mail PRIMARY KEY (ma_id),
-    CONSTRAINT FK_mail_dluznik FOREIGN KEY (ma_dl_id) REFERENCES dbo.dluznik (dl_id)
+    CONSTRAINT FK_mail_dluznik FOREIGN KEY (ma_dl_id) REFERENCES dbo.dluznik (dl_id),
+    CONSTRAINT FK_mail_zrodlo_pochodzenia_informacji FOREIGN KEY (ma_zpi_id) REFERENCES dbo.zrodlo_pochodzenia_informacji (zpi_id)
 );
 
 CREATE TABLE dbo.operacja (
@@ -831,10 +837,12 @@ CREATE TABLE dbo.telefon (
     tn_tt_id    INT          NOT NULL,
     tn_data_od  DATETIME     NULL,
     tn_data_do  DATETIME     NULL,
+    tn_zpi_id   INT          NULL,
     mod_date    DATETIME     NOT NULL DEFAULT GETDATE(),
     CONSTRAINT PK_telefon PRIMARY KEY (tn_id),
     CONSTRAINT FK_telefon_dluznik     FOREIGN KEY (tn_dl_id) REFERENCES dbo.dluznik    (dl_id),
-    CONSTRAINT FK_telefon_telefon_typ FOREIGN KEY (tn_tt_id) REFERENCES dbo.telefon_typ (tt_id)
+    CONSTRAINT FK_telefon_telefon_typ FOREIGN KEY (tn_tt_id) REFERENCES dbo.telefon_typ (tt_id),
+    CONSTRAINT FK_telefon_zrodlo_pochodzenia_informacji FOREIGN KEY (tn_zpi_id) REFERENCES dbo.zrodlo_pochodzenia_informacji (zpi_id)
 );
 
 -- ============================================================
@@ -1480,6 +1488,25 @@ IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.operac
     ALTER TABLE dbo.operacja ADD oper_parent_oper_id BIGINT NULL;
 IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.operacja') AND name = 'oper_sp_id')
     ALTER TABLE dbo.operacja ADD oper_sp_id BIGINT NULL;
+
+-- zrodlo_pochodzenia_informacji references on entity tables (column + FK,
+-- so upgraded staging DBs get the same enforcement as freshly created ones)
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.dluznik') AND name = 'dl_zpi_id')
+    ALTER TABLE dbo.dluznik ADD dl_zpi_id INT NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_dluznik_zrodlo_pochodzenia_informacji')
+    ALTER TABLE dbo.dluznik ADD CONSTRAINT FK_dluznik_zrodlo_pochodzenia_informacji FOREIGN KEY (dl_zpi_id) REFERENCES dbo.zrodlo_pochodzenia_informacji (zpi_id);
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.adres')   AND name = 'ad_zpi_id')
+    ALTER TABLE dbo.adres   ADD ad_zpi_id INT NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_adres_zrodlo_pochodzenia_informacji')
+    ALTER TABLE dbo.adres   ADD CONSTRAINT FK_adres_zrodlo_pochodzenia_informacji FOREIGN KEY (ad_zpi_id) REFERENCES dbo.zrodlo_pochodzenia_informacji (zpi_id);
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.mail')    AND name = 'ma_zpi_id')
+    ALTER TABLE dbo.mail    ADD ma_zpi_id INT NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_mail_zrodlo_pochodzenia_informacji')
+    ALTER TABLE dbo.mail    ADD CONSTRAINT FK_mail_zrodlo_pochodzenia_informacji FOREIGN KEY (ma_zpi_id) REFERENCES dbo.zrodlo_pochodzenia_informacji (zpi_id);
+IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID('dbo.telefon') AND name = 'tn_zpi_id')
+    ALTER TABLE dbo.telefon ADD tn_zpi_id INT NULL;
+IF NOT EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = 'FK_telefon_zrodlo_pochodzenia_informacji')
+    ALTER TABLE dbo.telefon ADD CONSTRAINT FK_telefon_zrodlo_pochodzenia_informacji FOREIGN KEY (tn_zpi_id) REFERENCES dbo.zrodlo_pochodzenia_informacji (zpi_id);
 
 PRINT 'staging.sql complete.';
 GO

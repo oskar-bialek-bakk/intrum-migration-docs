@@ -1009,7 +1009,7 @@ Słownik etapów sprawy (np. sądowy, egzekucyjny, polubowny). Każdy etap przyp
   <span>Multi-row: tak</span>
 </div>
 
-Słownik źródeł pochodzenia informacji o dłużnikach i wierzytelnościach — określa skąd pozyskano dane (np. wewnętrzny system, zewnętrzne bazy).
+Słownik źródeł pochodzenia informacji o dłużnikach i wierzytelnościach — określa skąd pozyskano dane (np. wewnętrzny system, zewnętrzne bazy). Referencjonowany przez kolumny `dluznik.dl_zpi_id`, `adres.ad_zpi_id`, `mail.ma_zpi_id` i `telefon.tn_zpi_id` (wszystkie opcjonalne). Jeśli rekord adresu lub telefonu nie wskazuje źródła, migracja przypisze mu domyślne źródło importu; dla dłużnika i adresu e-mail brak wartości pozostaje pusty po stronie produkcyjnej.
 
 <ul class="param-list">
   <li>
