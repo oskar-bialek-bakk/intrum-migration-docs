@@ -32,7 +32,7 @@ GO
 -- ============================================================
 GO
 -- Caller must pass @use_staging_mod_date (read once from log.configuration in iter scripts).
--- No default — avoids silent Intrum fallback on misuse.
+-- No default — avoids silent client-default fallback on misuse.
 CREATE OR ALTER PROCEDURE dbo.usp_migrate_atrybut_wartosc
     @att_atd_id           INT,
     @aud_now              DATETIME,        -- consistent with caller iter scripts and other procs

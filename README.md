@@ -28,15 +28,15 @@ Strona dostępna na `http://127.0.0.1:8000`.
 
 ## Mapowanie kolumn (docs-build)
 
-`docs/struktura-stagingu/*.md` dostaje strzałki staging→prod z `docs-build/mapping.json`,
-generowanego ze źródeł SQL silnika (submodule `core/`). Po bumpie submodule `core/`
-zregeneruj mapping:
+`docs/struktura-stagingu/*.md` dostaje strzałki staging→prod z `docs-build/mapping.json`.
+Kanoniczny `mapping.json` generuje CORE (`core/migration/docs-build/generate_mapping.js`,
+pre-commit hook w repo silnika). Po bumpie submodule `core/` skopiuj świeży artefakt:
 
 ```bash
-node migration/docs-build/generate_mapping.js
+cp core/migration/docs-build/mapping.json migration/docs-build/mapping.json
 ```
 
-CI pilnuje driftu (`drift check mapping.json`).
+CI pilnuje zgodności (`drift check mapping.json`).
 
 ## Sync do Confluence
 
@@ -54,7 +54,7 @@ Wymaga pliku `migration/sync/.env` ze skonfigurowanymi zmiennymi (`CONF_URL`, `C
 core/                    # submodule → BakkShared/Generic.DataBase.Migration (silnik)
 migration/
 ├── docs/                # źródło MkDocs (mirrorowane do public repo)
-├── docs-build/          # ekstraktor mapowania kolumn + hook MkDocs
+├── docs-build/          # hook MkDocs + mapping.json (artefakt z CORE)
 ├── clients/intrum/      # profil klienta (profile.yaml, hooki, custom iteracje)
 ├── test_data/           # dane testowe (bcp + manifest)
 ├── sync/                # sync do Confluence
@@ -68,6 +68,6 @@ migration/
 1. Merge do `main` tego repo → pipeline `mirror-github.yml` kopiuje treść do `intrum-migration-docs`, a `deploy-docs.yml` publikuje na App Service.
 2. Push do `intrum-migration-docs/main` → workflow `deploy-pages.yml` buduje MkDocs i publikuje na GitHub Pages.
 
-Zmiana wyłącznie w `migration/docs/` nie wymaga bumpa submodule `core/`. Bump jest potrzebny tylko, gdy zmienia się silnik (SQL/generator), a po nim: regeneracja `mapping.json` (patrz wyżej).
+Zmiana wyłącznie w `migration/docs/` nie wymaga bumpa submodule `core/`. Bump jest potrzebny tylko, gdy zmienia się silnik (SQL/generator), a po nim: odświeżenie `mapping.json` kopią z CORE (patrz wyżej).
 
 Confluence to sync manualny — uruchamiany po zmianach w docs (patrz wyżej).

@@ -1032,7 +1032,7 @@ CREATE TABLE log.configuration (
 INSERT INTO log.configuration (setting_name, setting_value) VALUES ('system_admin_user_id', '5');
 
 -- use_staging_mod_date: per-client toggle (multi-client config — Phase 1+).
--- '0' (default, Intrum) — ignore staging mod_date; aud_data on prod inserts uses
+-- '0' (default)         — ignore staging mod_date; aud_data on prod inserts uses
 --                        GETUTCDATE() captured at iter start (@aud_now).
 -- '1'                  — trust staging mod_date; aud_data = stg.mod_date directly.
 --                        Client is responsible for filling mod_date during staging load.
@@ -1170,7 +1170,7 @@ SET NOCOUNT ON;
     IF @p_system_admin_user_id IS NULL
         THROW 50011, 'system_admin_user_id not found in log.configuration.', 1;
 
-    -- Per-client toggle: 0 = use @aud_now for aud_data (Intrum default), 1 = trust stg.mod_date
+    -- Per-client toggle: 0 = use @aud_now for aud_data (default), 1 = trust stg.mod_date
     SELECT @p_use_staging_mod_date = CAST(setting_value AS BIT)
     FROM log.configuration WITH (NOLOCK)
     WHERE setting_name = 'use_staging_mod_date';
