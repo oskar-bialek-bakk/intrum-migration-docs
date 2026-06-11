@@ -280,7 +280,7 @@ CREATE TABLE mapowanie.dodane_ksiegowania (
 CREATE TABLE dbo.adres_typ (
     at_id       INT              NOT NULL,
     at_nazwa    VARCHAR(50)      NULL,
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     at_uuid     UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     CONSTRAINT PK_adres_typ PRIMARY KEY (at_id)
 );
@@ -288,7 +288,7 @@ CREATE TABLE dbo.adres_typ (
 CREATE TABLE dbo.dluznik_typ (
     dt_id       INT              NOT NULL,
     dt_nazwa    VARCHAR(50)      NULL,
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     dt_uuid     UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     CONSTRAINT PK_dluznik_typ PRIMARY KEY (dt_id)
 );
@@ -299,7 +299,7 @@ CREATE TABLE dbo.dluznik_typ (
 CREATE TABLE dbo.kraj (
     kraj_id     INT              NOT NULL,
     kraj_nazwa  VARCHAR(255)     NULL,
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     kraj_uuid   UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     CONSTRAINT PK_kraj PRIMARY KEY (kraj_id)
 );
@@ -307,7 +307,7 @@ CREATE TABLE dbo.kraj (
 CREATE TABLE dbo.dokument_typ (
     dot_id      INT              NOT NULL,
     dot_nazwa   VARCHAR(50)      NULL,
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     dot_uuid    UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     CONSTRAINT PK_dokument_typ PRIMARY KEY (dot_id)
 );
@@ -321,7 +321,7 @@ CREATE TABLE dbo.operacja_rejestr_typ (
     or_kod      VARCHAR(20)      NOT NULL,
     or_nazwa    VARCHAR(100)     NULL,
     or_strona   VARCHAR(2)       NOT NULL,  -- 'WN' or 'MA'
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     or_uuid     UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     CONSTRAINT PK_operacja_rejestr_typ PRIMARY KEY (or_id),
     CONSTRAINT CK_operacja_rejestr_typ_strona CHECK (or_strona IN ('WN', 'MA')),
@@ -334,7 +334,7 @@ CREATE TABLE dbo.harmonogram_typ (
     ht_id       INT              NOT NULL,
     ht_kod      VARCHAR(20)      NOT NULL,
     ht_nazwa    VARCHAR(100)     NULL,
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     ht_uuid     UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     CONSTRAINT PK_harmonogram_typ PRIMARY KEY (ht_id),
     CONSTRAINT UX_harmonogram_typ_kod UNIQUE (ht_kod)
@@ -343,7 +343,7 @@ CREATE TABLE dbo.harmonogram_typ (
 CREATE TABLE dbo.ksiegowanie_konto (
     ksk_id      INT              NOT NULL,
     ksk_nazwa   VARCHAR(50)      NOT NULL,
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     ksk_uuid    UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     CONSTRAINT PK_ksiegowanie_konto PRIMARY KEY (ksk_id)
 );
@@ -362,7 +362,7 @@ CREATE TABLE dbo.ksiegowanie_konto_subkonto (
 CREATE TABLE dbo.ksiegowanie_typ (
     kst_id      INT              NOT NULL,
     kst_nazwa   VARCHAR(50)      NULL,
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     kst_uuid    UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     CONSTRAINT PK_ksiegowanie_typ PRIMARY KEY (kst_id)
 );
@@ -421,7 +421,7 @@ CREATE TABLE dbo.umowa_kontrahent (
 CREATE TABLE dbo.sprawa_rola_typ (
     sprt_id     INT              NOT NULL,
     sprt_nazwa  VARCHAR(50)      NULL,
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     sprt_uuid   UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     CONSTRAINT PK_sprawa_rola_typ PRIMARY KEY (sprt_id)
 );
@@ -429,7 +429,7 @@ CREATE TABLE dbo.sprawa_rola_typ (
 CREATE TABLE dbo.sprawa_typ (
     spt_id      INT              NOT NULL,
     spt_nazwa   VARCHAR(50)      NULL,
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     spt_uuid    UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     CONSTRAINT PK_sprawa_typ PRIMARY KEY (spt_id)
 );
@@ -440,7 +440,7 @@ CREATE TABLE dbo.sprawa_etap (
     spe_spt_id  INT              NOT NULL,
     spe_akt_id  INT              NULL,
     spe_ext_id  INT              NULL,
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     spe_uuid    UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     CONSTRAINT PK_sprawa_etap PRIMARY KEY (spe_id),
     CONSTRAINT FK_sprawa_etap_sprawa_typ FOREIGN KEY (spe_spt_id) REFERENCES dbo.sprawa_typ (spt_id),
@@ -450,7 +450,7 @@ CREATE TABLE dbo.sprawa_etap (
 CREATE TABLE dbo.telefon_typ (
     tt_id       INT              NOT NULL,
     tt_nazwa    VARCHAR(50)      NOT NULL,
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     tt_uuid     UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     CONSTRAINT PK_telefon_typ PRIMARY KEY (tt_id)
 );
@@ -458,7 +458,7 @@ CREATE TABLE dbo.telefon_typ (
 CREATE TABLE dbo.atrybut_dziedzina (
     atd_id      INT              NOT NULL,
     atd_nazwa   VARCHAR(4000)    NOT NULL,
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     atd_uuid    UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     CONSTRAINT PK_atrybut_dziedzina PRIMARY KEY (atd_id)
 );
@@ -466,7 +466,7 @@ CREATE TABLE dbo.atrybut_dziedzina (
 CREATE TABLE dbo.atrybut_rodzaj (
     atr_id      INT              NOT NULL,
     atr_nazwa   VARCHAR(4000)    NOT NULL,
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     atr_uuid    UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     CONSTRAINT PK_atrybut_rodzaj PRIMARY KEY (atr_id)
 );
@@ -476,7 +476,7 @@ CREATE TABLE dbo.atrybut_typ (
     att_nazwa   VARCHAR(4000)    NOT NULL,
     att_atd_id  INT              NOT NULL,
     att_atr_id  INT              NOT NULL,
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     att_uuid    UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
     CONSTRAINT PK_atrybut_typ PRIMARY KEY (att_id),
     CONSTRAINT FK_atrybut_typ_dziedzina FOREIGN KEY (att_atd_id) REFERENCES dbo.atrybut_dziedzina (atd_id),
@@ -492,7 +492,7 @@ CREATE TABLE dbo.zrodlo_pochodzenia_informacji (
     zpi_nazwa   NVARCHAR(255)    NOT NULL,
     zpi_opis    NVARCHAR(2000)   NULL,
     zpi_uuid    VARCHAR(50)      NOT NULL DEFAULT CAST(NEWID() AS VARCHAR(50)),
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_zrodlo_pochodzenia_informacji PRIMARY KEY (zpi_id)
 );
 
@@ -500,7 +500,7 @@ CREATE TABLE dbo.wlasciwosc_typ_walidacji (
     wtw_id      INT              NOT NULL,
     wtw_nazwa   VARCHAR(50)      NOT NULL,
     wtw_uuid    UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_wlasciwosc_typ_walidacji PRIMARY KEY (wtw_id)
 );
 
@@ -508,7 +508,7 @@ CREATE TABLE dbo.wlasciwosc_dziedzina (
     wdzi_id     INT              NOT NULL,
     wdzi_nazwa  VARCHAR(100)     NOT NULL,
     wdzi_uuid   UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_wlasciwosc_dziedzina PRIMARY KEY (wdzi_id)
 );
 
@@ -516,7 +516,7 @@ CREATE TABLE dbo.wlasciwosc_podtyp (
     wpt_id      INT              NOT NULL,
     wpt_nazwa   VARCHAR(255)     NOT NULL,
     wpt_uuid    UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_wlasciwosc_podtyp PRIMARY KEY (wpt_id)
 );
 
@@ -525,7 +525,7 @@ CREATE TABLE dbo.wlasciwosc_typ (
     wt_nazwa    VARCHAR(255)     NOT NULL,
     wt_wtw_id   INT              NOT NULL,
     wt_uuid     UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_wlasciwosc_typ PRIMARY KEY (wt_id),
     CONSTRAINT FK_wlasciwosc_typ_walidacji FOREIGN KEY (wt_wtw_id) REFERENCES dbo.wlasciwosc_typ_walidacji (wtw_id)
 );
@@ -536,7 +536,7 @@ CREATE TABLE dbo.wlasciwosc_typ_podtyp_dziedzina (
     wtpd_dzi_id INT              NOT NULL,
     wtpd_wpt_id INT              NOT NULL,
     wtpd_uuid   UNIQUEIDENTIFIER NOT NULL DEFAULT NEWID(),
-    mod_date    DATETIME         NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME         NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_wlasciwosc_typ_podtyp_dziedzina PRIMARY KEY (wtpd_id),
     CONSTRAINT FK_wtpd_wt   FOREIGN KEY (wtpd_wt_id)  REFERENCES dbo.wlasciwosc_typ  (wt_id),
     CONSTRAINT FK_wtpd_dzi  FOREIGN KEY (wtpd_dzi_id)  REFERENCES dbo.wlasciwosc_dziedzina (wdzi_id),
@@ -567,7 +567,7 @@ CREATE TABLE dbo.dluznik (
     dl_nip               VARCHAR(20)     NULL,
     dl_regon             VARCHAR(20)     NULL,
     dl_zpi_id            INT             NULL,
-    mod_date             DATETIME        NOT NULL DEFAULT GETDATE(),
+    mod_date             DATETIME        NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_dluznik PRIMARY KEY (dl_id),
     CONSTRAINT FK_dluznik_dluznik_typ  FOREIGN KEY (dl_dt_id)   REFERENCES dbo.dluznik_typ  (dt_id),
     CONSTRAINT FK_dluznik_kraj         FOREIGN KEY (dl_kraj_id) REFERENCES dbo.kraj         (kraj_id),
@@ -585,7 +585,7 @@ CREATE TABLE dbo.sprawa (
     sp_import_info      VARCHAR(50)  NULL,
     sp_data_obslugi_od  DATETIME     NULL,
     sp_data_obslugi_do  DATETIME     NULL,
-    mod_date            DATETIME     NOT NULL DEFAULT GETDATE(),
+    mod_date            DATETIME     NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_sprawa PRIMARY KEY (sp_id),
     CONSTRAINT FK_sprawa_sprawa_etap FOREIGN KEY (sp_spe_id) REFERENCES dbo.sprawa_etap (spe_id),
     CONSTRAINT FK_sprawa_sprawa_typ  FOREIGN KEY (sp_spt_id) REFERENCES dbo.sprawa_typ  (spt_id)
@@ -598,7 +598,7 @@ CREATE TABLE dbo.wierzytelnosc (
     wi_numer        VARCHAR(50)  NULL,
     wi_tytul        VARCHAR(200) NULL,
     wi_data_umowy   DATE         NULL,
-    mod_date        DATETIME     NOT NULL DEFAULT GETDATE(),
+    mod_date        DATETIME     NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_wierzytelnosc PRIMARY KEY (wi_id),
     CONSTRAINT FK_wierzytelnosc_sprawa           FOREIGN KEY (wi_sp_id)  REFERENCES dbo.sprawa           (sp_id),
     CONSTRAINT FK_wierzytelnosc_umowa_kontrahent FOREIGN KEY (wi_uko_id) REFERENCES dbo.umowa_kontrahent (uko_id)
@@ -612,7 +612,7 @@ CREATE TABLE dbo.ksiegowanie (
     ks_do_id                INT          NULL,
     ks_pierwotne            BIT          NULL,
     ks_korekta              BIT          NULL,
-    mod_date                DATETIME     NOT NULL DEFAULT GETDATE(),
+    mod_date                DATETIME     NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_ksiegowanie PRIMARY KEY (ks_id)
 );
 
@@ -635,7 +635,7 @@ CREATE TABLE dbo.adres (
     ad_data_od      DATETIME      NULL,
     ad_data_do      DATETIME      NULL,
     ad_zpi_id       INT           NULL,
-    mod_date        DATETIME      NOT NULL DEFAULT GETDATE(),
+    mod_date        DATETIME      NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_adres PRIMARY KEY (ad_id),
     CONSTRAINT FK_adres_dluznik   FOREIGN KEY (ad_dl_id)   REFERENCES dbo.dluznik   (dl_id),
     CONSTRAINT FK_adres_adres_typ FOREIGN KEY (ad_at_id)   REFERENCES dbo.adres_typ (at_id),
@@ -648,7 +648,7 @@ CREATE TABLE dbo.akcja (
     ak_sp_id            BIGINT   NOT NULL,
     ak_akt_id           INT      NULL,
     ak_data_zakonczenia DATE     NULL,
-    mod_date            DATETIME NOT NULL DEFAULT GETDATE(),
+    mod_date            DATETIME NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_akcja PRIMARY KEY (ak_id),
     CONSTRAINT FK_akcja_sprawa    FOREIGN KEY (ak_sp_id)  REFERENCES dbo.sprawa    (sp_id),
     CONSTRAINT FK_akcja_akcja_typ FOREIGN KEY (ak_akt_id) REFERENCES dbo.akcja_typ (akt_id)
@@ -659,7 +659,7 @@ CREATE TABLE dbo.rezultat (
     re_ak_id            INT  NOT NULL,
     re_ret_id           INT  NOT NULL,
     re_data_wykonania   DATE NULL,
-    mod_date            DATETIME NOT NULL DEFAULT GETDATE(),
+    mod_date            DATETIME NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_rezultat PRIMARY KEY (re_id),
     CONSTRAINT FK_rezultat_akcja        FOREIGN KEY (re_ak_id)  REFERENCES dbo.akcja       (ak_id),
     CONSTRAINT FK_rezultat_rezultat_typ FOREIGN KEY (re_ret_id) REFERENCES dbo.rezultat_typ (ret_id)
@@ -670,7 +670,7 @@ CREATE TABLE dbo.atrybut (
     at_ob_id    BIGINT        NOT NULL,
     at_wartosc  VARCHAR(100)  NOT NULL,
     at_att_id   INT           NOT NULL,
-    mod_date    DATETIME      NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME      NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_atrybut PRIMARY KEY (at_id),
     CONSTRAINT FK_atrybut_typ FOREIGN KEY (at_att_id) REFERENCES dbo.atrybut_typ (att_id)
 );
@@ -682,7 +682,7 @@ CREATE TABLE dbo.dokument (
     do_data_wystawienia     DATE         NULL,
     do_dot_id               INT          NOT NULL,
     do_tytul_dokumentu      VARCHAR(200) NULL,
-    mod_date                DATETIME     NOT NULL DEFAULT GETDATE(),
+    mod_date                DATETIME     NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_dokument PRIMARY KEY (do_id),
     CONSTRAINT FK_dokument_wierzytelnosc FOREIGN KEY (do_wi_id)  REFERENCES dbo.wierzytelnosc (wi_id),
     CONSTRAINT FK_dokument_dokument_typ  FOREIGN KEY (do_dot_id) REFERENCES dbo.dokument_typ  (dot_id)
@@ -704,7 +704,7 @@ CREATE TABLE dbo.dokument_odsetki_przerwy (
     dop_licz_od_niewymagalnych  BIT      NOT NULL DEFAULT 0,
     dop_dopt_id                 INT      NOT NULL,
     dop_ak_id                   INT      NULL,
-    mod_date                    DATETIME NOT NULL DEFAULT GETDATE(),
+    mod_date                    DATETIME NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_dokument_odsetki_przerwy PRIMARY KEY (dop_id),
     CONSTRAINT FK_dop_do   FOREIGN KEY (dop_do_id)   REFERENCES dbo.dokument (do_id),
     CONSTRAINT FK_dop_dopt FOREIGN KEY (dop_dopt_id) REFERENCES dbo.dokument_odsetki_przerwy_typ (dopt_id)
@@ -719,7 +719,7 @@ CREATE TABLE dbo.harmonogram (
     hr_kwota_raty       DECIMAL(18,2)   NOT NULL,
     hr_kwota_kapitalu   DECIMAL(18,2)   NOT NULL,
     hr_kwota_odsetek    DECIMAL(18,2)   NOT NULL,
-    mod_date            DATETIME        NOT NULL DEFAULT GETDATE(),
+    mod_date            DATETIME        NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_harmonogram PRIMARY KEY (hr_id),
     CONSTRAINT FK_harmonogram_wierzytelnosc FOREIGN KEY (hr_wi_id) REFERENCES dbo.wierzytelnosc (wi_id),
     CONSTRAINT FK_harmonogram_typ           FOREIGN KEY (hr_typ)   REFERENCES dbo.harmonogram_typ (ht_id)
@@ -743,7 +743,7 @@ CREATE TABLE dbo.ksiegowanie_dekret (
     ksd_kwota_ma_bazowa         DECIMAL(18,2) NULL,
     ksd_wa_id                   INT           NULL,
     ksd_ksksub_id               INT           NULL,
-    mod_date                    DATETIME      NOT NULL DEFAULT GETDATE(),
+    mod_date                    DATETIME      NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_ksiegowanie_dekret  PRIMARY KEY (ksd_id),
     CONSTRAINT FK_ksd_ksiegowanie     FOREIGN KEY (ksd_ks_id)        REFERENCES dbo.ksiegowanie       (ks_id),
     CONSTRAINT FK_ksd_dokument        FOREIGN KEY (ksd_do_id)        REFERENCES dbo.dokument          (do_id),
@@ -760,7 +760,7 @@ CREATE TABLE dbo.mail (
     ma_data_od          DATETIME     NULL,
     ma_data_do          DATETIME     NULL,
     ma_zpi_id           INT          NULL,
-    mod_date            DATETIME     NOT NULL DEFAULT GETDATE(),
+    mod_date            DATETIME     NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_mail PRIMARY KEY (ma_id),
     CONSTRAINT FK_mail_dluznik FOREIGN KEY (ma_dl_id) REFERENCES dbo.dluznik (dl_id),
     CONSTRAINT FK_mail_zrodlo_pochodzenia_informacji FOREIGN KEY (ma_zpi_id) REFERENCES dbo.zrodlo_pochodzenia_informacji (zpi_id)
@@ -805,7 +805,7 @@ CREATE TABLE dbo.operacja (
     oper_do_id                       BIGINT        NULL,
     oper_parent_oper_id              BIGINT        NULL,
     oper_sp_id                       BIGINT        NULL,
-    mod_date                         DATETIME      NOT NULL DEFAULT GETDATE(),
+    mod_date                         DATETIME      NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_operacja PRIMARY KEY (oper_id),
     CONSTRAINT FK_operacja_wierzytelnosc    FOREIGN KEY (oper_wi_id)                REFERENCES dbo.wierzytelnosc (wi_id),
     CONSTRAINT FK_operacja_dokument_typ     FOREIGN KEY (oper_dokument_typ_prod_id) REFERENCES dbo.dokument_typ  (dot_id),
@@ -823,7 +823,7 @@ CREATE TABLE dbo.sprawa_rola (
     spr_sprt_id INT      NOT NULL,
     spr_data_od DATE     NULL,
     spr_data_do DATE     NULL,
-    mod_date    DATETIME NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_sprawa_rola PRIMARY KEY (spr_id),
     CONSTRAINT FK_sprawa_rola_sprawa          FOREIGN KEY (spr_sp_id)   REFERENCES dbo.sprawa          (sp_id),
     CONSTRAINT FK_sprawa_rola_dluznik         FOREIGN KEY (spr_dl_id)   REFERENCES dbo.dluznik         (dl_id),
@@ -838,7 +838,7 @@ CREATE TABLE dbo.telefon (
     tn_data_od  DATETIME     NULL,
     tn_data_do  DATETIME     NULL,
     tn_zpi_id   INT          NULL,
-    mod_date    DATETIME     NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME     NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_telefon PRIMARY KEY (tn_id),
     CONSTRAINT FK_telefon_dluznik     FOREIGN KEY (tn_dl_id) REFERENCES dbo.dluznik    (dl_id),
     CONSTRAINT FK_telefon_telefon_typ FOREIGN KEY (tn_tt_id) REFERENCES dbo.telefon_typ (tt_id),
@@ -855,7 +855,7 @@ CREATE TABLE dbo.wlasciwosc (
     wl_wtpd_id      INT      NOT NULL,
     wl_aktywny_od   DATETIME NOT NULL,
     wl_aktywny_do   DATETIME NULL,
-    mod_date        DATETIME NOT NULL DEFAULT GETDATE(),
+    mod_date        DATETIME NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_wlasciwosc PRIMARY KEY (wl_id),
     CONSTRAINT FK_wlasciwosc_wtpd FOREIGN KEY (wl_wtpd_id) REFERENCES dbo.wlasciwosc_typ_podtyp_dziedzina (wtpd_id)
 );
@@ -864,7 +864,7 @@ CREATE TABLE dbo.wlasciwosc_dluznik (
     wd_id       BIGINT   NOT NULL,
     wd_wl_id    BIGINT   NOT NULL,
     wd_dl_id    BIGINT   NOT NULL,
-    mod_date    DATETIME NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_wlasciwosc_dluznik PRIMARY KEY (wd_id),
     CONSTRAINT FK_wd_wl FOREIGN KEY (wd_wl_id) REFERENCES dbo.wlasciwosc (wl_id),
     CONSTRAINT FK_wd_dl FOREIGN KEY (wd_dl_id) REFERENCES dbo.dluznik    (dl_id)
@@ -874,7 +874,7 @@ CREATE TABLE dbo.wlasciwosc_adres (
     wa_id       BIGINT   NOT NULL,
     wa_wl_id    BIGINT   NOT NULL,
     wa_ad_id    BIGINT   NOT NULL,
-    mod_date    DATETIME NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_wlasciwosc_adres PRIMARY KEY (wa_id),
     CONSTRAINT FK_wa_wl FOREIGN KEY (wa_wl_id) REFERENCES dbo.wlasciwosc (wl_id),
     CONSTRAINT FK_wa_ad FOREIGN KEY (wa_ad_id) REFERENCES dbo.adres      (ad_id)
@@ -884,7 +884,7 @@ CREATE TABLE dbo.wlasciwosc_email (
     we_id       BIGINT   NOT NULL,
     we_wl_id    BIGINT   NOT NULL,
     we_ma_id    BIGINT   NOT NULL,
-    mod_date    DATETIME NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_wlasciwosc_email PRIMARY KEY (we_id),
     CONSTRAINT FK_we_wl FOREIGN KEY (we_wl_id) REFERENCES dbo.wlasciwosc (wl_id),
     CONSTRAINT FK_we_ma FOREIGN KEY (we_ma_id) REFERENCES dbo.mail       (ma_id)
@@ -894,7 +894,7 @@ CREATE TABLE dbo.wlasciwosc_telefon (
     wt_id       BIGINT   NOT NULL,
     wt_wl_id    BIGINT   NOT NULL,
     wt_tn_id    BIGINT   NOT NULL,
-    mod_date    DATETIME NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_wlasciwosc_telefon PRIMARY KEY (wt_id),
     CONSTRAINT FK_wt_wl FOREIGN KEY (wt_wl_id) REFERENCES dbo.wlasciwosc (wl_id),
     CONSTRAINT FK_wt_tn FOREIGN KEY (wt_tn_id) REFERENCES dbo.telefon    (tn_id)
@@ -904,7 +904,7 @@ CREATE TABLE dbo.wierzytelnosc_rola (
     wir_id      BIGINT   NOT NULL IDENTITY(1,1),
     wir_sp_id   BIGINT   NOT NULL,
     wir_wi_id   BIGINT   NOT NULL,
-    mod_date    DATETIME NOT NULL DEFAULT GETDATE(),
+    mod_date    DATETIME NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_wierzytelnosc_rola PRIMARY KEY (wir_id),
     CONSTRAINT FK_wierzytelnosc_rola_sprawa        FOREIGN KEY (wir_sp_id) REFERENCES dbo.sprawa        (sp_id),
     CONSTRAINT FK_wierzytelnosc_rola_wierzytelnosc FOREIGN KEY (wir_wi_id) REFERENCES dbo.wierzytelnosc (wi_id)
@@ -933,7 +933,7 @@ CREATE TABLE dbo.zabezpieczenie (
     zab_waluta_kw           VARCHAR(3)    NULL,
     zab_wpis_kw             DECIMAL(18,2) NULL,
     zab_priorytet           VARCHAR(2)    NULL,
-    mod_date                DATETIME      NOT NULL DEFAULT GETDATE(),
+    mod_date                DATETIME      NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_zabezpieczenie PRIMARY KEY (zab_id),
     CONSTRAINT FK_zabezpieczenie_dluznik       FOREIGN KEY (zab_dl_id)  REFERENCES dbo.dluznik       (dl_id),
     CONSTRAINT FK_zabezpieczenie_wierzytelnosc FOREIGN KEY (zab_wi_id)  REFERENCES dbo.wierzytelnosc (wi_id)
@@ -950,7 +950,7 @@ CREATE TABLE log.migration_run (
     migration_stage  INT               NOT NULL,
     run_by           NVARCHAR(128)     NOT NULL,
     status           VARCHAR(20)       NOT NULL,  -- RUNNING / COMPLETED / FAILED
-    run_date         DATETIME          NOT NULL DEFAULT GETDATE(),
+    run_date         DATETIME          NOT NULL DEFAULT GETUTCDATE(),
     duration_seconds INT               NULL,
     records_total    INT               NULL,
     records_success  INT               NULL,
@@ -997,7 +997,7 @@ CREATE TABLE log.validation_result (
     affected_count INT               NULL,                  -- NULL = check was skipped (see log.check_toggle)
     sample_ids     VARCHAR(500)      NULL,
     detail         NVARCHAR(MAX)     NULL,
-    logged_at      DATETIME          NOT NULL DEFAULT GETDATE(),
+    logged_at      DATETIME          NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_validation_result PRIMARY KEY (id),
     CONSTRAINT FK_vr_run FOREIGN KEY (run_id) REFERENCES log.migration_run (run_id)
 );
@@ -1012,7 +1012,7 @@ CREATE TABLE log.postmigration_check (
     delta          NVARCHAR(200)     NULL,
     pass           BIT               NULL,                            -- NULL = KPI was skipped (see log.check_toggle)
     note           NVARCHAR(MAX)     NULL,
-    checked_at     DATETIME          NOT NULL DEFAULT GETDATE(),
+    checked_at     DATETIME          NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT PK_postmigration_check PRIMARY KEY (check_id),
     CONSTRAINT FK_pmc_run FOREIGN KEY (run_id) REFERENCES log.migration_run (run_id)
 );

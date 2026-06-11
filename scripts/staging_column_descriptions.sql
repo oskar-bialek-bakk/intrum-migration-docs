@@ -611,7 +611,7 @@ EXEC sp_addextendedproperty 'MS_Description', 'Identyfikator typu rejestru (PK)'
 EXEC sp_addextendedproperty 'MS_Description', 'Kod rejestru (np. wplata, korekta)', 'SCHEMA', 'dbo', 'TABLE', 'operacja_rejestr_typ', 'COLUMN', 'or_kod';
 EXEC sp_addextendedproperty 'MS_Description', 'Nazwa typu rejestru', 'SCHEMA', 'dbo', 'TABLE', 'operacja_rejestr_typ', 'COLUMN', 'or_nazwa';
 EXEC sp_addextendedproperty 'MS_Description', 'Strona dekretu (WN lub MA)', 'SCHEMA', 'dbo', 'TABLE', 'operacja_rejestr_typ', 'COLUMN', 'or_strona';
-EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - DEFAULT GETDATE() przy insertcie; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'operacja_rejestr_typ', 'COLUMN', 'mod_date';
+EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - DEFAULT GETUTCDATE() przy insertcie; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'operacja_rejestr_typ', 'COLUMN', 'mod_date';
 EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - DEFAULT NEWID() przy insertcie; nie wypełniać (słownik staging-only, brak prod MERGE)', 'SCHEMA', 'dbo', 'TABLE', 'operacja_rejestr_typ', 'COLUMN', 'or_uuid';
 
 -- ------------------------------------------------------------
@@ -621,5 +621,5 @@ EXEC sp_addextendedproperty 'MS_Description', 'Słownik typów harmonogramów (n
 EXEC sp_addextendedproperty 'MS_Description', 'Identyfikator typu harmonogramu (PK)', 'SCHEMA', 'dbo', 'TABLE', 'harmonogram_typ', 'COLUMN', 'ht_id';
 EXEC sp_addextendedproperty 'MS_Description', 'Kod typu harmonogramu', 'SCHEMA', 'dbo', 'TABLE', 'harmonogram_typ', 'COLUMN', 'ht_kod';
 EXEC sp_addextendedproperty 'MS_Description', 'Nazwa typu harmonogramu', 'SCHEMA', 'dbo', 'TABLE', 'harmonogram_typ', 'COLUMN', 'ht_nazwa';
-EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - DEFAULT GETDATE() przy insertcie; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'harmonogram_typ', 'COLUMN', 'mod_date';
+EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - DEFAULT GETUTCDATE() przy insertcie; nie wypełniać', 'SCHEMA', 'dbo', 'TABLE', 'harmonogram_typ', 'COLUMN', 'mod_date';
 EXEC sp_addextendedproperty 'MS_Description', 'Kolumna techniczna - DEFAULT NEWID() przy insertcie; nie wypełniać (słownik staging-only, brak prod MERGE)', 'SCHEMA', 'dbo', 'TABLE', 'harmonogram_typ', 'COLUMN', 'ht_uuid';
