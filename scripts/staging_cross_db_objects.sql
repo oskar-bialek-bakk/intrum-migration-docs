@@ -179,6 +179,8 @@ BEGIN
     END;
 
     -- Step 3: Snapshot existing idempotency pairs into #wl_exist
+    -- @p_dziedzina_id is a STAGING wdzi_id; prod wtpd_dzi_id holds prod ids,
+    -- so translate via staging wlasciwosc_dziedzina.wdzi_ext_id (set by iter1).
     CREATE TABLE #wl_exist (entity_id BIGINT, wtpd_id INT);
 
     SET @sql = N'
@@ -186,10 +188,16 @@ BEGIN
         SELECT jt.' + QUOTENAME(@p_prod_join_entity_fk) + N', wl.wl_wtpd_id
         FROM __PROD_DB__.dbo.' + QUOTENAME(@p_stg_join_table) + N' jt WITH (NOLOCK)
         JOIN __PROD_DB__.dbo.wlasciwosc wl WITH (NOLOCK)
-            ON wl.wl_id = jt.' + QUOTENAME(@p_prod_join_wl_fk)
-        + N' WHERE wl.wl_wtpd_id = ' + CAST(@p_dziedzina_id AS NVARCHAR(10)) + N';';
+            ON wl.wl_id = jt.' + QUOTENAME(@p_prod_join_wl_fk) + N'
+        JOIN __PROD_DB__.dbo.wlasciwosc_typ_podtyp_dziedzina wtpd WITH (NOLOCK)
+            ON wtpd.wtpd_id = wl.wl_wtpd_id
+        JOIN dbo.wlasciwosc_dziedzina stg_dzi WITH (NOLOCK)
+            ON stg_dzi.wdzi_ext_id = wtpd.wtpd_dzi_id
+        WHERE stg_dzi.wdzi_id = @dzi_id;';
 
-    EXEC sp_executesql @sql;
+    EXEC sp_executesql @sql,
+        N'@dzi_id INT',
+        @dzi_id = @p_dziedzina_id;
 
     -- Step 4: MERGE into wlasciwosc (always INSERT via ON 1=0)
     CREATE TABLE #wl_map (staging_wl_id BIGINT, prod_wl_id INT);
@@ -295,7 +303,7 @@ BEGIN
             @alogin
         FROM dbo.' + QUOTENAME(@p_stg_join_table) + N' stg_j WITH (NOLOCK)
         JOIN #wl_map m ON m.staging_wl_id = stg_j.' + QUOTENAME(@p_stg_join_wl_fk) + N'
-        JOIN ' + @p_mapping_table + N' fk WITH (NOLOCK)
+        JOIN ' + @mapping_table_quoted + N' fk WITH (NOLOCK)
             ON fk.' + QUOTENAME(@p_mapping_staging_col) + N' = stg_j.' + QUOTENAME(@p_stg_join_entity_fk) + N';';
     END
     ELSE
@@ -342,6 +350,9 @@ CREATE OR ALTER PROCEDURE dbo.usp_manage_prod_ncis
 AS
 BEGIN
     SET NOCOUNT ON;
+
+    IF @action NOT IN (N'DISABLE', N'REBUILD')
+        THROW 50302, 'usp_manage_prod_ncis: @action must be DISABLE or REBUILD.', 1;
 
     DECLARE @sql NVARCHAR(MAX) = N'';
     DECLARE @is_disabled BIT = CASE WHEN @action = 'REBUILD' THEN 1 ELSE 0 END;
