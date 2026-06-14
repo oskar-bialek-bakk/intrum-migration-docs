@@ -906,9 +906,19 @@
           ]
         },
         "sp_numer_sprawy": {
-          "prod_table": "dbo.sprawa",
-          "prod_col": "sp_numer",
-          "kind": "split"
+          "kind": "multi_target",
+          "targets": [
+            {
+              "prod_table": "dbo.sprawa",
+              "prod_col": "sp_numer",
+              "kind": "1:1"
+            },
+            {
+              "prod_table": "dbo.sprawa",
+              "prod_col": "sp_numer_migracja",
+              "kind": "1:1"
+            }
+          ]
         },
         "sp_import_info": {
           "prod_table": "dbo.sprawa",

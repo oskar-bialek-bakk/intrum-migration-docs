@@ -18,6 +18,7 @@
 -- Procedures defined:
 --   - dbo.usp_migrate_atrybut_wartosc    (static cross-DB refs)
 --   - dbo.usp_migrate_wlasciwosc_domain  (dynamic SQL only)
+--   - dbo.usp_allocate_case_numbers       (static cross-DB refs + sp_sequence_get_range)
 --   - dbo.usp_migrate_sprawa              (static cross-DB refs)
 --   - dbo.usp_migrate_sprawa_rola         (static cross-DB refs)
 --   - dbo.usp_manage_prod_ncis           (static cross-DB refs)
@@ -339,10 +340,80 @@ END;
 GO
 
 -- ============================================================
+-- usp_allocate_case_numbers — rezerwuje blok numerów sprawy (sp_numer)
+-- z sekwencji produkcyjnej i zapisuje do mapowanie.sprawa_numer_pool
+-- (po jednym wierszu na sp_ext_id z #numer_src). Wołane przez iterN_pre hooki.
+--
+-- Caller tworzy wcześniej: #numer_src (sp_ext_id VARCHAR(255)).
+-- @spt_id wyznacza schemat numeracji przez sprawa_typ.spt_mfa_key
+-- (mirror prod p_numer_sprawy_wygeneruj): debt-case→'W/'+numer_sprawy_windykacja,
+-- debtor-case→'D/'+numer_sprawy_dluznik, creditor-case→'K/'+numer_sprawy_kontrahent.
+-- Format = prefix + RIGHT('000000000'+seq,9) (jak dbo.f_numer_sprawy_przygotuj).
+-- Blok pobierany jednym sys.sp_sequence_get_range (bez per-row NEXT VALUE FOR).
+-- Idempotentne: pomija sp_ext_id już obecne w puli.
+-- ============================================================
+GO
+CREATE OR ALTER PROCEDURE dbo.usp_allocate_case_numbers
+    @spt_id     INT,
+    @allocated  INT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @mfa VARCHAR(255) = (
+        SELECT TOP 1 spt_mfa_key FROM __PROD_DB__.dbo.sprawa_typ WITH (NOLOCK) WHERE spt_id = @spt_id
+    );
+    DECLARE @seq SYSNAME, @prefix VARCHAR(8);
+    SELECT @seq = CASE @mfa
+                      WHEN 'debt-case'     THEN N'dbo.numer_sprawy_windykacja'
+                      WHEN 'debtor-case'   THEN N'dbo.numer_sprawy_dluznik'
+                      WHEN 'creditor-case' THEN N'dbo.numer_sprawy_kontrahent'
+                  END,
+           @prefix = CASE @mfa
+                      WHEN 'debt-case'     THEN 'W/'
+                      WHEN 'debtor-case'   THEN 'D/'
+                      WHEN 'creditor-case' THEN 'K/'
+                  END;
+    IF @seq IS NULL
+        THROW 50150, 'usp_allocate_case_numbers: brak schematu numeracji dla podanego spt_id (spt_mfa_key).', 1;
+
+    SET @allocated = 0;
+    DECLARE @count INT = (
+        SELECT COUNT(*) FROM #numer_src s
+        WHERE NOT EXISTS (SELECT 1 FROM mapowanie.sprawa_numer_pool p WHERE p.sp_ext_id = s.sp_ext_id)
+    );
+    IF @count = 0 RETURN;
+
+    -- Atomowa rezerwacja calego bloku z sekwencji prod (jeden round-trip).
+    DECLARE @first SQL_VARIANT;
+    EXEC __PROD_DB__.sys.sp_sequence_get_range
+        @sequence_name     = @seq,
+        @range_size        = @count,
+        @range_first_value = @first OUTPUT;
+    DECLARE @first_int INT = CAST(@first AS INT);
+
+    ;WITH src AS (
+        SELECT s.sp_ext_id,
+               ROW_NUMBER() OVER (ORDER BY s.sp_ext_id) - 1 AS ord
+        FROM #numer_src s
+        WHERE NOT EXISTS (SELECT 1 FROM mapowanie.sprawa_numer_pool p WHERE p.sp_ext_id = s.sp_ext_id)
+    )
+    INSERT INTO mapowanie.sprawa_numer_pool (sp_ext_id, spt_id, sp_numer)
+    SELECT src.sp_ext_id, @spt_id,
+           @prefix + RIGHT('000000000' + CAST(@first_int + src.ord AS VARCHAR(25)), 9)
+    FROM src;
+
+    SET @allocated = @@ROWCOUNT;
+END;
+GO
+
+-- ============================================================
 -- usp_migrate_sprawa — wstawia sprawy z #sprawa_src do prod.
--- Caller tworzy wcześniej: #sprawa_src (kolumny jak w INSERT)
+-- Caller tworzy wcześniej: #sprawa_src (kolumny jak w INSERT, w tym sp_numer_migracja)
 --   oraz #sp_output (prod_sp_id INT, sp_ext_id VARCHAR(255)).
 -- Idempotencja: równość stringów na sp_ext_id (bez CAST).
+-- sp_numer = COALESCE(mapowanie.sprawa_numer_pool.sp_numer, src.sp_numer) — pula z
+--   iterN_pre hooków nadpisuje numer; pusta pula → fallback na sp_numer z callera.
 -- #sp_output po wyjściu zawiera komplet (nowe + prior-run) do budowy roli/mapowania.
 -- Caller loguje (log.usp_log_success).
 -- ============================================================
@@ -368,7 +439,7 @@ BEGIN
     );
 
     INSERT INTO __PROD_DB__.dbo.sprawa WITH (TABLOCK) (
-        sp_ext_id, sp_numer, sp_import_info,
+        sp_ext_id, sp_numer, sp_numer_migracja, sp_import_info,
         sp_data_obslugi_od, sp_data_obslugi_do,
         sp_spt_id, sp_rb_id, sp_pr_id,
         aud_data, aud_login
@@ -376,12 +447,16 @@ BEGIN
     OUTPUT inserted.sp_id, inserted.sp_ext_id
     INTO #sp_output (prod_sp_id, sp_ext_id)
     SELECT
-        src.sp_ext_id, src.sp_numer, src.sp_import_info,
+        src.sp_ext_id,
+        COALESCE(pool.sp_numer, src.sp_numer),
+        src.sp_numer_migracja,
+        src.sp_import_info,
         src.sp_data_obslugi_od, src.sp_data_obslugi_do,
         src.sp_spt_id, src.sp_rb_id, src.sp_pr_id,
         src.aud_data, @aud_login
     FROM #sprawa_src src
     LEFT JOIN #existing_sp ex ON ex.sp_ext_id = src.sp_ext_id
+    LEFT JOIN mapowanie.sprawa_numer_pool pool WITH (NOLOCK) ON pool.sp_ext_id = src.sp_ext_id
     WHERE ex.sp_ext_id IS NULL;
 
     SET @inserted = @@ROWCOUNT;

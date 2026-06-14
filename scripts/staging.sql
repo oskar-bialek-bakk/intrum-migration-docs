@@ -101,6 +101,7 @@ DROP TABLE IF EXISTS mapowanie.dodane_dokumenty;
 DROP TABLE IF EXISTS mapowanie.dodane_wierzytelnosci;
 DROP TABLE IF EXISTS mapowanie.dodani_dluznicy;
 DROP TABLE IF EXISTS mapowanie.dodane_sprawy;
+DROP TABLE IF EXISTS mapowanie.sprawa_numer_pool;
 DROP TABLE IF EXISTS mapowanie.plec;
 DROP TABLE IF EXISTS dbo.dluznik_typ;
 DROP TABLE IF EXISTS dbo.adres_typ;
@@ -175,6 +176,17 @@ CREATE TABLE mapowanie.dodane_sprawy (
     staging_sp_id BIGINT NOT NULL,
     prod_sp_id    INT NOT NULL,
     CONSTRAINT PK_dodane_sprawy PRIMARY KEY (staging_sp_id)
+);
+
+-- Pre-allocated case numbers (sp_numer) per sprawa-to-create, keyed by sp_ext_id.
+-- Filled by iterN_pre hooks via dbo.usp_allocate_case_numbers (batch from prod
+-- numbering sequences). Empty by default → usp_migrate_sprawa falls back to the
+-- caller-provided sp_numer. spt_id stored for easy filtering/audit.
+CREATE TABLE mapowanie.sprawa_numer_pool (
+    sp_ext_id VARCHAR(255) NOT NULL,
+    spt_id    INT          NOT NULL,
+    sp_numer  VARCHAR(50)  NOT NULL,
+    CONSTRAINT PK_sprawa_numer_pool PRIMARY KEY (sp_ext_id)
 );
 
 CREATE TABLE mapowanie.dodane_wierzytelnosci (
