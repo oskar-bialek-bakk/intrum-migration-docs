@@ -18,6 +18,8 @@
 -- Procedures defined:
 --   - dbo.usp_migrate_atrybut_wartosc    (static cross-DB refs)
 --   - dbo.usp_migrate_wlasciwosc_domain  (dynamic SQL only)
+--   - dbo.usp_migrate_sprawa              (static cross-DB refs)
+--   - dbo.usp_migrate_sprawa_rola         (static cross-DB refs)
 --   - dbo.usp_manage_prod_ncis           (static cross-DB refs)
 -- ============================================================
 
@@ -333,6 +335,113 @@ BEGIN
     -- Cleanup
     DROP TABLE IF EXISTS #wl_exist;
     DROP TABLE IF EXISTS #wl_map;
+END;
+GO
+
+-- ============================================================
+-- usp_migrate_sprawa — wstawia sprawy z #sprawa_src do prod.
+-- Caller tworzy wcześniej: #sprawa_src (kolumny jak w INSERT)
+--   oraz #sp_output (prod_sp_id INT, sp_ext_id VARCHAR(255)).
+-- Idempotencja: równość stringów na sp_ext_id (bez CAST).
+-- #sp_output po wyjściu zawiera komplet (nowe + prior-run) do budowy roli/mapowania.
+-- Caller loguje (log.usp_log_success).
+-- ============================================================
+GO
+CREATE OR ALTER PROCEDURE dbo.usp_migrate_sprawa
+    @aud_login  VARCHAR(200),
+    @attempted  INT OUTPUT,
+    @inserted   INT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT sp_ext_id INTO #existing_sp
+    FROM __PROD_DB__.dbo.sprawa WITH (NOLOCK)
+    WHERE sp_ext_id IS NOT NULL;
+    CREATE UNIQUE INDEX UX_existing_sp ON #existing_sp (sp_ext_id);
+
+    SET @attempted = (
+        SELECT COUNT(*)
+        FROM #sprawa_src src
+        LEFT JOIN #existing_sp ex ON ex.sp_ext_id = src.sp_ext_id
+        WHERE ex.sp_ext_id IS NULL
+    );
+
+    INSERT INTO __PROD_DB__.dbo.sprawa WITH (TABLOCK) (
+        sp_ext_id, sp_numer, sp_import_info,
+        sp_data_obslugi_od, sp_data_obslugi_do,
+        sp_spt_id, sp_rb_id, sp_pr_id,
+        aud_data, aud_login
+    )
+    OUTPUT inserted.sp_id, inserted.sp_ext_id
+    INTO #sp_output (prod_sp_id, sp_ext_id)
+    SELECT
+        src.sp_ext_id, src.sp_numer, src.sp_import_info,
+        src.sp_data_obslugi_od, src.sp_data_obslugi_do,
+        src.sp_spt_id, src.sp_rb_id, src.sp_pr_id,
+        src.aud_data, @aud_login
+    FROM #sprawa_src src
+    LEFT JOIN #existing_sp ex ON ex.sp_ext_id = src.sp_ext_id
+    WHERE ex.sp_ext_id IS NULL;
+
+    SET @inserted = @@ROWCOUNT;
+
+    INSERT INTO #sp_output (prod_sp_id, sp_ext_id)
+    SELECT p.sp_id, p.sp_ext_id
+    FROM __PROD_DB__.dbo.sprawa p WITH (NOLOCK)
+    JOIN #sprawa_src src ON src.sp_ext_id = p.sp_ext_id
+    LEFT JOIN #sp_output o ON o.sp_ext_id = p.sp_ext_id
+    WHERE o.sp_ext_id IS NULL;
+
+    DROP TABLE IF EXISTS #existing_sp;
+END;
+GO
+
+-- ============================================================
+-- usp_migrate_sprawa_rola — wstawia role z #sprawa_rola_src do prod.
+-- Caller tworzy wcześniej: #sprawa_rola_src (kolumny jak w INSERT).
+-- Idempotencja: NOT EXISTS na parze (spr_sp_id, spr_dl_id).
+-- ============================================================
+GO
+CREATE OR ALTER PROCEDURE dbo.usp_migrate_sprawa_rola
+    @aud_login  VARCHAR(200),
+    @attempted  INT OUTPUT,
+    @inserted   INT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Scope snapshot to sprawy present in the source set (idempotency only needs those).
+    SELECT spr_sp_id, spr_dl_id INTO #existing_spr
+    FROM __PROD_DB__.dbo.sprawa_rola WITH (NOLOCK)
+    WHERE spr_sp_id IN (SELECT spr_sp_id FROM #sprawa_rola_src);
+    CREATE UNIQUE INDEX UX_existing_spr ON #existing_spr (spr_sp_id, spr_dl_id);
+
+    SET @attempted = (
+        SELECT COUNT(*)
+        FROM #sprawa_rola_src src
+        LEFT JOIN #existing_spr ex
+            ON ex.spr_sp_id = src.spr_sp_id AND ex.spr_dl_id = src.spr_dl_id
+        WHERE ex.spr_sp_id IS NULL
+    );
+
+    INSERT INTO __PROD_DB__.dbo.sprawa_rola WITH (TABLOCK) (
+        spr_sp_id, spr_dl_id, spr_sprt_id,
+        spr_kwota_poreczenia_do, spr_data_od, spr_data_do,
+        aud_data, aud_login
+    )
+    SELECT
+        src.spr_sp_id, src.spr_dl_id, src.spr_sprt_id,
+        src.spr_kwota_poreczenia_do, src.spr_data_od, src.spr_data_do,
+        src.aud_data, @aud_login
+    FROM #sprawa_rola_src src
+    LEFT JOIN #existing_spr ex
+        ON ex.spr_sp_id = src.spr_sp_id AND ex.spr_dl_id = src.spr_dl_id
+    WHERE ex.spr_sp_id IS NULL;
+
+    SET @inserted = @@ROWCOUNT;
+
+    DROP TABLE IF EXISTS #existing_spr;
 END;
 GO
 
